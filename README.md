@@ -1,4 +1,7 @@
-pdm
+XDM
 ===
 
-plugin based download manager ... one to rue them all
+XDM: Xtentable Download Manager.
+Plugin based media collection manager.
+
+XDM is at ALPHA STAGE
