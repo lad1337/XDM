@@ -202,6 +202,19 @@ footer a:hover{
 }
 
 
+.navbar-search{
+    margin-top: 0;
+    position: relative;
+    top: 5px;
+    width: 30%;
+}
+
+.navbar-search .input-append{
+    width: 100%;
+    position: relative;
+    left: -27px;
+}
+
 @media only screen and (max-width: 767px) {
     #container {
         width: 100%;
@@ -235,11 +248,15 @@ footer a:hover{
         border-radius: 0;
     }
     
+    .navbar-search .input-append{
+        left: 0;
+    }
+    /*
     .navbar-search .search-query{
         width: -moz-calc(100% - 47px);
         width: -webkit-calc(100% - 47px);
         width: calc(100% - 47px);
-    }
+    }*/
     
     #container.settings .form-horizontal .controls input[type="text"],
     #container.settings .form-horizontal .controls input[type="number"],

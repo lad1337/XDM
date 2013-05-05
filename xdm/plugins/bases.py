@@ -28,7 +28,7 @@ class Plugin(object):
     config_meta = {}
     version = "0.1"
     useConfigsForElementsAs = 'Category'
-    addMediaTypeConfigs = True
+    addMediaTypeOptions = True
     screenName = ''
 
     def __init__(self, instance='Default'):
@@ -39,7 +39,7 @@ class Plugin(object):
         self.type = self.__class__.__name__
         self.instance = instance.replace('.', '_')
         log("Creating new plugin %s" % self.name)
-        if self.addMediaTypeConfigs:
+        if self.addMediaTypeOptions:
             self._create_media_type_configs() #this adds the configs for media types
         self.c = ConfigWrapper()
         self.config_meta = ConfigMeta(self.config_meta)
@@ -118,12 +118,12 @@ class Plugin(object):
         return os.path.abspath(__file__)
 
     def _create_media_type_configs(self):
-        if self._type in (MediaTypeManager.__name__, System.__name__):
+        if self._type in (MediaTypeManager.__name__, System.__name__, Notifier.__name__):
             return
         mtms = common.PM.getMediaTypeManager()
         for mtm in mtms:
             #enable options for mediatype on this indexer
-            name = helper.replace_some(mtm.name)
+            name = helper.replace_some('%s_runfor' % mtm.name)
             self._config[name] = False
             self.config_meta[name] = {'human': 'Run for %s' % mtm.name, 'type': 'enabled', 'mediaType': mtm.mt}
             #log('Creating multi config fields on %s from %s' % (self.__class__, mtm.__class__))
@@ -161,7 +161,7 @@ class Plugin(object):
         return None
 
     def runFor(self, mtm):
-        return getattr(self.c, helper.replace_some(mtm.name))
+        return getattr(self.c, helper.replace_some('%s_runfor' % mtm.name))
 
 
 class Downloader(Plugin):

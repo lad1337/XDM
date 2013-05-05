@@ -12,7 +12,7 @@
                 {%if last_type != plugin._type%}
                 {%if not loop.first%}</ul>{%endif%}
                 <span class="nav-header">{{plugin._type}}</span>
-                <ul class="nav nav-list">
+                <ul class="nav nav-list {{plugin._type}}">
                 {%endif%}
                 <li>
                     <a href="#{{plugin.name|idSafe}}" data-toggle="tab" data-instance="{{ plugin.instance }}" data-type="{{ plugin.type }}">
@@ -126,6 +126,49 @@ $(document).ready(function() {
         'selector': '',
         'placement': 'right'
      })
+    
+    $('.nav.nav-list a').hover(function(){
+        var t = $($(this).attr('href'))
+        $('.nav.nav-list.MediaTypeManager a').each(function(k,i){
+            var id = $(i).attr('href').replace('#', '');
+            var input = $('input[name$="'+id+'_runfor"][type="checkbox"]',t)
+            console.log(id, input.prop('checked')==true)
+            if(input.prop('checked')){
+                $(i).addClass('btn-striped animate')
+            }
+            
+        });
+
+    },function(){
+        $('.nav.nav-list.MediaTypeManager a').removeClass('btn-striped animate')
+
+    });
+    
+    
+    /*
+    $('.nav.nav-list a').popover({
+        html: true,
+        container: 'body', 
+        trigger:'click',
+        content: function(){
+            form = $('<form>')
+            form.addClass('form-horizontal')
+            items = []
+            $.each(mediaTypenames,function(k,i){
+                group = $('<div class="control-group">')
+                label = $('<label class="control-label">'+i+'</label>');
+                input = $('<input type="checkbox"/>');
+                controls = $('<div>')
+                controls.addClass('controls').append(input)
+                group.append(label).append(controls)
+                form.append(group)
+            })
+        
+
+        
+            return form;
+        }
+    })*/
     
     $("label").each(function(){
         var curLabel = $(this);

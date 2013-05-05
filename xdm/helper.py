@@ -280,7 +280,7 @@ def getActionsTpl():
             <div class="actions btn-group">
                 <a href="/delete?id={{this.id}}" class="action-delete btn btn-danger btn-mini">Delete</a>
                 <a href="/forcesearch?id={{this.id}}" class="action-search btn btn-primary btn-mini">Search</a>
-                <a href="/refreshinfo?id={{this.id}}" class="action-reload btn btn-primary btn-mini">Reload</a>
+                <a href="/refreshinfo?id={{this.id}}" class="action-reload btn btn-primary btn-mini">Refresh</a>
             </div>"""
 
 

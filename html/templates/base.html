@@ -42,17 +42,17 @@
             {% set active_page = active_page|default('index') -%}
             <div class="navbar">
                 <div class="navbar-inner">
-                    <a class="brand" href="/"><img src="/img/xdm-logo.h32.png" height="32" width="100"></a>
+                    <a class="brand" href="/"><img src="/img/xdm-logo.svg" width="100"></a>
                     <ul class="nav">
                         {% for href, id, caption in navigation_bar %}
                           <li{% if id == active_page %} class="active"{% endif
                           %}><a href="{{ href|e }}">{{ caption }}</a></li>
                         {% endfor %}
                     </ul>
-                    <form class="navbar-search pull-right" action="/results" method="get" style="margin-top: 0;position: relative;top: 5px;">
+                    <form class="navbar-search pull-right" action="/results" method="get">
                     
                         <div class="input-append">
-                            <input type="text" class="search-querdy" placeholder="Search" name="search_query" autocomplete="off" style="width: 190px;"/>
+                            <input type="text" class="search-querdy" placeholder="Search" name="search_query" autocomplete="off" style="width: 100%;"/>
                             <span class="add-on"><i class="icon-remove"></i></span>
                         </div>
                     </form>

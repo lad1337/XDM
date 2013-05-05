@@ -80,7 +80,7 @@
 }
 .de-lad1337-music .Album .info{
     position: relative;
-    z-index: 2;
+    z-index: 6;
 }
 .de-lad1337-music .Album .songs{    
     position: absolute;
