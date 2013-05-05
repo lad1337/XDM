@@ -1,0 +1,450 @@
+
+/* ==========================================================================
+   Chrome Frame prompt
+   ========================================================================== */
+
+.chromeframe {
+    margin: 0.2em 0;
+    background: #ccc;
+    color: #000;
+    padding: 0.2em 0;
+}
+
+/* ==========================================================================
+   Author's custom styles
+   ========================================================================== */
+@font-face {
+    font-family: 'fonts/TypeOneRegular';
+    src: url('fonts/typeone.eot');
+}
+
+@font-face {
+    font-family: 'TypeOneRegular';
+    src: url('fonts/typeone.woff') format('woff'),
+    url('typeone.svg#TypeOne') format('svg');
+}
+
+
+body{
+    color: #303030;
+    background: url(../img/kindajean.png) fixed;
+}
+
+.navbar .nav a{
+    /*font-family: TypeOneRegular;*/x
+}
+
+.navbar .brand{
+    padding: 4px 20px 4px;
+    vertical-align: bottom;
+    line-height: 28px;
+}
+
+#container {
+    width: 80%;
+    margin: 30px auto;
+    padding: 0;
+}
+
+
+#container.settings .control-group:not(.human) label{
+    text-transform: capitalize;
+}
+#container.settings .form-horizontal .control-label {
+    width: 40%;
+}
+#container.settings .form-horizontal .controls {
+    margin-left: 42%;
+}
+
+#container.settings .form-horizontal .controls input[type="text"],
+#container.settings .form-horizontal .controls input[type="number"],
+#container.settings .form-horizontal .controls input[type="password"]{
+    width: 80%;
+}
+
+#container.settings .form-horizontal .path .controls input[type="text"]{
+    width: 50%;
+}
+
+#container.settings .form-horizontal .path .controls input.fileBrowser{
+    width: 30%;
+}
+
+.setting-placeholder{
+    height: 3px;
+}
+
+footer{
+    margin-top: 30px;
+}
+
+footer a,
+footer p{
+    font-size: 90%;
+    color: #000;
+    text-decoration: none;
+}
+footer a:hover{
+    text-decoration: underline;
+}
+
+.hint{
+    color: #555;
+    text-shadow: -1px -1px white, 1px 1px #333;
+    font-weight: bold;
+    letter-spacing: 1px;
+}
+
+
+.progress .bar{
+    position: relative;
+    z-index: 3;
+    overflow: hidden;
+    
+    -webkit-border-radius: 4px 0 0 4px;
+    -moz-border-radius: 4px 0 0 4px;
+    border-radius: 4px 0 0 4px;
+    
+}
+.progress .bar[style="width: 100%;"]{
+    -webkit-border-radius: 4px;
+    -moz-border-radius: 4px;
+    border-radius: 4px;   
+}
+.progress span{
+    line-height: inherit;
+}
+/*https://github.com/minddust/bootstrap-progressbar/blob/master/bootstrap-progressbar.css*/
+.progress .progressbar-back-text {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    font-size: 12px;
+    text-align: center;
+    z-index: 0;
+}
+.progress .progressbar-front-text {
+    display: block;
+    width: 100%;
+    font-size: 12px;
+    text-align: center;
+}
+
+#container.search .progress{
+    width: 40%;
+    position: relative;
+    margin: 0 auto;
+}
+#container.search .mediatype>h4{
+    margin-right:10px;
+    margin-top:4px;
+    margin-bottom: 0;
+    min-width: 150px;
+}
+#container.search .mediatype>.nav-pills{
+    margin-bottom: 5px;
+}
+#container.search .mediatype>.nav-pills .input-append{
+    margin-bottom: 0;
+}
+
+#container.settings .control-group .input-append{
+    position: relative;
+    width: 100%;
+}
+
+#container.settings .nav.nav-list,
+#container.settings .span3.well>span.nav-header,
+.container-fluid{
+    padding-right: 0;
+    padding-left: 0;
+}
+
+#container.settings .span3.well>span.nav-header,
+.nav-list>li>a,
+.nav-list .nav-header {
+    text-overflow: ellipsis;
+    overflow: hidden;
+}
+
+
+
+.navbar-search .search-query{
+    width: 210px;
+}
+
+/*https://github.com/twitter/bootstrap/issues/1065*/
+.btn-striped {
+  background-image: -webkit-gradient(linear, 0 100%, 100% 0, color-stop(0.25, rgba(255, 255, 255, 0.15)), color-stop(0.25, transparent), color-stop(0.5, transparent), color-stop(0.5, rgba(255, 255, 255, 0.15)), color-stop(0.75, rgba(255, 255, 255, 0.15)), color-stop(0.75, transparent), to(transparent));
+  background-image: -webkit-linear-gradient(-45deg, rgba(255, 255, 255, 0.15) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.15) 50%, rgba(255, 255, 255, 0.15) 75%, transparent 75%, transparent);
+  background-image: -moz-linear-gradient(-45deg, rgba(255, 255, 255, 0.15) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.15) 50%, rgba(255, 255, 255, 0.15) 75%, transparent 75%, transparent);
+  background-image: -ms-linear-gradient(-45deg, rgba(255, 255, 255, 0.15) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.15) 50%, rgba(255, 255, 255, 0.15) 75%, transparent 75%, transparent);
+  background-image: -o-linear-gradient(-45deg, rgba(255, 255, 255, 0.15) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.15) 50%, rgba(255, 255, 255, 0.15) 75%, transparent 75%, transparent);
+  background-image: linear-gradient(-45deg, rgba(255, 255, 255, 0.15) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.15) 50%, rgba(255, 255, 255, 0.15) 75%, transparent 75%, transparent);
+  -webkit-background-size: 40px 40px;
+  -moz-background-size: 40px 40px;
+  -o-background-size: 40px 40px;
+  background-size: 40px 40px;
+}
+.btn-striped.animate {
+  -webkit-animation: progress-bar-stripes 2s linear infinite;
+  -moz-animation: progress-bar-stripes 2s linear infinite;
+  animation: progress-bar-stripes 2s linear infinite;
+}
+.btn-striped:not(.btn-primary):not(.btn-success):not(.btn-warning):not(.btn-info):not(.btn-inverse):not(.btn-danger){
+    background-image: -webkit-gradient(linear, 0 100%, 100% 0, color-stop(0.25, rgba(0, 0, 0, 0.15)), color-stop(0.25, transparent), color-stop(0.5, transparent), color-stop(0.5, rgba(0, 0, 0, 0.15)), color-stop(0.75, rgba(0, 0, 0, 0.15)), color-stop(0.75, transparent), to(transparent));
+    background-image: -webkit-linear-gradient(-45deg, rgba(0, 0, 0, 0.15) 25%, transparent 25%, transparent 50%, rgba(0, 0, 0, 0.15) 50%, rgba(0, 0, 0, 0.15) 75%, transparent 75%, transparent);
+    background-image: -moz-linear-gradient(-45deg, rgba(0, 0, 0, 0.15) 25%, transparent 25%, transparent 50%, rgba(0, 0, 0, 0.15) 50%, rgba(0, 0, 0, 0.15) 75%, transparent 75%, transparent);
+    background-image: -ms-linear-gradient(-45deg, rgba(0, 0, 0, 0.15) 25%, transparent 25%, transparent 50%, rgba(0, 0, 0, 0.15) 50%, rgba(0, 0, 0, 0.15) 75%, transparent 75%, transparent);
+    background-image: -o-linear-gradient(-45deg, rgba(0, 0, 0, 0.15) 25%, transparent 25%, transparent 50%, rgba(0, 0, 0, 0.15) 50%, rgba(0, 0, 0, 0.15) 75%, transparent 75%, transparent);
+    background-image: linear-gradient(-45deg, rgba(0, 0, 0, 0.15) 25%, transparent 25%, transparent 50%, rgba(0, 0, 0, 0.15) 50%, rgba(0, 0, 0, 0.15) 75%, transparent 75%, transparent);
+}
+
+
+@media only screen and (max-width: 767px) {
+    #container {
+        width: 100%;
+        margin: 0 auto;
+    }
+        
+    #container.search .progress{
+        width: 100%;
+    }
+    .navbar .brand{
+        display: none;
+    }
+    .navbar .nav{
+        float: none;
+        margin: 0;
+    }
+    .navbar .nav>li{
+        float: none;
+        text-align: center;
+    }
+    .navbar-inner{
+        padding-right: 0;
+        padding-left: 0;
+    }
+    .navbar-search{
+        width: 100%;
+        padding-left: 0;
+        padding-right: 0;
+        -webkit-border-radius: 0;
+        -moz-border-radius: 0;
+        border-radius: 0;
+    }
+    
+    .navbar-search .search-query{
+        width: -moz-calc(100% - 47px);
+        width: -webkit-calc(100% - 47px);
+        width: calc(100% - 47px);
+    }
+    
+    #container.settings .form-horizontal .controls input[type="text"],
+    #container.settings .form-horizontal .controls input[type="number"],
+    #container.settings .form-horizontal .controls input[type="password"]{
+        width: 97%;
+    }
+    
+    #container.settings .form-horizontal .path .controls input[type="text"]{
+        width: 60%;
+    }
+    
+    #container.settings .form-horizontal .path .controls input.fileBrowser{
+        width: 37%;
+    }
+    
+}
+
+
+/* ==========================================================================
+   Helper classes
+   ========================================================================== */
+
+/*
+ * Image replacement
+ */
+
+.ir {
+    background-color: transparent;
+    border: 0;
+    overflow: hidden;
+    /* IE 6/7 fallback */
+    *text-indent: -9999px;
+}
+
+.ir:before {
+    content: "";
+    display: block;
+    width: 0;
+    height: 150%;
+}
+
+/*
+ * Hide from both screenreaders and browsers: h5bp.com/u
+ */
+
+.hidden {
+    display: none !important;
+    visibility: hidden;
+}
+
+/*
+ * Hide only visually, but have it available for screenreaders: h5bp.com/v
+ */
+
+.visuallyhidden {
+    border: 0;
+    clip: rect(0 0 0 0);
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    padding: 0;
+    position: absolute;
+    width: 1px;
+}
+
+/*
+ * Extends the .visuallyhidden class to allow the element to be focusable
+ * when navigated to via the keyboard: h5bp.com/p
+ */
+
+.visuallyhidden.focusable:active,
+.visuallyhidden.focusable:focus {
+    clip: auto;
+    height: auto;
+    margin: 0;
+    overflow: visible;
+    position: static;
+    width: auto;
+}
+
+/*
+ * Hide visually and from screenreaders, but maintain layout
+ */
+
+.invisible {
+    visibility: hidden;
+}
+
+/*
+ * Clearfix: contain floats
+ *
+ * For modern browsers
+ * 1. The space content is one way to avoid an Opera bug when the
+ *    `contenteditable` attribute is included anywhere else in the document.
+ *    Otherwise it causes space to appear at the top and bottom of elements
+ *    that receive the `clearfix` class.
+ * 2. The use of `table` rather than `block` is only necessary if using
+ *    `:before` to contain the top-margins of child elements.
+ */
+
+.clearfix:before,
+.clearfix:after {
+    content: " "; /* 1 */
+    display: table; /* 2 */
+}
+
+.clearfix:after {
+    clear: both;
+}
+
+/*
+ * For IE 6/7 only
+ * Include this rule to trigger hasLayout and contain floats.
+ */
+
+.clearfix {
+    *zoom: 1;
+}
+
+/* ==========================================================================
+   EXAMPLE Media Queries for Responsive Design.
+   Theses examples override the primary ('mobile first') styles.
+   Modify as content requires.
+   ========================================================================== */
+
+@media only screen and (min-width: 35em) {
+    /* Style adjustments for viewports that meet the condition */
+    
+}
+
+@media print,
+       (-o-min-device-pixel-ratio: 5/4),
+       (-webkit-min-device-pixel-ratio: 1.25),
+       (min-resolution: 120dpi) {
+    /* Style adjustments for high resolution devices */
+}
+
+/* ==========================================================================
+   Print styles.
+   Inlined to avoid required HTTP connection: h5bp.com/r
+   ========================================================================== */
+
+@media print {
+    * {
+        background: transparent !important;
+        color: #000 !important; /* Black prints faster: h5bp.com/s */
+        box-shadow: none !important;
+        text-shadow: none !important;
+    }
+
+    a,
+    a:visited {
+        text-decoration: underline;
+    }
+
+    a[href]:after {
+        content: " (" attr(href) ")";
+    }
+
+    abbr[title]:after {
+        content: " (" attr(title) ")";
+    }
+
+    /*
+     * Don't show links for images, or javascript/internal links
+     */
+
+    .ir a:after,
+    a[href^="javascript:"]:after,
+    a[href^="#"]:after {
+        content: "";
+    }
+
+    pre,
+    blockquote {
+        border: 1px solid #999;
+        page-break-inside: avoid;
+    }
+
+    thead {
+        display: table-header-group; /* h5bp.com/t */
+    }
+
+    tr,
+    img {
+        page-break-inside: avoid;
+    }
+
+    img {
+        max-width: 100% !important;
+    }
+
+    @page {
+        margin: 0.5cm;
+    }
+
+    p,
+    h2,
+    h3 {
+        orphans: 3;
+        widows: 3;
+    }
+
+    h2,
+    h3 {
+        page-break-after: avoid;
+    }
+}

@@ -1,3 +1,9 @@
+# XDM data
+*.db
+*.log
+images/*
+
+# python bins
 *.py[cod]
 
 # C extensions

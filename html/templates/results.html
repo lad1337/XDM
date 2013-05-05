@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+{% set title = 'Results for '~search_query -%}
+{% set active_page = active_page|default('search') -%}
+{% block content %}
+
+<a href="/clearSearches" class="btn btn-inverse pull-right">Clear all searches</a>
+{% for mt in searchers%}
+<div class="{{mt.identifier.replace('.','-')}} mediatype" id="{{mt.instance}}">
+    <h4 class="pull-left">{{mt.type}} Results:</h4>
+    <div class="nav-pills" data-toggle="buttons-radio">
+        {% if search_query %}
+        <div class="btn-group">
+            <a href="#{{mt.instance}}-current" data-toggle="tab" class="btn btn-success active ">{{search_query}}</a>
+        </div>
+        {% endif %}
+        {% for oldRoot in mt.getSearches() %}
+        <div class="input-append">
+            <a href="#{{mt.instance}}-{{oldRoot.id}}" data-toggle="tab" class="btn" data-id="{{oldRoot.id}}">{{oldRoot.term}}</a>
+            <a class="add-on btn" href="#" onclick="ajaxDeleteElement('{{oldRoot.id}}', $(this).parent());return false;"><i class="icon-remove"></i></a>
+        </div>
+        {% endfor %}
+    </div>
+    <div class="tab-content">
+        {% if search_query %}
+        <div class="current tab-pane fade in active" id="{{mt.instance}}-current">
+            <div class="progress progress-striped active">
+                <span class="progressbar-back-text"></span>
+                <div class="bar" style="width: 100%;">
+                    <span class="progressbar-front-text"></span>
+                </div>
+            </div>
+            <div class="inner" style="display:none;"></div>
+        </div>
+        {% endif %}
+        {% for oldRoot in mt.getSearches() %}
+        <div class="tab-pane fade" id="{{mt.instance}}-{{oldRoot.id}}">
+            <div class="progress progress-striped active">
+                <span class="progressbar-back-text"></span>
+                <div class="bar" style="width: 100%;">
+                    <span class="progressbar-front-text"></span>
+                </div>
+            </div>
+            <div class="inner" style="display:none;"></div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% if search_query %}
+<script>
+var data_{{mt.instance}}  = {}
+data_{{mt.instance}}['mt'] = '{{mt.identifier}}'
+data_{{mt.instance}}['search_query'] = '{{search_query}}'
+var searching{{mt.instance}} = true;
+jQuery.get( '/ajaxSearch', data_{{mt.instance}}, function(res){
+    var p = $('#{{mt.instance}}-current')
+    $('.inner', p).html(res)
+    $('.progress', p).hide("slide", { direction: "up" }, 500)
+    $('.inner', p).show("slide", { direction: "up" }, 500)
+});
+
+var parent_{{mt.instance}} = $('#{{mt.instance}}-current');
+
+window.setTimeout(function() {ajaxSearchProgress(parent_{{mt.instance}}, data_{{mt.instance}});console.log('ajaxSearchProgress', data_{{mt.instance}}['mt'])}, 1000);
+
+</script>
+{% endif %}
+{% endfor %}
+
+{% endblock %}
+
+{% block headInject %}
+{% for mt in mtms%}
+{{mt.headInject()}}
+{% endfor %}
+{% endblock %}
+
+
+
+
+{% block js%}
+<script>
+
+function ajaxSearchProgress(parent, data){
+    jQuery.getJSON( '/ajaxSearchProgress', data, function(res){
+        if(res['percent']){
+            $('.bar' ,parent).css('width', (res['percent'])+'%')
+            $('.progress span' ,parent).html(res['count'] + '/' + res['total'])
+        }else if(res['count']){
+            $('.progress span' ,parent).html(res['count'])
+        }
+        console.log(data['mt'], res)
+        if(!$('.inner', parent).html())
+            window.setTimeout(function() {ajaxSearchProgress(parent, data)}, 1000);
+        });
+};
+
+$(document).ready(function() {
+    $('.progress .bar').resize(function(event){
+        $('span', this).width($(this).parent().width())
+        $('span', $(this).parent()).css('line-height', $(this).parent().height()+'px')
+    });
+    $('.progress .bar').resize()
+    
+    $('a[data-toggle="tab"]').on('show', function (e) {
+        var t = $(e.target)
+        var tab = $(t.attr('href'));
+        data = {}
+        data['id'] = t.data('id')
+        if(data['id'] && !$('.inner', tab).html())
+            jQuery.get( '/getPaint', data, function(res){
+                $('.inner', tab).html(res)
+                $('.progress', tab).hide("slide", { direction: "up" }, 500)
+                $('.inner', tab).show("slide", { direction: "up" }, 500)
+            });
+      })
+});
+
+</script>
+{% endblock %}

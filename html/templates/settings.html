@@ -1,0 +1,218 @@
+{% extends "base.html" %}
+{% set title = 'Settings' -%}
+{% set active_page = active_page|default('settings') -%}
+{% block content %}
+
+<form id="theSettingsForm" class="container-fluid" action="/saveSettings" method="POST">
+
+    <div class="row-fluid">
+        <div class="span3 well">
+            {% set last_type = '' -%}
+            {% for plugin in plugins -%}
+                {%if last_type != plugin._type%}
+                {%if not loop.first%}</ul>{%endif%}
+                <span class="nav-header">{{plugin._type}}</span>
+                <ul class="nav nav-list">
+                {%endif%}
+                <li>
+                    <a href="#{{plugin.name|idSafe}}" data-toggle="tab" data-instance="{{ plugin.instance }}" data-type="{{ plugin.type }}">
+                    {{ plugin.screenName }}{%if plugin._type == 'MediaTypeManager' %} ({{ plugin.identifier }}){% elif plugin.instance != 'Default'%} ({{ plugin.instance }}){% endif %}
+                    </a>
+                </li>
+                {%if loop.last%}
+                    <li class="divider"></li>
+                </ul>
+                {%endif%}        
+                {% set last_type = plugin._type -%}
+            {% endfor %}
+            <div style="width: 100%;text-align: center;">
+                <input class="btn btn-success" type="submit" value="Save Settings" style="width:90%;"/>
+            </div>
+        </div>
+        <fieldset class="span9 tab-content well form-horizontal" action="/saveSettings" method="POST">
+            {% for plugin in plugins -%}
+            <div class="tab-pane fade" id="{{plugin.name|idSafe}}">
+                <h4>{{ plugin.name }}
+                    {%if plugin._type != 'MediaTypeManager'%}
+                    <input class="removeInstance btn btn-inverse pull-right" type="button" value="{% if plugin.instance == 'Default' %}Reset{% else %}Delete{% endif %}{% if not plugin.single%} this{%endif%} {{ plugin.screenName }}{% if not plugin.single%} Instance{%endif%}" data-plugin="{{ plugin.type }}" data-instance="{{ plugin.instance }}"/>
+                    {%endif%}
+                    <div class="clearfix"></div>
+                </h4>
+                <p class="muted">{{plugin['config_meta']['plugin_desc']}}</p>
+                <div class="plugin {{ plugin._type }}" id="{{ plugin.name.replace(' ', '_').replace('(', '').replace(')', '') }}_content">
+                {% for config in plugin.c.configs %}
+                {% if plugin['config_meta'][config.name]['on_live_change'] %}
+                {% set onChange = "pluginAjaxCall(this, '"~plugin.type~"', '"~plugin.instance~"', '"~plugin.name.replace(' ', '_').replace('(', '').replace(')', '')~"_content', '"~plugin['config_meta'][config.name]['on_live_change'].__name__~"')" %}
+                {%endif%}
+                {% if config.name == 'plugin_order'%}
+                <input name="{{ plugin.type }}-{{ plugin.instance }}-{{ config.name}}" type="hidden" {% if config.value %}value="{{ config.value }}"{% endif %}/>
+                
+                {% else %}
+                <div class="control-group{% if plugin['config_meta'][config.name]['human'] %} human{% endif %}{% if 'path' in config.name %} path{% endif %}">
+                    <label class="control-label" title="{{plugin['config_meta'][config.name]['desc']}}">{% if plugin['config_meta'][config.name]['human'] %}{{ plugin['config_meta'][config.name]['human'] }}{% else %}{{ config.name.replace("_", " ") }}{% endif %}</label>
+                    <div class="controls">
+                        {% if 'select' in config.name %}
+                        <select name="{{ plugin.type }}-{{ plugin.instance }}-{{ config.name }}" data-configname="{{config.name}}" title="{{plugin['config_meta'][config.name]['desc']}}">
+                        {% for k,v in plugin['_'+config.name]().items() %}
+                            <option value="{{k}}" {% if config.value == k %}selected{% endif %}>{{v}}</option>
+                        {% endfor %}
+                        </select>
+                        {% else %}
+                        {% if config.curType() == 'int' -%}
+                        {% set inputType = 'number" step="any'%}
+                        {% elif config.curType() == 'bool' %}
+                        {% if config.value %}
+                        
+                        {# this is a little dodgy. we append the checked attr with manipulating the string that is set for the input type#}
+                        {% set inputType = 'checkbox" checked="checked'%}
+                        {% else %}
+                        {% set inputType = 'checkbox'%}
+                        {% endif %}
+                        <input name="{{ plugin.type }}-{{ plugin.instance }}-{{ config.name}}" type="hidden" value="off"/>
+                        {% elif 'password' in config.name %}
+                        {% set inputType = 'password'%}
+                        {% else %}
+                        {% set inputType = 'text'%}
+                        {%- endif %}
+                        <input name="{{ plugin.type }}-{{ plugin.instance }}-{{ config.name}}" data-configname="{{config.name}}" type="{{inputType}}" {% if config.value %} value="{{ config.value }}"{% endif %} {% if plugin['config_meta'][config.name]['placeholder'] %}placeholder="{{ plugin['config_meta'][config.name]['placeholder'] }}"{% endif %} onChange="{{onChange}}" title="{{plugin['config_meta'][config.name]['desc']}}"/>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+                {% endfor %}
+                {% if plugin.update_url %}
+                <li>Update Url is <a href="{{ plugin.update_url }}" target="_blank">here</a></li>
+                {% endif %}
+                
+                {% if plugin['config_meta']['plugin_buttons'] %}
+                {% for name, button in plugin['config_meta']['plugin_buttons'].items()%}
+                <p>
+                    <input type="button" class="btn" value="{%if button['name']%}{{button['name']}}{%else%}{{name.replace('_',' ')}}{%endif%}" onClick="pluginAjaxCall(this, '{{ plugin.type }}', '{{ plugin.instance }}', '{{ plugin.name.replace(' ', '_').replace('(', '').replace(')', '') }}_content', '{{button['action'].__name__}}')"/>
+                    <span class="muted">{{button['desc']}}</span>
+                </p>
+                {% endfor %}
+                {% endif %}
+                {% if not plugin.single %}
+                <div class="input-append">
+                    <input id="" type="text" class="newInstanceName"/>
+                    <input class="newInstance btn" type="button" value="Create New {{ plugin.type }} Instance" data-plugin="{{ plugin.type }}"/>
+                </div>
+                {% endif %}
+                <input class="btn btn-success pull-right" type="submit" value="Save" onclick="$('#saveOn').attr('value', '{{ plugin.name|idSafe }}')"/>
+                
+            </div>
+            <span class="label label-info">Version {{ plugin.version }}</span>
+            </div>
+            {% endfor %}
+        </fieldset>
+    </div>
+</form>
+
+{% endblock %}
+
+{% block js %}
+<script>
+
+
+$(document).ready(function() {
+    if(!$('.nav.nav-list a[href="'+window.location.hash+'"]').tab('show').length)
+        $('.nav.nav-list a[data-toggle="tab"]:first').tab('show')
+    $('.control-group.path input').each(function(key, item){
+        $(item).fileBrowser({ title: 'Select Folder', key: 'postprocessPath' });
+    });
+
+    // i cant get the tooltip data api to work so we do a jquery
+    $("input").tooltip({
+        'selector': '',
+        'placement': 'right'
+     })
+    
+    $("label").each(function(){
+        var curLabel = $(this);
+        var curInput = $('input[type!="hidden"]', curLabel.parent());
+        // check for the for attr to not beeing invasive
+        if(typeof(curLabel.attr('for')) == "undefined" && curInput.length){
+            var id = curInput.attr('id');
+            if(!id){
+                // remove "0." from the random to get ids without a dot
+                id = $.now()+((''+Math.random()).split('.')[1]);
+                curInput.attr('id',id);
+            }
+            curLabel.attr('for',id);
+        }
+    });
+
+    $('.nav.nav-list a[data-toggle="tab"]').on('show', function (e) {
+        var t = $(e.target)
+        var tab = $(t.attr('href'));
+        $('.nav.nav-list li').removeClass('active');
+        $(this).parent().addClass('active');
+        window.location.hash = t.attr('href');
+    })
+    
+    $( ".nav-list" ).sortable({
+        stop: function(event, ui) {
+            $('.nav.nav-list a[data-toggle="tab"]').each(function(k,i){
+                var input = $('input[name=' + $(i).data('type') + '-' + $(i).data('instance') + '-plugin_order]').val(k)
+            })
+        }
+    });
+
+
+    
+    $('input[type="submit"]').click(function(event){
+        console.log(this)
+        if($(this).hasClass('animate')){
+            event.preventDefault();
+            return false;
+        }else if($(this).hasClass('btn-warning')){
+            return true;
+        }
+        event.preventDefault();
+        
+        saveButtons = $('input[type="submit"]')
+        saveButtons.addClass('btn-striped animate')
+        data = $('#theSettingsForm').serialize()
+        
+
+        $.getJSON('/ajaxSave', data, function(res){
+            if(res['result']){
+                $(this).button('loading');
+                noty({text: res['msg'], type: 'success', timeout: 1000})
+            }else{
+                noty({text: res['msg'], type: 'error'})  
+                saveButtons.addClass('btn-warning')
+            }
+            saveButtons.removeClass('btn-striped animate')
+        }).error(function(){
+            noty({text: 'Server error. Is it running? Check logs', type: 'error'}) 
+            saveButtons.removeClass('animate btn-success').addClass('btn-warning')
+        })
+    });
+    
+});
+
+
+
+
+
+pluginAjaxCall = function(self, p_type, p_instance, id, action){
+    if($(self).hasClass('animate'))
+        return
+
+    $(self).addClass('btn-striped animate')
+    var data = {'p_type': p_type, 'p_instance': p_instance, 'action': action};
+    $('input, select', '#'+id).each(function(k,i){
+        if(typeof $(i).data('configname') !== "undefined")
+            data['field_'+$(i).data('configname')] = $(i).val()
+    });
+    $.getJSON('/pluginAjaxCall', data, function(res){
+        if(res['result'])
+            noty({text: p_type+'('+p_instance+') - '+action+': '+res['msg'], type: 'success', timeout:10000})
+        else
+            noty({text: p_type+'('+p_instance+') - '+action+': '+res['msg'], type: 'error'})    
+        $(self).removeClass('btn-striped animate')
+    });
+}
+</script>
+{% endblock %}

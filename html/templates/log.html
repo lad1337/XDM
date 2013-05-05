@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% set title = 'Log' -%}
+{% set active_page = active_page|default('log') -%}
+{% block content %}
+<h1>Log</h1>
+<table class="display" cellpadding=0 cellspacing=0 border=0>
+
+<tbody>
+{% for l in log %}
+    <tr>
+        <td>{{l}}</td>
+    </tr>
+{% endfor %}
+</tbody>
+</table>
+{% endblock %}
