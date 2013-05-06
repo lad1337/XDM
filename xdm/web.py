@@ -22,7 +22,7 @@ class WebRoot:
 
 
     def _globals(self):
-        return {'mtms': common.PM.MTM, 's': Status.select(), 'system': common.SYSTEM}
+        return {'mtms': common.PM.MTM, 's': Status.select(), 'system': common.SYSTEM, 'PM': common.PM}
 
     @cherrypy.expose
     def index(self, status_message='', version=''):
@@ -33,6 +33,13 @@ class WebRoot:
     def settings(self):
         template = self.env.get_template('settings.html')
         return template.render(plugins=common.PM.getAll(True), **self._globals())
+
+    @cherrypy.expose
+    def forcesearch(self, id):
+        element = Element.get(Element.id == id)
+        newStatus = tasks.searchElement(element)
+        element.save()
+        raise cherrypy.HTTPRedirect('/')
 
     @cherrypy.expose
     def results(self, search_query=''):
@@ -73,6 +80,13 @@ class WebRoot:
     def getPaint(self, id):
         e = Element.get(Element.id == id)
         return e.manager.paint(e)
+
+    @cherrypy.expose
+    def ajaxGetDownloadsFrame(self, id):
+        ele = Element.get(Element.id == id)
+        template = self.env.get_template('downloadsFrame.html')
+        return template.render(downloads=ele.downloads, **self._globals())
+
 
     @cherrypy.expose
     def saveSettings(self, **kwargs):
@@ -234,5 +248,10 @@ class WebRoot:
             log.error("Error during %s of %s(%s) \nError: %s\n\n%s\n" % (action, p_type, p_instance, ex, tb))
             return json.dumps({'result': False, 'data': {}, 'msg': 'Internal Error in plugin'})
         return json.dumps({'result': status, 'data': data, 'msg': msg})
+
+    @cherrypy.expose
+    def reboot(self):
+        actionManager.executeAction('hardReboot', 'Webgui')
+        raise cherrypy.HTTPRedirect("/")
 
     browser = WebFileBrowser()

@@ -38,7 +38,8 @@ class Plugin(object):
         self.name = "%s (%s)" % (self.screenName, instance)
         self.type = self.__class__.__name__
         self.instance = instance.replace('.', '_')
-        log("Creating new plugin %s" % self.name)
+        if self._type != 'DownloadType':
+            log("Creating new plugin %s" % self.name)
         if self.addMediaTypeOptions:
             self._create_media_type_configs() #this adds the configs for media types
         self.c = ConfigWrapper()
@@ -90,8 +91,9 @@ class Plugin(object):
 
     def _set_enabled(self, value):
         self.c.enabled = value
-
-    enabled = property(_get_enabled, _set_enabled) # shortcut to the enabled config option
+    
+    # shortcut to the enabled config option
+    enabled = property(_get_enabled, _set_enabled)
 
     def deleteInstance(self):
         for c in self.c.configs:
@@ -120,15 +122,18 @@ class Plugin(object):
     def _create_media_type_configs(self):
         if self._type in (MediaTypeManager.__name__, System.__name__, Notifier.__name__):
             return
-        mtms = common.PM.getMediaTypeManager()
-        for mtm in mtms:
+
+        for mtm in common.PM.getMediaTypeManager():
+            if type(self.addMediaTypeOptions) is list and mtm.identifier not in self.addMediaTypeOptions:
+                continue
+
             #enable options for mediatype on this indexer
             name = helper.replace_some('%s_runfor' % mtm.name)
             self._config[name] = False
             self.config_meta[name] = {'human': 'Run for %s' % mtm.name, 'type': 'enabled', 'mediaType': mtm.mt}
             #log('Creating multi config fields on %s from %s' % (self.__class__, mtm.__class__))
-            for type in [x.__name__ for x in mtm.elementConfigsFor]:
-                for element in Element.select().where(Element.type == type):
+            for configType in [x.__name__ for x in mtm.elementConfigsFor]:
+                for element in Element.select().where(Element.type == configType):
                     prefix = self.useConfigsForElementsAs
                     sufix = element.getName()
                     h_name = '%s for %s (%s)' % (prefix, sufix, mtm.identifier)
@@ -139,10 +144,20 @@ class Plugin(object):
             # add costum options
             if self.__class__.__bases__[0] in mtm.addConfig:
                 for config in mtm.addConfig[self.__class__.__bases__[0]]:
-                    h_name = '%s %s' % (config['prefix'], config['sufix'])
-                    c_name = helper.replace_some('%s %s %s' % (mtm.name, config['prefix'], config['sufix']))
+                    if 'forcePrefix' in config and config['forcePrefix']:
+                        prefix = config['prefix']
+                        h_name = '%s %s' % (prefix, config['sufix'])
+                        c_type = config['type']
+                    else:
+                        prefix = self.useConfigsForElementsAs
+                        h_name = '%s for %s' % (prefix, config['sufix'])
+                        c_type = prefix.lower()
+                    c_name = helper.replace_some('%s %s %s' % (mtm.name, prefix.lower(), config['sufix']))
                     self._config[c_name] = config['default']
-                    self.config_meta[c_name] = {'human': h_name, 'type': config['type'], 'mediaType': mtm.mt}
+                    element = None
+                    if 'element' in config and config['root']:
+                        element = mtm.root
+                    self.config_meta[c_name] = {'human': h_name, 'type': c_type, 'mediaType': mtm.mt, 'element': mtm.root}
 
     def __getattribute__(self, name):
         useAs = object.__getattribute__(self, 'useConfigsForElementsAs')
@@ -150,25 +165,65 @@ class Plugin(object):
             return object.__getattribute__(self, '_getUseConfigsForElementsAsWrapper')
         return object.__getattribute__(self, name)
 
-    def _getUseConfigsForElementsAsWrapper(self, ele):
-        for cur_c in self.c.configs:
-            if cur_c.element is None:
+    def _getUseConfigsForElementsAsWrapper(self, element):
+        for curConfig in self.c.configs:
+            if curConfig.element is None:
                 continue
-            if cur_c.mediaType == ele.mediaType and\
-            self.useConfigsForElementsAs.lower() == cur_c.type and\
-            cur_c.element.isAncestorOf(ele): # is the config elemtn "above" the element in question
-                return cur_c.value
+            if curConfig.mediaType == element.mediaType and\
+            self.useConfigsForElementsAs.lower() == curConfig.type and\
+            curConfig.element.isAncestorOf(element): # is the config elemtn "above" the element in question
+                return curConfig.value
         return None
 
     def runFor(self, mtm):
-        return getattr(self.c, helper.replace_some('%s_runfor' % mtm.name))
+        try:
+            return getattr(self.c, helper.replace_some('%s_runfor' % mtm.name))
+        except AttributeError: # this might be a type check
+            if mtm.identifier in self.types:
+                return True
+        return False
 
 
-class Downloader(Plugin):
-    """Plugins of this class convert plain text to HTML"""
+    def getMyScore(self):
+        return common.PM.getPluginScore(self)
+
+
+class DownloadType(Plugin):
+    _type = 'DownloadType'
+    single = True
+    addMediaTypeOptions = False
+    extension = ''
+    identifier = ''
+
+
+class DownloadTyped(Plugin):
+    """DON'T SUBCLASS THIS IN YOUR PLUGIN"""
+
+    def __init__(self, instance='Default'):
+        if not self.types:
+            for downloadType in common.PM.DT:
+                self.types.append(downloadType.identifier)
+        Plugin.__init__(self, instance=instance)
+
+    def _getDownloadTypeExtension(self, downloadTypeIdentifier):
+        for dt in common.PM.DT:
+            if dt.identifier == downloadTypeIdentifier:
+                return dt.extension
+        else:
+            log.warning("Download type with identifier %s was not found" % downloadTypeIdentifier)
+            return 'txt'
+
+    def getSupportedDownloadExtensions(self):
+        extensions = {}
+        for indentifer in self.types:
+            extensions[indentifer] = '.%s' % self._getDownloadTypeExtension(indentifer)
+        return extensions
+
+
+class Downloader(DownloadTyped):
+    """Plugins of this class send Downloads to another Program or directly download stuff"""
     _type = 'Downloader'
-    name = "Does Noting"
-    types = ['torrent', 'nzb'] # types the downloader can handle ... e.g. blackhole can handle both
+    types = [] # types the downloader can handle ... e.g. blackhole can handle both
 
     def addDownload(self, download):
         """Add nzb to downloader"""
@@ -198,27 +253,8 @@ class Downloader(Plugin):
     def _findDownloadID(self, s):
         return self._findIDs(s)[1]
 
-    def _getTypeExtension(self, downloadType):
-        return common.getTypeExtension(downloadType)
 
-
-class Notifier(Plugin):
-    """Plugins of this class send out notification"""
-    _type = 'Notifier'
-    name = "prints"
-
-    def __init__(self, *args, **kwargs):
-        self._config['on_snatch'] = False
-        self._config['on_complete'] = True # this is called after pp
-        self._config['on_warning'] = False # this is called after pp
-        self._config['on_error'] = False # this is called after pp
-        super(Notifier, self).__init__(*args, **kwargs)
-
-    def sendMessage(self, msg, element=None):
-        return False
-
-
-class Indexer(Plugin):
+class Indexer(DownloadTyped):
     """Plugins of this class create elemnts based on mediaType structures"""
     _type = 'Indexer'
     types = [common.TYPE_NZB, common.TYPE_TORRENT] # types this indexer will give back
@@ -232,13 +268,12 @@ class Indexer(Plugin):
                 # default stuff
                 d.indexer = self.type
                 d.indexer_instance = self.instance
-                d.type = common.TYPE_NZB
                 d.status = common.UNKNOWN
                 res[i]
             return res
         self._searchForElement = self.searchForElement
         self.searchForElement = searchForElement
-        Plugin.__init__(self, instance=instance)
+        DownloadTyped.__init__(self, instance=instance)
 
     def _getCategory(self, e):
         for cur_c in self.c.configs:
@@ -266,10 +301,35 @@ class Indexer(Plugin):
         return True
 
 
+class Notifier(Plugin):
+    """Plugins of this class send out notification"""
+    _type = 'Notifier'
+    name = "prints"
+
+    def __init__(self, *args, **kwargs):
+        self._config['on_snatch'] = False
+        self.config_meta['on_snatch'] = {'human': 'Send on snatch'}
+        
+        self._config['on_complete'] = True # this is called after ppe
+        self.config_meta['on_complete'] = {'human': 'Send on complete'}
+        
+        self._config['on_warning'] = False
+        self.config_meta['on_warning'] = {'human': 'Send on warning'}
+        self._config['on_error'] = False
+        self.config_meta['on_error'] = {'human': 'Send on error'}
+        self._config['on_update'] = False
+        self.config_meta['on_update'] = {'human': 'Send notice when update is available'}
+        super(Notifier, self).__init__(*args, **kwargs)
+
+    def sendMessage(self, msg, element=None):
+        return False
+
+
 class Provider(Plugin):
     """get game information"""
     _type = 'Provider'
     _tag = 'unknown'
+    addMediaTypeOptions = False
 
     class Progress(object):
         count = 0
@@ -311,6 +371,12 @@ class Provider(Plugin):
     def getElement(self, id):
         return False
 
+    def _getSupportedManagers(self):
+        out = []
+        for mtm in common.PM.MTM:
+            if mtm.identifier in self.types:
+                out.append(mtm)
+        return out
 
 class PostProcessor(Plugin):
     _type = 'PostProcessor'
@@ -445,54 +511,10 @@ class MediaTypeManager(Plugin):
         self.searcher = None
         return out
 
-    #TODO: THIS is not save for any structur !!!!
     def makeReal(self, element):
-        """log.info('Making element %s (%s) real' % (element, element.id))
-        #element should be of type self.download
-        if element.type != self.download.__name__:
-            log.error('%s is of wrong type for permanent saving. the id send from the add butto nbelongs to the wrong type of eement! tell that the plugin writer')
-
-        for curClass in reversed(self.order):
-            pass
- 
-        ancestors = element.ancestors
-        saveOnElement = self.save.__name__
-        for i, ancestor in enumerate(ancestors):
-            print 'ancestor %s (%s) vs %s' % (ancestor, ancestor.id, self.save.__name__)
-
-            if ancestor.type == saveOnElement:
-                searchAttr = {}
-                for attr in self.getAttrs(ancestor.type):
-                    searchAttr[attr] = ancestor.getField(attr)
-                try:
-                    saveElement = Element.getWhereField(self.mt, ancestor.type, searchAttr, '', self.root)
-                except Element.DoesNotExist:
-                    log('Moving %s as a parent for the %s element we want to save' % (ancestor.type, element.type))
-                    ancestor.parent = self.root
-                    saveElement = ancestor
-                    saveElement.status = common.UNKNOWN
-                    saveElement.save()
-                else: # we have the artist / platform in the db so we have to rehock one below the current ancestor
-                    log('We have this %s in the db already. Searching for new/lower type' % ancestor.type)
-                    nextOne = False
-                    saveOnElement = ''
-                    for curClass in self.order:
-                        if nextOne == True:
-                            saveOnElement = curClass.__name__
-                            break
-                        if curClass.__name__ == ancestor.type:
-                            nextOne = True
-                    if saveOnElement:
-                        log('Found %s as the next lower type' % saveOnElement)
-                        continue
-                    else:
-                        log.error('I am at i point where i dont know what to do :(')
-                return True"""
-                
         log.warning('Default makereal/save method called but the media type should have implemented this')
         return False
-        
-                
+
     def getSearches(self):
         return Element.select().where(Element.status == common.TEMP, Element.type == self.__class__.__name__)
 
@@ -505,4 +527,4 @@ class MediaTypeManager(Plugin):
         root.saveTemp()
         return root
 
-__all__ = ['System', 'PostProcessor', 'Provider', 'Indexer', 'Notifier', 'Downloader', 'MediaTypeManager', 'Element']
+__all__ = ['System', 'PostProcessor', 'Provider', 'Indexer', 'Notifier', 'Downloader', 'MediaTypeManager', 'Element', 'DownloadType']

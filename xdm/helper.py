@@ -281,6 +281,7 @@ def getActionsTpl():
                 <a href="/delete?id={{this.id}}" class="action-delete btn btn-danger btn-mini">Delete</a>
                 <a href="/forcesearch?id={{this.id}}" class="action-search btn btn-primary btn-mini">Search</a>
                 <a href="/refreshinfo?id={{this.id}}" class="action-reload btn btn-primary btn-mini">Refresh</a>
+                <a href="#" class="action-downloads btn btn-info btn-mini" onclick="showDownlads(this, {{this.id}});return false;">Downloads</a>
             </div>"""
 
 

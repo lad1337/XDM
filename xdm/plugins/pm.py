@@ -13,16 +13,20 @@ import threading
 from cStringIO import StringIO
 from pylint import lint
 import sys
+from xdm.plugins.bases import MediaTypeManager
 
 
 class PluginManager(object):
     _cache = {}
     path_cache = {}
+    pylintScoreWarning = 7
+    pylintScoreError = 4
 
     def __init__(self, path='plugins'):
         self._caching = threading.Semaphore()
         self.path = path
         self._mt_cache = {}
+        self._score_cache = {}
 
     def updatePlugins(self):
         timer = threading.Timer(1, self._updatePlugins)
@@ -33,10 +37,26 @@ class PluginManager(object):
         old_stderr = sys.stderr
         sys.stdout = mystdout = StringIO()
         sys.stderr = mystderr = StringIO()
-        r = lint.Run(['--disable=W0704,C0301,C0302,C0111,R0903,R0902,R0201,W0614,W0602,C0103,W0603,C0321,F0401,W0603,W0602,C0301,C0111,C0321,C0103,W0401,W0614,E0202', path], exit=False)
-        s = eval(r.linter.config.evaluation, {}, r.linter.stats)
+        try:
+            r = lint.Run(['--disable=W0704,C0301,C0302,C0111,R0903,R0902,R0201,W0614,W0602,C0103,W0603,C0321,F0401,W0603,W0602,C0301,C0111,C0321,C0103,W0401,W0614,E0202', path], exit=False)
+            s = eval(r.linter.config.evaluation, {}, r.linter.stats)
+        except:
+            log.error('Chrash during pylint scoring. TODO: get traceback and stuff')
+            s = 0
         sys.stdout = old_stdout
         sys.stderr = old_stderr
+
+        logFilepath = '%s.pylintOutput.txt' % path
+        if s and s <= self.pylintScoreWarning or os.path.isfile(logFilepath):
+            try:
+                logFile = open(logFilepath, 'w')
+                try:
+                    logFile.write(mystdout.getvalue())
+                finally:
+                    logFile.close()
+            except IOError as exe:
+                print exe
+                log.error("Error during writing of the pylint output")
         return s
 
     def clearMTCache(self):
@@ -53,7 +73,7 @@ class PluginManager(object):
             if systemOnly:
                 classes = (plugins.System,)
             else:
-                classes = (plugins.System, plugins.MediaTypeManager, plugins.Downloader, plugins.Notifier, plugins.Indexer, plugins.Provider, plugins.PostProcessor)
+                classes = (plugins.System, plugins.Notifier, plugins.MediaTypeManager, plugins.Downloader, plugins.Indexer, plugins.Provider, plugins.PostProcessor, plugins.DownloadType)
             for cur_plugin_type in classes: #for plugin types
                 cur_plugin_type_name = cur_plugin_type.__name__
                 cur_classes = self.find_subclasses(cur_plugin_type, reloadModules, debug=debug)
@@ -66,12 +86,15 @@ class PluginManager(object):
                 else:
                     log("I found ZERO %s" % cur_plugin_type_name)
                 for cur_class, cur_path in cur_classes: # for classes of that type
-                    if not systemOnly:
+                    if cur_plugin_type not in self._score_cache:
                         score = self._getPylintScore(cur_path)
-                        if score < 5:
-                            log.warning('Pylint Score for %s is only %s' % (cur_class.__name__, score))
+                        self._score_cache[cur_class] = score
+                        if score <= self.pylintScoreError:
+                            log.error('Pylint Score for %s is only %.2f' % (cur_class.__name__, score))
+                        elif score <= self.pylintScoreWarning:
+                            log.warning('Pylint Score for %s is only %.2f' % (cur_class.__name__, score))
                         else:
-                            log.info('Pylint Score for %s is %s' % (cur_class.__name__, score))
+                            log.info('Pylint Score for %s is %.2f' % (cur_class.__name__, score))
 
                     if not cur_plugin_type in self._cache:
                         self._cache[cur_plugin_type] = {}
@@ -126,7 +149,7 @@ class PluginManager(object):
                     continue
                 rel_plugin_path = self._path_cache[plugin.__class__]
                 src = os.path.abspath(rel_plugin_path)
-                dst = "%s.v%s.txt" % (src, old_v)
+                dst = "%s.vversion%s.txt" % (src, old_v)
                 shutil.move(src, dst)
                 try:
                     pluginFile = open(src, 'a')
@@ -144,7 +167,12 @@ class PluginManager(object):
                 actionManager.executeAction('hardReboot', 'PluginManager')
             return upgrade_done
 
-    def _getAny(self, cls, wanted_i='', returnAll=False):
+    def getPluginScore(self, plugin):
+        if plugin.__class__ in self._score_cache:
+            return self._score_cache[plugin.__class__]
+        return 0
+
+    def _getAny(self, cls, wanted_i='', returnAll=False, runFor=''):
         """may return a list with instances or just one instance if wanted_i is given
         only gives back enabeld plugins by default set returnAll to True to get all
         WARNING: "disabeld" plugins are still instantiated
@@ -152,7 +180,7 @@ class PluginManager(object):
         plugin_instances = []
         if not cls in self._cache:
             return plugin_instances
-        
+
         wanted_i = wanted_i.replace('_', '.')
         for cur_c, instances in self._cache[cls].items():
             for cur_instance in instances:
@@ -179,23 +207,48 @@ class PluginManager(object):
         #print cls, wanted_i, returnAll, plugin_instances, sorted(plugin_instances, key=lambda x: x.c.plugin_order, reverse=False)
         return sorted(plugin_instances, key=lambda x: x.c.plugin_order, reverse=False)
 
-    def _getTyped(self, cls, i='', returnAll=False, types=[]):
+    def _getTyped(self, plugins, types=[]):
         if not types:
-            return self._getAny(cls, i, returnAll)
+            return plugins
         filtered = []
-        for cur_cls in self._getAny(cls, i, returnAll):
+        for cur_cls in plugins:
             for cur_type in types:
                 if cur_type in cur_cls.types:
                     filtered.append(cur_cls)
         return filtered
 
-    def getDownloaders(self, i='', returnAll=False, types=[]):
-        return self._getTyped(plugins.Downloader, i, returnAll, types)
+    def _getRunners(self, plugins, mediaTypeManager=None):
+        if mediaTypeManager is None:
+            return plugins
+        filtered = []
+        for cur_cls in plugins:
+            print 'checking runfor on', cur_cls
+            if cur_cls.runFor(mediaTypeManager):
+                filtered.append(cur_cls)
+        return filtered
+
+    # typed and runner checked
+    def getDownloaders(self, i='', returnAll=False, types=[], runFor=None):
+        return self._getRunners(self._getTyped(self._getAny(plugins.Downloader, i, returnAll), types), runFor)
     D = property(getDownloaders)
 
-    def getIndexers(self, i='', returnAll=False, types=[]):
-        return self._getTyped(plugins.Indexer, i, returnAll, types)
+    def getIndexers(self, i='', returnAll=False, types=[], runFor=None):
+        return self._getRunners(self._getTyped(self._getAny(plugins.Indexer, i, returnAll), types), runFor)
     I = property(getIndexers)
+
+    def getPostProcessors(self, i='', returnAll=False, types=[], runFor=None):
+        return self._getRunners(self._getTyped(self._getAny(plugins.PostProcessor, i, returnAll), types), runFor)
+    PP = property(getPostProcessors)
+
+    # runner checked
+    def getProvider(self, i='', returnAll=False, runFor=None):
+        return self._getRunners(self._getAny(plugins.Provider, i, returnAll), runFor)
+    P = property(getProvider)
+
+    # none filtered
+    def getDownloaderTypes(self, i='', returnAll=False):
+        return self._getAny(plugins.DownloadType, i, returnAll)
+    DT = property(getDownloaderTypes)
 
     def getNotifiers(self, i='', returnAll=False):
         return self._getAny(plugins.Notifier, i, returnAll)
@@ -205,18 +258,9 @@ class PluginManager(object):
         return self._getAny(plugins.System, i, returnAll)
     S = property(getSystems)
 
-    def getProvider(self, i='', returnAll=False):
-        return self._getAny(plugins.Provider, i, returnAll)
-    P = property(getProvider)
-
-    def getPostProcessors(self, i='', returnAll=False):
-        return self._getAny(plugins.PostProcessor, i, returnAll)
-    PP = property(getPostProcessors)
-
     def getMediaTypeManager(self, i='', returnAll=False):
         return self._getAny(plugins.MediaTypeManager, i, returnAll)
     MTM = property(getMediaTypeManager)
-
 
     def getAll(self, returnAll=False):
         return self.getSystems(returnAll=returnAll) +\
@@ -225,6 +269,7 @@ class PluginManager(object):
                 self.getPostProcessors(returnAll=returnAll) +\
                 self.getNotifiers(returnAll=returnAll) +\
                 self.getProvider(returnAll=returnAll) +\
+                self.getDownloaderTypes(returnAll=returnAll) +\
                 self.getMediaTypeManager(returnAll=returnAll)
 
     # this is ugly ... :(

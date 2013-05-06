@@ -2,6 +2,7 @@
 *.db
 *.log
 images/*
+*pylintOutput*
 
 # python bins
 *.py[cod]

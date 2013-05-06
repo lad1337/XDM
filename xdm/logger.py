@@ -72,18 +72,18 @@ class LogWrapper():
         sm = StructuredMessage(lvl, msg, calframe, **kwargs)
         cLogger.log(lvl, sm.console())
         fLogger.log(lvl, sm)
-        return
         if lvl in (logging.WARNING, logging.ERROR):
             callerClass = helper.get_class_from_frame(calframe[2][0])
-            #print callerClass.__bases__
-            if callerClass and callerClass.__bases__ and callerClass.__bases__[0] is not None and not 'Notifier' == callerClass.__bases__[0].__name__:
-                self.debug('sending %s with notifiers' % lvlNames[lvl]['p'])
-                for n in common.PM.N:
-                    n.sendMessage('%s: %s' % (lvlNames[lvl]['p'], msg))
-            else:
-                sm = StructuredMessage(logging.ERROR, 'Error while sending an error message with a notifier', calframe, **kwargs)
+            #was the error/warning send by a notifier ?
+            if callerClass and callerClass.__bases__ and callerClass.__bases__[0] is not None and 'Notifier' == callerClass.__bases__[0].__name__:
+                sm = StructuredMessage(logging.ERROR, 'Error while sending an error message with a notifier %s' % callerClass, calframe, **kwargs)
                 cLogger.log(lvl, sm.console())
                 fLogger.log(lvl, sm)
+            else:
+                self.debug('sending %s with notifiers' % lvlNames[lvl]['p'])
+                for n in common.PM.N:
+                    if (n.c.on_warning and lvl == logging.WARNING) or (n.c.on_error and lvl == logging.ERROR):
+                        n.sendMessage('%s: %s' % (lvlNames[lvl]['p'], msg))
 
     def error(self, msg, **kwargs):
         self._log(logging.ERROR, msg, **kwargs)

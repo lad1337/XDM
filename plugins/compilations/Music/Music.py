@@ -22,7 +22,7 @@ class Album(object):
     _orderBy = 'year'
 
     def getTemplate(self):
-        return """<div class="Album">
+        return """<div class="Album {{statusCssClass}}">
                       <img src="{{this.cover_image}}">
                       <p>{{name}}<br><span class="artistName">{{this.parent.name}}</span></p>
                       <div class="indi">&#x25B2;</div>
@@ -35,8 +35,9 @@ class Album(object):
                       </div>
                   </div>
                 """
+
     def getSearchTerms(self):
-        return [self.name]
+        return ['%s %s' % (self.parent.name, self.name)]
 
     def getName(self):
         return self.name
@@ -45,9 +46,9 @@ class Album(object):
 class Artist(object):
     name = ''
     bio = ''
-    
+
     _orderBy = 'name'
-    
+
     def getName(self):
         return self.name
 
@@ -58,13 +59,14 @@ class Artist(object):
 class Music(MediaTypeManager):
     single = True
     _config = {'enabled': True}
+    config_meta = {'plugin_desc': 'Music support. Good for Albums'}
     order = (Artist, Album, Song)
     download = Album
     identifier = 'de.lad1337.music'
     addConfig = {}
     addConfig[Downloader] = [{'type':'category', 'default': None, 'prefix': 'Category for', 'sufix': 'Music'}]
+    addConfig[Indexer] = [{'type':'category', 'default': None, 'prefix': 'Category for', 'sufix': 'Music'}]
     addConfig[PostProcessor] = [{'type':'path', 'default': None, 'prefix': 'Final path for', 'sufix': 'Music'}]
-    
 
     def makeReal(self, album):
         oldArtist = album.parent

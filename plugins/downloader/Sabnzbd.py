@@ -8,7 +8,7 @@ class Sabnzbd(Downloader):
                'host': 'http://localhost',
                'apikey': ''}
     _history = []
-    types = ['nzb']
+    types = ['de.lad1337.nzb']
 
     def _baseUrl(self, host='', port=0):
         if not host:

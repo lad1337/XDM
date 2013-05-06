@@ -15,8 +15,9 @@
                 <ul class="nav nav-list {{plugin._type}}">
                 {%endif%}
                 <li>
-                    <a href="#{{plugin.name|idSafe}}" data-toggle="tab" data-instance="{{ plugin.instance }}" data-type="{{ plugin.type }}">
+                    <a href="#{{plugin.name|idSafe}}" data-toggle="tab" data-instance="{{ plugin.instance }}" data-type="{{ plugin.type }}" data-identifier="{{plugin.identifier}}">
                     {{ plugin.screenName }}{%if plugin._type == 'MediaTypeManager' %} ({{ plugin.identifier }}){% elif plugin.instance != 'Default'%} ({{ plugin.instance }}){% endif %}
+                    <i class="icon-{%if not plugin.enabled%}off{%endif%} pull-right" style="opacity:0.7;margin-top: 4px;"></i>
                     </a>
                 </li>
                 {%if loop.last%}
@@ -38,7 +39,7 @@
                     {%endif%}
                     <div class="clearfix"></div>
                 </h4>
-                <p class="muted">{{plugin['config_meta']['plugin_desc']}}</p>
+                <p class="muted">{{plugin['config_meta']['plugin_desc']|striptags|urlize}}</p>
                 <div class="plugin {{ plugin._type }}" id="{{ plugin.name.replace(' ', '_').replace('(', '').replace(')', '') }}_content">
                 {% for config in plugin.c.configs %}
                 {% if plugin['config_meta'][config.name]['on_live_change'] %}
@@ -74,7 +75,7 @@
                         {% else %}
                         {% set inputType = 'text'%}
                         {%- endif %}
-                        <input name="{{ plugin.type }}-{{ plugin.instance }}-{{ config.name}}" data-configname="{{config.name}}" type="{{inputType}}" {% if config.value %} value="{{ config.value }}"{% endif %} {% if plugin['config_meta'][config.name]['placeholder'] %}placeholder="{{ plugin['config_meta'][config.name]['placeholder'] }}"{% endif %} onChange="{{onChange}}" title="{{plugin['config_meta'][config.name]['desc']}}"/>
+                        <input data-belongsto="{{plugin.name|idSafe}}" name="{{ plugin.type }}-{{ plugin.instance }}-{{ config.name}}" data-configname="{{config.name}}" type="{{inputType}}" {% if config.value %} value="{{ config.value }}"{% endif %} {% if plugin['config_meta'][config.name]['placeholder'] %}placeholder="{{ plugin['config_meta'][config.name]['placeholder'] }}"{% endif %} onChange="{{onChange}}" title="{{plugin['config_meta'][config.name]['desc']}}"/>
                         {% endif %}
                     </div>
                 </div>
@@ -95,13 +96,31 @@
                 {% if not plugin.single %}
                 <div class="input-append">
                     <input id="" type="text" class="newInstanceName"/>
-                    <input class="newInstance btn" type="button" value="Create New {{ plugin.type }} Instance" data-plugin="{{ plugin.type }}"/>
+                    <input class="newInstance btn" type="button" value="Create New {{ plugin.screenName }} Instance" data-plugin="{{ plugin.type }}"/>
                 </div>
                 {% endif %}
                 <input class="btn btn-success pull-right" type="submit" value="Save" onclick="$('#saveOn').attr('value', '{{ plugin.name|idSafe }}')"/>
                 
             </div>
-            <span class="label label-info">Version {{ plugin.version }}</span>
+            <p style="margin: 10px 0 0;">
+                <span class="label label-info">Version {{ plugin.version }}</span>
+                {% set score = plugin.getMyScore()|round(2) %}
+                <span class="label label-{% if score <= PM.pylintScoreError%}danger{% elif score <= PM.pylintScoreWarning%}warning{%else%}info{%endif%}">Pylint Score {{ score }}</span>
+                
+                {%if plugin._type in ('Downloader','Indexer')%}
+                {%for dtIdentifier, extension in plugin.getSupportedDownloadExtensions().items()%}
+                <span class="download-type-extension label label-info" title="{{dtIdentifier}}">{{extension}}</span>
+                {%endfor%}
+                {%endif%}
+                
+                {%if plugin._type == 'Provider'%}
+                {%for mtm in plugin._getSupportedManagers()%}
+                <span class="support-for-mediatype label label-info" title="{{mtm.identifier}}">{{mtm.screenName}}</span>
+                {%else%}
+                this does not support anything WTF
+                {%endfor%}
+                {%endif%}
+            </p>
             </div>
             {% endfor %}
         </fieldset>
@@ -127,48 +146,45 @@ $(document).ready(function() {
         'placement': 'right'
      })
     
+    $('input[type="checkbox"][data-configname="enabled"]').change(function(event){
+        var icon = $('.nav.nav-list a[href="#'+$(this).data('belongsto')+'"] i')
+        if($(this).prop('checked')){
+            icon.removeClass('icon-off')
+        }else{
+            icon.addClass('icon-off')
+       }
+    });
+    
     $('.nav.nav-list a').hover(function(){
         var t = $($(this).attr('href'))
         $('.nav.nav-list.MediaTypeManager a').each(function(k,i){
             var id = $(i).attr('href').replace('#', '');
             var input = $('input[name$="'+id+'_runfor"][type="checkbox"]',t)
-            console.log(id, input.prop('checked')==true)
-            if(input.prop('checked')){
-                $(i).addClass('btn-striped animate')
-            }
+                if(input.prop('checked')){
+                    $(i).addClass('btn-striped animate btn-success')
+                }
+
+            var notice = $('span[title="'+$(i).data('identifier')+'"].support-for-mediatype', t);
+            console.log(notice)
+            if(notice.length)
+                $(i).addClass('btn-striped animate btn-info')
+            
+        });
+        $('.nav.nav-list.DownloadType a').each(function(k,i){
+            var id = $(i).data('identifier');
+            var notice = $('span[title="'+id+'"].download-type-extension', t)
+            if(notice.length)
+                $(i).addClass('btn-striped animate btn-info')
+            
             
         });
 
     },function(){
-        $('.nav.nav-list.MediaTypeManager a').removeClass('btn-striped animate')
+        $('.nav.nav-list.MediaTypeManager a').removeClass('btn-striped animate btn-success btn-info')
+        $('.nav.nav-list.DownloadType a').removeClass('btn-striped animate btn-info')
 
     });
-    
-    
-    /*
-    $('.nav.nav-list a').popover({
-        html: true,
-        container: 'body', 
-        trigger:'click',
-        content: function(){
-            form = $('<form>')
-            form.addClass('form-horizontal')
-            items = []
-            $.each(mediaTypenames,function(k,i){
-                group = $('<div class="control-group">')
-                label = $('<label class="control-label">'+i+'</label>');
-                input = $('<input type="checkbox"/>');
-                controls = $('<div>')
-                controls.addClass('controls').append(input)
-                group.append(label).append(controls)
-                form.append(group)
-            })
-        
 
-        
-            return form;
-        }
-    })*/
     
     $("label").each(function(){
         var curLabel = $(this);
@@ -251,9 +267,9 @@ pluginAjaxCall = function(self, p_type, p_instance, id, action){
     });
     $.getJSON('/pluginAjaxCall', data, function(res){
         if(res['result'])
-            noty({text: p_type+'('+p_instance+') - '+action+': '+res['msg'], type: 'success', timeout:10000})
+            noty({text: p_type+'('+p_instance+') - '+$(self).val()+': '+res['msg'], type: 'success', timeout: 2000})
         else
-            noty({text: p_type+'('+p_instance+') - '+action+': '+res['msg'], type: 'error'})    
+            noty({text: p_type+'('+p_instance+') - '+$(self).val()+': '+res['msg'], type: 'error'})    
         $(self).removeClass('btn-striped animate')
     });
 }

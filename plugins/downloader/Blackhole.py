@@ -8,7 +8,7 @@ import os
 
 class Blackhole(Downloader):
     version = "0.2"
-    types = ['torrent', 'nzb']
+    types = []
     config_meta = {'plugin_desc': 'This will download the nzb/torrent file into the platform path. It can not check for the status of a game.'
                    }
     useConfigsForElementsAs = 'Path'
@@ -18,7 +18,7 @@ class Blackhole(Downloader):
         if not os.path.isdir(b_dir):
             log.info("Download save to Blackhole at %s is not a valid folder" % b_dir)
 
-        dst = os.path.join(b_dir, self._downloadName(download) + self._getTypeExtension(download.type))
+        dst = os.path.join(b_dir, '%s.%s' % (self._downloadName(download), self._getDownloadTypeExtension(download.type)))
         r = requests.get(download.url)
         if r.status_code == 200:
             with open(dst, 'wb') as f:

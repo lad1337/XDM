@@ -199,7 +199,7 @@ class Element(BaseModel):
             if fd is not None:
                 return fd
             else:
-                raise AttributeError
+                raise AttributeError("No attribute %s nor field with that name" % name)
 
     def getImage(self, name, provider=''):
         for img in self.images:
@@ -311,10 +311,12 @@ class Element(BaseModel):
             actionTemplate = env.get_template('addActions')
             statusHtml = ''
         actionsHtml = actionTemplate.render(this=self)
+        statusCssClass = 'status-%s' % self.status.name.lower()
         return elementTemplate.render(children='{{children}}',
                                       actions=actionsHtml,
                                       status=statusHtml,
                                       this=self,
+                                      statusCssClass=statusCssClass,
                                       **self.buildFieldDict())
 
     def buildFieldDict(self):
@@ -442,6 +444,7 @@ class Element(BaseModel):
         self.deleteFields()
         super(Element, self).delete_instance()
 
+
 class Field(BaseModel):
     element = ForeignKeyField(Element, related_name='fields')
     name = CharField()
@@ -449,10 +452,10 @@ class Field(BaseModel):
     _value_int = FloatField(True)
     _value_char = TextField(True)
     _value_bool = IntegerField(True)
-    
+
     def __str__(self):
         return 'Field of %s name:%s value:%s' % (self.element, self.name, self.value)
-    
+
     def _get_value(self):
         if self._value_bool in (1, 0):
             return self._value_bool
@@ -469,8 +472,7 @@ class Field(BaseModel):
             value = int(value)
         except ValueError:
             pass
-        
-        
+
         if type(value).__name__ in ('int', 'float'):
             self._value_char = None
             self._value_bool = None
@@ -552,13 +554,15 @@ class Download(BaseModel):
     url = CharField(unique=True)
     size = IntegerField(True)
     status = ForeignKeyField(Status)
-    type = IntegerField(default=common.TYPE_NZB)
+    type = CharField()
     indexer = CharField(True)
     indexer_instance = CharField(True)
     external_id = CharField(True)
 
     def humanSize(self):
         num = self.size
+        if not num:
+            return 'Unknown'
         for x in ['bytes', 'KB', 'MB', 'GB', 'TB']:
             if num < 1024.0:
                 return "%3.1f %s" % (num, x)

@@ -29,7 +29,7 @@ class SystemConfig(System):
                     'login_password': {'on_change_actions': ['reboot']},
                     'interval_search': {'human': 'Search interval (minutes)'},
                     'interval_update': {'human': 'Update interval (minutes)'},
-                    'https': {'human': 'HTTPS'},
+                    'https': {'human': 'HTTPS', 'desc': 'NOT IMPLEMENTED YET'},
                     'interval_search': {'human': 'Search interval (minutes)', 'on_change_actions': ['reboot']},
                     'interval_update': {'human': 'Update interval (minutes)', 'on_change_actions': ['reboot']},
                     'interval_check': {'human': 'Download check interval (minutes)', 'on_change_actions': ['reboot']},

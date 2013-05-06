@@ -5,13 +5,13 @@ import xml.etree.ElementTree as ET
 from lib import requests
 
 
-class TheGameDB(Provider):
+class TheGamesDB(Provider):
     version = "0.11"
     _tag = 'tgdb'
     single = True
     types = ['de.lad1337.games']
     _config = {'enabled': True}
-    config_meta = {'plugin_desc': 'THE information provider for games'
+    config_meta = {'plugin_desc': 'THE information provider for games. Missing anything? check out http://thegamesdb.net'
                    }
 
     _pCache = {}
@@ -75,6 +75,7 @@ class TheGameDB(Provider):
                     platform.saveTemp()
                     self._pCache[int(platformIDTag.text)] = platform
                     g.parent = platform
+                    g.saveTemp()
                     break
             else:
                 return None
@@ -87,6 +88,7 @@ class TheGameDB(Provider):
 
     def searchForElement(self, term='', id=0):
         self.progress.reset()
+        self._pCache = {}
         
         mt = MediaType.get(MediaType.identifier == 'de.lad1337.games')
         mtm = mt.manager
@@ -95,8 +97,6 @@ class TheGameDB(Provider):
         url = 'http://thegamesdb.net/api/GetGame.php?'
         if term and not id:
             payload['name'] = term
-            #payload['platform'] = platform.url_alias
-            #url += 'name=%s&platform=%s' % (term, platform.url_alias)
         else:
             payload['id'] = id
         #r = requests.get('http://thegamesdb.net/api/GetGame.php', params=payload)
@@ -110,7 +110,6 @@ class TheGameDB(Provider):
         else:
             base_url = "http://thegamesdb.net/banners/"
 
-        games = []
         for curGame in root.getiterator('Game'):
             self._createGameFromTag(curGame, base_url, rootElement)
 
@@ -120,7 +119,9 @@ class TheGameDB(Provider):
 
     def getElement(self, id):
         id = int(id)
-        for game in self.searchForElement(id=id):
+        root = self.searchForElement(id=id)
+        for game in root.decendants:
+            print game, game.getField('id', self.tag), 'vs', id
             if game.getField('id', self.tag) == id:
                 return game
         else:

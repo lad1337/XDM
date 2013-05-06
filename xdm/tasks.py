@@ -24,13 +24,13 @@ def runSearcher():
             searchElement(ele)
 
 
-def notify(game):
+def notify(element):
     for notifier in common.PM.N:
-        createGenericEvent(game, 'Notifier', 'Sending notification with %s on status %s' % (notifier, game.status))
-        if notifier.c.on_snatch and game.status == common.SNATCHED:
-            notifier.sendMessage("%s has been snatched" % game, game)
-        if notifier.c.on_complete and game.status in (common.COMPLETED, common.DOWNLOADED, common.PP_FAIL):
-            notifier.sendMessage("%s is now %s" % (game, game.status), game)
+        createGenericEvent(element, 'Notifier', 'Sending notification with %s on status %s' % (notifier, element.status))
+        if notifier.c.on_snatch and element.status == common.SNATCHED:
+            notifier.sendMessage("%s has been snatched" % element.getName(), element)
+        if notifier.c.on_complete and element.status in (common.COMPLETED, common.DOWNLOADED, common.PP_FAIL):
+            notifier.sendMessage("%s is now %s" % (element, element.status), element)
 
 
 def createGenericEvent(game, event_type, event_msg):
@@ -38,7 +38,8 @@ def createGenericEvent(game, event_type, event_msg):
     h.game = game
     h.event = event_type
     h.obj_id = 0
-    h.obj_class = 'Generic'
+    h.obj_class = 'GenericEvent'
+    h.obj_type = 'Event'
     h.old_obj = json.dumps(game, cls=MyEncoder)
     h.new_obj = json.dumps({'_data': {'msg': event_msg}})
     h.save()
@@ -55,24 +56,27 @@ def commentOnDownload(download):
 
 
 def searchElement(ele):
-    #blacklist = common.SYSTEM.getBlacklistForPlatform(ele.platform)
-    #whitelist = common.SYSTEM.getWhitelistForPlatform(ele.platform)
-    for indexer in common.PM.I:
-        if not indexer.runFor(ele.manager):
-            log('%s not running for %s' % (indexer, ele.manager))
-            continue
+    didSearch = False
+    for indexer in common.PM.getIndexers(runFor=ele.manager):
         createGenericEvent(ele, 'Search', 'Searching %s on %s' % (ele, indexer))
         downloads = indexer.searchForElement(ele) #intensiv
-        
+        didSearch = True
+
         #downloads = _filterBadDownloads(blacklist, whitelist, downloads)
         downloads = _filterBadDownloads(downloads)
-        return snatchOne(ele, downloads)
+        if downloads:
+            return snatchOne(ele, downloads)
+        else:
+            log.info("We filtered all downloads out for %s" % ele)
+    if not didSearch:
+        log.warning("No Indexer active/available for %s" % ele.manager)
     return ele.status
 
 
 # in a way we dont need ele here since each download holds a ref to each ele ... but it is easier to read
 def snatchOne(ele, downloads):
-    for downloader in common.PM.getDownloaders(types=Indexer.types):
+    for downloader in common.PM.getDownloaders():
+        triedSnatch = False
         for download in downloads:
             if not download.type in downloader.types:
                 continue
@@ -84,6 +88,11 @@ def snatchOne(ele, downloads):
                 download.save()
                 notify(ele)
                 return ele.status #exit on first success
+            triedSnatch = True
+        if triedSnatch and downloads:
+            log.warning("No Downloaders active/available for %s (or they all failed)" % download.type)
+        elif not downloads:
+            log.info("No downloads found for %s" % download.element)
     return ele.status
 
 
@@ -110,7 +119,7 @@ def _filterBadDownloads(downloads):
                     continue
                 log.info("Found a Download(%s) with the same url and we snatched it already. I'l get it again..." % download)
             download = old_download
-            clean.append(download)
+        clean.append(download)
     return clean
 
 
@@ -172,21 +181,27 @@ def updateGames():
         updateGame(game)
 
 
-def updateElement(element):
-    for p in common.PM.P:
-        if not p.runFor(element.manager) or element.manager.identifier not in p.types:
-            continue
+def updateElement(element, force=False):
+    for p in common.PM.getProvider(runFor=element.manager):
+        #TODO: make sure we use the updated element after one provider is done
         pID = element.getField('id', p.tag)
         if not pID:
             log.info('we dont have this element(%s) on provider(%s) yet. we will search for it' % (element, p))
             #TODO search element by name or with help of xem ... yeah wishful thinking
-        
+
         new_e = p.getElement(pID)
         createGenericEvent(element, 'Update', 'Serching for update on %s' % p)
+        if new_e:
+            log.info("%s returned an element" % p)
+        else:
+            log.info("%s returned NO element" % p)
         if new_e and new_e != element:
             log.info("Found new version of %s" % element)
             new_e.id = element.id
-            new_e.status = element.status # this will save the new game stuff
+            new_e.status = element.status
+            #delete old version
+            element.deleteWithChildren()
+            new_e.manager.makeReal(element)
             new_e.save()
             new_e.downloadImages()
 

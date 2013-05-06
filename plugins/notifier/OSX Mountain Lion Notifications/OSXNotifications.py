@@ -20,5 +20,5 @@ class OSXNotifications(Notifier):
     # config_meta is at the end because otherwise the sendTest function would not be defined
     config_meta = {'plugin_buttons': {'sendTest': {'action': _sendTest, 'name': 'Send test'}},
                    'enabled': {'on_enable': [_sendEnable]},
-                   'plugin_desc': 'Sends Mac OS 10.8 Notification Center notifications.'
+                   'plugin_desc': 'Sends Mac OS 10.8 Notification Center notifications. It will appear as "terminal-notifer" in the system settings.'
                    }

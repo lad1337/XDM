@@ -8,7 +8,7 @@ import httplib
 from collections import defaultdict
 
 api_uri = 'http://api.discogs.com'
-user_agent = 'XDM/alpha 0.2 +http://lad1337.de'
+user_agent = 'XDM/alpha 0.3 +http://lad1337.de'
 
 class DiscogsAPIError(Exception):
     """Root Exception class for Discogs API errors."""

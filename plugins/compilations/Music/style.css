@@ -26,6 +26,7 @@
     margin: 0 10px;
     min-height: 210px;
 }
+
 .de-lad1337-music .Album .artistName{
     color: gray;
     opacity: 1;
@@ -45,6 +46,12 @@
     box-shadow: 0px 1px 10px rgba(0,0,0,0.6);
     cursor: pointer;
 }
+
+.de-lad1337-music .Album.status-snatched img{
+    box-shadow: 0px 1px 10px rgba(0,160,0,0.6);
+}
+
+
 .de-lad1337-music .Album.active>img{
     width: 160px;
     height: 160px;

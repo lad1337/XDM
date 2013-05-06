@@ -10,7 +10,7 @@ class Discogs(Provider):
     types = ['de.lad1337.music']
     _config = {'enabled': True,
                'search_range_select': 'master'}
-    config_meta = {'plugin_desc': 'Information provider for music information from http://www.discogs.com/'
+    config_meta = {'plugin_desc': 'Information provider for music from http://www.discogs.com'
                    }
 
     search_range_select_map = {'master': {'t': 'Master Releases', 'c': ('MasterRelease',)},

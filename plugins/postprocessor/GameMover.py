@@ -6,28 +6,21 @@ import os
 import re
 import shutil
 
-class FileProcessor(PostProcessor):
+
+class GameMover(PostProcessor):
     _config = {"replace_space_with": "_",
                }
+    screenName = 'Game Mover'
+    addMediaTypeOptions = ['de.lad1337.games']
     config_meta = {'plugin_desc': 'This will move all the iso, img, wbfs from the path that is given to the path of the games platform.',
                    'replace_space_with': {'desc': 'All spaces for the final file will be replaced with this.'}
                    }
     useConfigsForElementsAs = 'Path'
 
-    def _getFinalPathForPlatform(self, platform):
-        if platform == common.WII:
-            return self.c.final_path_wii
-        elif platform == common.PS3:
-            return self.c.final_path_ps3
-        elif platform == common.XBOX360:
-            return self.c.final_path_xbox360
-        elif platform == common.PC:
-            return self.c.final_path_pc
-
-    def ppPath(self, game, filePath):
-        destPath = self._getFinalPathForPlatform(game.platform)
+    def ppPath(self, element, filePath):
+        destPath = self._getPath(element)
         if not destPath:
-            log.warning("Destination path for %s is not set. Stopping PP." % game.platform)
+            log.warning("Destination path for %s is not set. Stopping PP." % element.platform)
             return False
         # log of the whole process routine from here on except debug
         # this looks hacky: http://stackoverflow.com/questions/7935966/python-overwriting-variables-in-nested-functions
@@ -57,9 +50,9 @@ class FileProcessor(PostProcessor):
             try:
                 extension = os.path.splitext(curFile)[1]
                 if len(allImageLocations) > 1:
-                    newFileName = game.name + " CD" + str(index + 1) + extension
+                    newFileName = element.name + " CD" + str(index + 1) + extension
                 else:
-                    newFileName = game.name + extension
+                    newFileName = element.name + extension
                 newFileName = fixName(newFileName, self.c.replace_space_with)
                 processLogger("New Filename shall be: %s" % newFileName)
                 dest = os.path.join(destPath, newFileName)
@@ -82,6 +75,6 @@ class FileProcessor(PostProcessor):
             finally:
                 logfile.close()
         except IOError:
-                pass
+            pass
 
         return success

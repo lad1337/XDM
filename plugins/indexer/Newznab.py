@@ -13,7 +13,7 @@ class Newznab(Indexer):
                'retention': 900,
                }
 
-    types = [common.TYPE_NZB]
+    types = ['de.lad1337.nzb']
     config_meta = {'plugin_desc': 'Generic Newznab indexer.'
                    }
 
@@ -69,6 +69,7 @@ class Newznab(Indexer):
                 d.element = element
                 d.size = curSize
                 d.external_id = ex_id
+                d.type = 'de.lad1337.nzb'
                 downloads.append(d)
 
         return downloads

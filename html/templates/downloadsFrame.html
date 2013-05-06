@@ -1,0 +1,17 @@
+
+
+<table style="width:100%;">
+<tbody>
+{% for download in downloads %}
+    <tr>
+        <td>{{download}}</td>
+        <td style="text-align:right;border-right: solid 1px #000;padding-right:5px;">{{download.humanSize()}}</td>
+        <td style="text-align:center;">{{download.status}}</td>
+        <td><a href="{{download.url}}" title="{{download.external_id}}">Direct Link</td>
+        <td><a class="btn" href="/getDownload?id={{download.id}}">Get</a></td>
+    </tr>
+{%else%}
+    <tr><td><h5>No downloads yet.</h5></td></tr>
+{% endfor %}
+</tbody>
+</table>

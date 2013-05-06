@@ -45,8 +45,6 @@
         
         if(currentRequest)
             currentRequest.abort();
-            
-        //fileBrowserDialog.dialog('option', 'dialogClass', 'browserDialog busy');
         
         currentRequest = $.getJSON(endpoint, { path: path }, function(data){
             $('.modal-body',fileBrowserDialog).empty();
@@ -72,7 +70,6 @@
                 link.appendTo(list);
             });
             $("a", list).wrap('<li>');
-            //fileBrowserDialog.dialog('option', 'dialogClass', 'browserDialog');
         });
     }
 
@@ -83,7 +80,7 @@
         // make a fileBrowserDialog object if one doesn't exist already
         if(!fileBrowserDialog) {
         
-            // set up the jquery dialog
+            // set up the bootstrap dialog
             fileBrowserDialog = $('<div id="fileBrowserDialog" class="modal hide fade"><div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button><h3 id="myModalLabel"></h3></div><div class="modal-body"></div></div>').appendTo('body')
             fileBrowserDialog.append('<div class="modal-footer"><button class="btn" data-dismiss="modal">Close</button><button class="btn btn-primary" data-dismiss="modal">Set Path</button></div>')
             $('.btn.btn-primary[data-dismiss="modal"]', fileBrowserDialog).click(function(){

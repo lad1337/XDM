@@ -31,7 +31,7 @@ class Game(object):
                 </div>
             </div>
             </td>
-            <td>{{name}} and {{this.name}} and {{this.getName()}}</td>
+            <td>{{name}}<!-- and {{this.name}} and {{this.getName()}}--></td>
             <td>{{this.parent.alias}}</td>
         </tr>
         """
