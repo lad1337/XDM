@@ -3,6 +3,7 @@
 from xdm.plugins import *
 from xdm.helper import replaceUmlaute
 
+
 class Song(object):
     position = 0
     title = ''
@@ -40,7 +41,9 @@ class Album(object):
         terms = ['%s %s' % (self.parent.name, self.name)]
         german_fixed = []
         for term in terms:
-            german_fixed.append(replaceUmlaute(term))
+            replaced = replaceUmlaute(term)
+            if replaced != term:
+                german_fixed.append(replaceUmlaute(term))
         return terms + german_fixed
 
     def getName(self):
@@ -95,7 +98,6 @@ class Music(MediaTypeManager):
                 song.save()
             album.downloadImages()
             return True
-
 
     def headInject(self):
         return """

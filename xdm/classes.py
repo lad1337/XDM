@@ -348,7 +348,6 @@ class Element(BaseModel):
             return html
 
         if self.manager.download.__name__ == self.type and self.status not in status:
-            print 'skipping', self
             return ''
 
         children = Element.select().where(Element.parent == self.id)

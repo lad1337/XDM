@@ -114,6 +114,7 @@
                 {%endif%}
                 
                 {%if plugin._type == 'Provider'%}
+                <span class="label label-info">Tag: {{plugin.tag}}</span>
                 {%for mtm in plugin._getSupportedManagers()%}
                 <span class="support-for-mediatype label label-info" title="{{mtm.identifier}}">{{mtm.screenName}}</span>
                 {%else%}
@@ -159,6 +160,14 @@ $(document).ready(function() {
                 document.location = '/createInstance?plugin=' + encodeURIComponent($(this).data('plugin')) + '&instance=' + encodeURIComponent($(this).prev('input').val())
         else
             $(this).prev('input').stop().css("background-color", "#FFFF9C").animate({ backgroundColor: "#FFFFFF"}, 1500);
+    });
+    $("input.newInstanceName").keypress(function(event){
+        var regex = new RegExp("^[a-zA-Z0-9_]+$");
+        var key = String.fromCharCode(!event.charCode ? event.which : event.charCode);
+        if (!regex.test(key)) {
+           event.preventDefault();
+           return false;
+        }
     });
     $('.nav.nav-list a').hover(function(){
         var t = $($(this).attr('href'))

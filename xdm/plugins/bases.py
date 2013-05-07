@@ -418,6 +418,36 @@ class System(Plugin):
         return []
 
 
+class Filter(Plugin):
+    _type = 'Filter'
+    name = 'Does Nothing'
+
+    def __init__(self, instance='Default'):
+        self._config['run_on_hook_select'] = ''
+        self.config_meta['run_on_hook_select'] = {'human': 'Run on stage'}
+        #self._config['positive'] = True
+        #self.config_meta['positive'] = {'human': 'Keep the the matches'}
+        Plugin.__init__(self, instance=instance)
+
+    def _run_on_hook_select(self):
+        return {common.SEARCHTERMS: 'Search Term',
+                common.FOUNDDOWNLOADS: 'Found Downloads'}
+
+    def compare(self, element=None, download=None, string=None):
+        # return a tuple if the string was accepted and the new string
+
+        # for downloads only the bool is used
+        # False -> reject download
+        # True -> accept download
+
+        #TODO implement
+        # for search terms
+        # False and '' -> reject
+        # False and 'something' -> replaced
+        # True and 'same as original' -> pass
+        # True and 'something new' -> add the new string
+        return (True, string)
+
 class MediaTypeManager(Plugin):
     _type = 'MediaTypeManager'
     name = "Does Noting"
@@ -519,11 +549,7 @@ class MediaTypeManager(Plugin):
     def paint(self, root=None, status=None):
         if status is None:
             status = common.getHomeStatuses()
-        
-        print 'painting only stuff with status in',
-        for s in status:
-            print s,
-        print ''
+
         if root is None:
             log('init paint on default root %s %s' % (self.root, self.root.id))
             return self.root.paint(status=status)
@@ -567,4 +593,4 @@ class MediaTypeManager(Plugin):
                 common.WANTED.id: common.WANTED.name,
                 common.IGNORE.id: common.IGNORE.name}
 
-__all__ = ['System', 'PostProcessor', 'Provider', 'Indexer', 'Notifier', 'Downloader', 'MediaTypeManager', 'Element', 'DownloadType']
+__all__ = ['System', 'PostProcessor', 'Provider', 'Indexer', 'Notifier', 'Downloader', 'MediaTypeManager', 'Element', 'DownloadType', 'Filter']

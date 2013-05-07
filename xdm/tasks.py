@@ -7,6 +7,7 @@ import os
 import json
 from xdm.jsonHelper import MyEncoder
 import threading
+from cherrypy._cprequest import Hook
 
 
 def runSearcher():
@@ -112,6 +113,14 @@ def _filterBadDownloads(downloads):
             download.status = common.UNKNOWN
             download.save()
         else:
+            try:
+                Element.get(Element.id == download.element.id)
+            except Element.DoesNotExist:
+                log.warning("The element for the download(%s) does not exist any more deleting the old one but taking the status from the old one" % download.id)
+                download.status = old_download.status
+                old_download.delete_instance()
+                download.save()
+                old_download = download
             if old_download.status in (common.FAILED, common.DOWNLOADED):
                 log.info("Found a Download(%s) with the same url and it failed or we downloaded it already. Skipping..." % download)
                 continue
@@ -120,7 +129,14 @@ def _filterBadDownloads(downloads):
                     continue
                 log.info("Found a Download(%s) with the same url and we snatched it already. I'l get it again..." % download)
             download = old_download
-        clean.append(download)
+
+        for curFilterPlugin in common.PM.getFilters(hook=common.FOUNDDOWNLOADS, runFor=download.element.manager):
+            acceptence, string = curFilterPlugin.compare(element=download.element, download=download)
+            if not acceptence:
+                log.info('%s did not like %s' % (curFilterPlugin, download))
+                break
+        else:
+            clean.append(download)
     return clean
 
 
@@ -174,7 +190,6 @@ def ppElement(element, download, path):
         download.status = common.PP_FAIL
         download.save()
     return False
-
 
 
 def updateElement(element, force=False):

@@ -32,11 +32,12 @@ class Common(object):
     IGNORE = None # ignore this item
     TEMP = None # ignore this item
 
-    TYPE_NZB = 1
-    TYPE_TORRENT = 2
-
     LOGTOSCREEN = True
     LOGDEBUGTOSCREEN = False
+
+    #Hooks
+    SEARCHTERMS = 1
+    FOUNDDOWNLOADS = 2
 
     def getAllStatus(self):
         return [self.UNKNOWN, self.WANTED, self.SNATCHED, self.DOWNLOADED,
