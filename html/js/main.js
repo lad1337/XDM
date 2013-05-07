@@ -14,13 +14,7 @@ $(document).ready(function() {
         padding     : 0,
         margin      : [20, 60, 20, 60] // Increase left/right margin
     });
-    
-    $('td.cover a').each(function(){
-        var playPaper = new Raphael(this, 100, 77);
-        var playIcon1 = playPaper.path(playPathS).attr({fill: "#e6311b", stroke: "none"});
-        var playIcon2 = playPaper.path(playPathS2).attr({fill: "#e6311b", stroke: "none"});
-        //playIcon.transform('s1.5')
-    });
+
     
     $('.navbar .navbar-search .add-on').click(function(){
         $(this).siblings('input').val('')
@@ -53,6 +47,8 @@ $(document).ready(function() {
             return item;
         }
     })
+    $('.navbar .dropdown-toggle').dropdown()
+
     
 });
 

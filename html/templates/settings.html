@@ -154,7 +154,12 @@ $(document).ready(function() {
             icon.addClass('icon-off')
        }
     });
-    
+    $("input.newInstance").click(function(){
+        if( $(this).prev('input').val() )
+                document.location = '/createInstance?plugin=' + encodeURIComponent($(this).data('plugin')) + '&instance=' + encodeURIComponent($(this).prev('input').val())
+        else
+            $(this).prev('input').stop().css("background-color", "#FFFF9C").animate({ backgroundColor: "#FFFFFF"}, 1500);
+    });
     $('.nav.nav-list a').hover(function(){
         var t = $($(this).attr('href'))
         $('.nav.nav-list.MediaTypeManager a').each(function(k,i){

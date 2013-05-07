@@ -38,10 +38,25 @@ class Common(object):
     LOGTOSCREEN = True
     LOGDEBUGTOSCREEN = False
 
-    def getStatusByID(self, id):
-        for s in (self.UNKNOWN, self.WANTED, self.SNATCHED, self.DOWNLOADED,
+    def getAllStatus(self):
+        return [self.UNKNOWN, self.WANTED, self.SNATCHED, self.DOWNLOADED,
                   self.COMPLETED, self.FAILED, self.PP_FAIL, self.DELETED,
-                  self.IGNORE, self.TEMP):
+                  self.IGNORE, self.TEMP]
+
+    def getEveryStatusBut(self, notWantedStatuses):
+        filtered = self.getAllStatus()
+        for notWantedStatus in notWantedStatuses:
+            filtered = [ x for x in filtered if x is not notWantedStatus ]
+        return filtered
+
+    def getHomeStatuses(self):
+        return self.getEveryStatusBut(self.getCompletedStatuses())
+
+    def getCompletedStatuses(self):
+        return [self.DELETED, self.COMPLETED, self.DOWNLOADED, self.PP_FAIL]
+
+    def getStatusByID(self, id):
+        for s in self.getAllStatus():
             if s.id == id:
                 return s
         raise ValueError("There is no status with the id %s" % id)

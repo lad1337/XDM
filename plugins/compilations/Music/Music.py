@@ -1,7 +1,7 @@
 
 
 from xdm.plugins import *
-
+from xdm.helper import replaceUmlaute
 
 class Song(object):
     position = 0
@@ -37,7 +37,11 @@ class Album(object):
                 """
 
     def getSearchTerms(self):
-        return ['%s %s' % (self.parent.name, self.name)]
+        terms = ['%s %s' % (self.parent.name, self.name)]
+        german_fixed = []
+        for term in terms:
+            german_fixed.append(replaceUmlaute(term))
+        return terms + german_fixed
 
     def getName(self):
         return self.name

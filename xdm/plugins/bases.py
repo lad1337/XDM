@@ -41,9 +41,6 @@ class Plugin(object):
         if self._type != 'DownloadType':
             log("Creating new plugin %s" % self.name)
         if self.addMediaTypeOptions:
-            if self.type == 'MP32iTunes':
-                print self._config
-                print 'addMediaTypeOptions', self.addMediaTypeOptions
             self._create_media_type_configs() #this adds the configs for media types
         self.c = ConfigWrapper()
         self.config_meta = ConfigMeta(self.config_meta)
@@ -132,14 +129,14 @@ class Plugin(object):
                 continue
 
             #enable options for mediatype on this plugin
-            log('Creating runFor field on %s from %s' % (self.__class__, mtm.__class__))
+            #log('Creating runFor field on %s from %s' % (self.__class__, mtm.__class__))
             name = helper.replace_some('%s_runfor' % mtm.name)
             self._config[name] = False
             self.config_meta[name] = {'human': 'Run for %s' % mtm.name, 'type': 'enabled', 'mediaType': mtm.mt}
             if self.addMediaTypeOptions == 'runFor':
                 continue
 
-            log('Creating multi config fields on %s from %s' % (self.__class__, mtm.__class__))
+            #log('Creating multi config fields on %s from %s' % (self.__class__, mtm.__class__))
             for configType in [x.__name__ for x in mtm.elementConfigsFor]:
                 for element in Element.select().where(Element.type == configType):
                     prefix = self.useConfigsForElementsAs
@@ -198,10 +195,9 @@ class Plugin(object):
         try:
             return getattr(self.c, helper.replace_some('%s_runfor' % mtm.name))
         except AttributeError: # this might be a type check
-            if mtm.identifier in self.types:
+            if hasattr(self, 'types') and mtm.identifier in self.types:
                 return True
         return False
-
 
     def getMyScore(self):
         return common.PM.getPluginScore(self)
@@ -276,7 +272,7 @@ class Downloader(DownloadTyped):
 class Indexer(DownloadTyped):
     """Plugins of this class create elemnts based on mediaType structures"""
     _type = 'Indexer'
-    types = [common.TYPE_NZB, common.TYPE_TORRENT] # types this indexer will give back
+    types = [] # types this indexer will give back
     name = "Does Noting"
 
     def __init__(self, instance='Default'):
@@ -398,8 +394,10 @@ class Provider(Plugin):
                 out.append(mtm)
         return out
 
+
 class PostProcessor(Plugin):
     _type = 'PostProcessor'
+    types = [] # media types the downloader can handle
 
     def ppPath(self, game, path):
         return False
@@ -432,12 +430,12 @@ class MediaTypeManager(Plugin):
 
     def __init__(self, instance):
         self.single = True
-        
+
         self.config_meta['enable'] = {'on_enable': 'recachePlugins'}
         self._config['default_new_status_select'] = common.WANTED.id
         self.config_meta['default_new_status_select'] = {'human': 'Status for newly added %s' % self.__class__.__name__}
         super(MediaTypeManager, self).__init__(instance)
-        
+
         self.searcher = None
         self.s = {'root': self.__class__.__name__}
         l = list(self.order)
@@ -486,7 +484,10 @@ class MediaTypeManager(Plugin):
                         e.save()
 
     def getDownloadableElements(self, asList=True):
-        out = Element.select().where(Element.mediaType == self.mt, Element.type == self.download.__name__, Element.status != common.TEMP)
+        return self.getElementsWithStatusIn(common.getHomeStatuses(), asList)
+
+    def getElementsWithStatusIn(self, status, asList=True):
+        out = Element.select().where(Element.mediaType == self.mt, Element.type == self.download.__name__, Element.status << status)
         if asList:
             out = list(out)
         return out
@@ -500,6 +501,9 @@ class MediaTypeManager(Plugin):
         else:
             return None
 
+    def getManagedTypes(self):
+        return [self.type] + [classType.__name__ for classType in self.order]
+
     def getOrderField(self, eType):
         if eType in self.s and '_orderBy' in self.s[eType]['class'].__dict__:
             return self.s[eType]['class'].__dict__['_orderBy']
@@ -512,10 +516,17 @@ class MediaTypeManager(Plugin):
     def headInject(self):
         return ''
 
-    def paint(self, root=None):
+    def paint(self, root=None, status=None):
+        if status is None:
+            status = common.getHomeStatuses()
+        
+        print 'painting only stuff with status in',
+        for s in status:
+            print s,
+        print ''
         if root is None:
             log('init paint on default root %s %s' % (self.root, self.root.id))
-            return self.root.paint()
+            return self.root.paint(status=status)
         else:
             log('init paint on given root %s %s' % (root, root.id))
             return root.paint(search=True)

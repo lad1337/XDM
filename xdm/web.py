@@ -22,11 +22,16 @@ class WebRoot:
 
 
     def _globals(self):
-        return {'mtms': common.PM.MTM, 's': Status.select(), 'system': common.SYSTEM, 'PM': common.PM}
+        return {'mtms': common.PM.MTM, 's': Status.select(), 'system': common.SYSTEM, 'PM': common.PM, 'common': common}
 
     @cherrypy.expose
     def index(self, status_message='', version=''):
         template = self.env.get_template('index.html')
+        return template.render(**self._globals())
+
+    @cherrypy.expose
+    def completed(self, status_message='', version=''):
+        template = self.env.get_template('completed.html')
         return template.render(**self._globals())
 
     @cherrypy.expose
@@ -267,6 +272,11 @@ class WebRoot:
     @cherrypy.expose
     def reboot(self):
         actionManager.executeAction('hardReboot', 'Webgui')
+        raise cherrypy.HTTPRedirect("/")
+
+    @cherrypy.expose
+    def startDownloadChecker(self):
+        tasks.runChecker()
         raise cherrypy.HTTPRedirect("/")
 
     browser = WebFileBrowser()

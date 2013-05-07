@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import os
 import re
 import sys
@@ -6,6 +7,7 @@ import math
 from logger import *
 from datetime import datetime
 import inspect
+import urllib
 
 
 def replace_some(text):
@@ -27,6 +29,12 @@ def replace_x(text, dic):
 def fileNameClean(text):
     dic = {'<': '', '>': '', ':': '', '"': '', '/':'', '\\':'', '|':'', '?':'', '*':''}
     return replace_x(text, dic)
+
+
+def replaceUmlaute(text):
+    return replace_x(text, {u'ü': u'ue', u'ä': u'ae', u'ö': 'oe',
+                            u'Ü': u'UE', u'Ä': u'AE', u'Ö': 'OE',
+                            u'ß': 'ss'})
 
 
 # form couchpotato

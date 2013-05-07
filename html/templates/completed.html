@@ -1,13 +1,12 @@
 {% extends "base.html" %}
-{% set title = 'XDM' -%}
-{%if cur_index%}
-{% set active_page = active_page|default(cur_index) -%}
-{%endif%}
+{% set title = 'XDM Completed' -%}
+{% set active_page = active_page|default('completed') -%}
+
 {% block content%}
 <div class="btn-group" data-toggle="buttons-radio">
     {% for mt in mtms%}
         <a href="#{{mt.instance}}" data-toggle="tab" class="btn btn-primary{% if mt.identifier == system.c.defaut_mt_select %} active{%endif%}">
-        {{mt.type}} ({{mt.getDownloadableElements(True)|length}})
+        {{mt.type}} ({{mt.getElementsWithStatusIn(common.getCompletedStatuses(), True)|length}})
         </a>
     {% endfor %}
 </div>
@@ -15,7 +14,7 @@
 <div class="tab-content">
 {% for mt in mtms%}
 <div class="{{mt.identifier.replace('.','-')}} tab-pane fade{% if mt.identifier == system.c.defaut_mt_select %} active in{%endif%}" id="{{mt.instance}}">
-    {{mt.paint()}}
+    {{mt.paint(status=common.getCompletedStatuses())}}
 </div>
 {% endfor %}
 </div>

@@ -285,7 +285,7 @@ class Element(BaseModel):
         return self._getSearchTerm()
 
     def _getSearchTerm(self):
-        return []
+        return [self.getName()]
 
     def imgName(self):
         return "%s (%s).jpeg" % (helper.replace_all(self.name), self.id)
@@ -339,20 +339,35 @@ class Element(BaseModel):
             attrs[attr] = self.getField(attr)
         return attrs
 
-    def paint(self, search=False, single=False):
+    def paint(self, search=False, single=False, status=None):
+        if status is None:
+            status = common.getHomeStatuses()
+
         html = self.buildHtml(search)
         if single:
             return html
 
+        if self.manager.download.__name__ == self.type and self.status not in status:
+            print 'skipping', self
+            return ''
+
         children = Element.select().where(Element.parent == self.id)
-        for child in sorted(children,
-                            key=lambda c: c.getField(
-                                                     self.manager.getOrderField(
-                                                                                c.type))):
-            html = html.replace('{{children}}', '%s{{children}}' % child.paint(search), 1)
+
+        for child in sorted(children, key=lambda c: c.orderFieldValue):
+            html = html.replace('{{children}}', '%s{{children}}' % child.paint(search=search, single=single, status=status), 1)
 
         html = html.replace('{{children}}', '')
         return html
+
+    def _getOrderField(self):
+        return self.manager.getOrderField(self.type)
+
+    orderField = property(_getOrderField)
+
+    def _getOrderFieldValue(self):
+        return self.getField(self.manager.getOrderField(self.type))
+
+    orderFieldValue = property(_getOrderFieldValue)
 
     def _getAllAncestorss(self):
         if not self.parent:
@@ -604,7 +619,10 @@ class History(BaseModel):
         h.old_obj = json.dumps(old, cls=MyEncoder)
         h.new_obj = json.dumps(obj, cls=MyEncoder)
         h.obj_class = obj.__class__.__name__
-        h.obj_type = obj.type
+        if hasattr(obj, 'type'):
+            h.obj_type = obj.type
+        else:
+            h.obj_type = obj.__class__.__name__
 
         if h.event == 'insert' and dict_diff(old, obj.__dict__):
             h.save()

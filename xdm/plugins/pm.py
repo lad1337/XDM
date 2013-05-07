@@ -222,7 +222,6 @@ class PluginManager(object):
             return plugins
         filtered = []
         for cur_cls in plugins:
-            print 'checking runfor on', cur_cls
             if cur_cls.runFor(mediaTypeManager):
                 filtered.append(cur_cls)
         return filtered

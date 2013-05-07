@@ -35,21 +35,36 @@
     <body>
         <div id="container" class="{{ active_page }}">
             {% set navigation_bar = [
-                                    ('/', 'index', 'Home'),
-                                    ('/results/', 'search', 'Search'),
-                                    ('/settings/', 'settings', 'Settings')
+                                    ('/', 'index', 'Home', [('/completed/', 'completed', 'Completed'),
+                                                            ('/deleted/', 'deleted', 'Deleted')]),
+                                    ('/results/', 'search', 'Search', []),
+                                    ('/settings/', 'settings', 'Settings', [])
                                     ] -%}
             {% set active_page = active_page|default('index') -%}
             <div class="navbar">
                 <div class="navbar-inner">
                     <a class="brand" href="/"><img src="/img/xdm-logo.svg" width="100"></a>
                     <ul class="nav">
-                        {% for href, id, caption in navigation_bar %}
-                          <li{% if id == active_page %} class="active"{% endif
-                          %}><a href="{{ href|e }}">{{ caption }}</a></li>
+                        {% for href, id, caption, subMenu in navigation_bar %}
+                        {%if not subMenu%}
+                            <li class="{% if id == active_page %}active{% endif%}">
+                                <a href="{{ href|e }}">{{ caption }}</a>
+                            </li>
+                        {%else%}
+                            <li class="dropdown{% if id == active_page %} active{% endif%}">
+                                <a href="{{ href|e }}" class="dropdown-toggle"  data-target="#" data-toggle="dopdown">{{ caption }}<b class="caret"></b></a>
+                                <ul class="dropdown-menu">
+                                    {% for href2, id2, caption2 in subMenu %}
+                                    <li class="{% if id2 == active_page %}active{% endif%}">
+                                        <a href="{{ href2|e }}">{{ caption2 }}</a>
+                                    </li>
+                                    {% endfor %}
+                                </ul>
+                            </li>
+                        {%endif%}
                         {% endfor %}
                     </ul>
-                    <form class="navbar-search pull-right" action="/results" method="get">
+                    <form class="navbar-search pull-right" action="/results" method="post" accept-charset="UTF-8">
                     
                         <div class="input-append">
                             <input type="text" class="search-querdy" placeholder="Search" name="search_query" autocomplete="off" style="width: 100%;"/>
@@ -70,7 +85,8 @@
             {% block footer%}  
             <a href="/updateAll" title="It works but the new page is bugging out, just refresh the page again">Refresh all</a> -
             <a href="/shutdown">Shutdown</a> -
-            <a href="/reboot" title="does a hard reboot. this will rescan plugins">Reboot</a>
+            <a href="/reboot" title="does a hard reboot. this will rescan plugins">Reboot</a> -
+            <a href="/startDownloadChecker" title="Start the download checker NOW">Start download checker</a>
             {%endblock%}
             </footer>
         </div>    

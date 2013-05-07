@@ -1,6 +1,7 @@
 from xdm.plugins import *
 
 from libs import discogs_client as discogs
+import re
 
 
 class Discogs(Provider):
@@ -60,15 +61,18 @@ class Discogs(Provider):
                     continue
 
             artist = r.artists[0]
+            # some artist names we get have some wiered (2) or (1) at the end
+            artistName = re.sub(r'\(\d{1,2}\)$', '', artist.name)
+
             try:
-                artistElement = Element.getWhereField(mt, 'Artist', {'id': artist.name}, self.tag, root)
+                artistElement = Element.getWhereField(mt, 'Artist', {'id': artistName}, self.tag, root)
             except Element.DoesNotExist:
                 artistElement = Element()
                 artistElement.mediaType = mt
                 artistElement.parent = root
                 artistElement.type = 'Artist'
-                artistElement.setField('name', artist.name, self.tag)
-                artistElement.setField('id', artist.name, self.tag)
+                artistElement.setField('name', artistName, self.tag)
+                artistElement.setField('id', artistName, self.tag)
                 artistElement.saveTemp()
             try:
                 albumElement = Element.getWhereField(mt, 'Album', {'id': r.data['id']}, self.tag, artistElement)

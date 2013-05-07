@@ -125,50 +125,52 @@ def _filterBadDownloads(downloads):
 
 
 def runChecker():
-    games = Element.select().execute()
+    elements = list(Element.select().execute())
     for checker in common.PM.D:
-        for game in games:
-            if not game.status == common.SNATCHED:
+        for element in elements:
+            if not element.status == common.SNATCHED:
                 continue
-            log("Checking status for %s" % game)
-            status, download, path = checker.getGameStaus(game)
-            log("%s gave back status %s for %s on download %s" % (checker, status, game, download))
+            log("Checking status for %s" % element)
+            status, download, path = checker.getGameStaus(element)
+            log("%s gave back status %s for %s on download %s" % (checker, status, element, download))
             if status == common.DOWNLOADED:
-                game.status = common.DOWNLOADED
+                element.status = common.DOWNLOADED
                 if download.id:
                     download.status = common.DOWNLOADED
                     download.save()
-                ppGame(game, download, path)
-                notify(game)
+                ppElement(element, download, path)
+                notify(element)
                 if download.id:
                     commentOnDownload(download)
             elif status == common.SNATCHED:
-                game.status = common.SNATCHED
-                game.save()
+                element.status = common.SNATCHED
+                element.save()
                 download.status = common.SNATCHED
                 download.save()
             elif status == common.FAILED:
                 download.status = common.FAILED
                 download.save()
                 if common.SYSTEM.c.again_on_fail:
-                    game.status = common.WANTED
-                    searchElement(game)
+                    element.status = common.WANTED
+                    searchElement(element)
                 else:
-                    game.status = common.FAILED
+                    element.status = common.FAILED
 
 
-def ppGame(game, download, path):
+def ppElement(element, download, path):
     pp_try = False
-    for pp in common.PM.PP:
-        createGenericEvent(game, 'PostProcess', 'Starting PP with %s' % pp)
-        if pp.ppPath(game, path):
-            game.status = common.COMPLETED # downloaded and pp success
+    for pp in common.PM.getPostProcessors(runFor=element.manager):
+        createGenericEvent(element, 'PostProcess', 'Starting PP with %s' % pp)
+        log('Starting PP on %s with %s at %s' % (element, pp, path))
+        if pp.ppPath(element, path):
+            element.status = common.COMPLETED
+            element.save()
             download.status = common.COMPLETED
             download.save()
             return True
         pp_try = True
     if pp_try:
-        game.status = common.PP_FAIL # tried to pp but fail
+        element.status = common.PP_FAIL # tried to pp but fail
         download.status = common.PP_FAIL
         download.save()
     return False
