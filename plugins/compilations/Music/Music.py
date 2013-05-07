@@ -75,6 +75,7 @@ class Music(MediaTypeManager):
                                              Element.parent == self.root):
             if artist.getField('id') == oldArtist.getField('id'):
                 album.parent = artist
+                album.status = common.getStatusByID(self.c.default_new_status_select)
                 album.save()
                 album.downloadImages()
                 return True
@@ -84,6 +85,7 @@ class Music(MediaTypeManager):
             newArtist.parent = self.root
             newArtist.save()
             album.parent = newArtist
+            album.status = common.getStatusByID(self.c.default_new_status_select)
             album.save()
             for song in album.children:
                 song.save()

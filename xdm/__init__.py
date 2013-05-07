@@ -38,14 +38,13 @@ class Common(object):
     LOGTOSCREEN = True
     LOGDEBUGTOSCREEN = False
 
-    def getTypeExtension(self, d_type):
-        if d_type == self.TYPE_NZB:
-            return ".nzb"
-        elif d_type == self.TYPE_TORRENT:
-            return ".torrent"
-        else:
-            return ".txt"
-
+    def getStatusByID(self, id):
+        for s in (self.UNKNOWN, self.WANTED, self.SNATCHED, self.DOWNLOADED,
+                  self.COMPLETED, self.FAILED, self.PP_FAIL, self.DELETED,
+                  self.IGNORE, self.TEMP):
+            if s.id == id:
+                return s
+        raise ValueError("There is no status with the id %s" % id)
 
 common = Common()
 

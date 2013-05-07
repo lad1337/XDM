@@ -68,6 +68,7 @@ class Platform(object):
 
 class Games(MediaTypeManager):
     _config = {'enabled': True}
+    config_meta = {'plugin_desc': 'Games support. For, Wii, Wii U, Xbox 360, PS3 and PC'}
     order = (Platform, Game)
     download = Game
     #TODO: implement that stuff or dont ... donno
@@ -102,6 +103,7 @@ class Games(MediaTypeManager):
             log.error('We dont have the platform we need in the db ... what is this?')
             return False
         game.parent = platform
+        game.status = common.getStatusByID(self.c.default_new_status_select)
         game.save()
         game.downloadImages()
         return True

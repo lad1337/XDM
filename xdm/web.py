@@ -196,6 +196,21 @@ class WebRoot:
         raise cherrypy.HTTPRedirect('/')
 
     @cherrypy.expose
+    def setStatus(self, id, s):
+        ele = Element.get(Element.id == id)
+        ele.status = common.getStatusByID(int(s))
+        ele.save()
+        if ele.status == common.WANTED:
+            tasks.searchElement(ele)
+        raise cherrypy.HTTPRedirect('/')
+
+    @cherrypy.expose
+    def getDownload(self, id):
+        download = Download.get(Download.id == id)
+        tasks.snatchOne(download.element, [download])
+        raise cherrypy.HTTPRedirect('/')
+
+    @cherrypy.expose
     def makePermanent(self, id):
         element = Element.get(Element.id == id)
         element.manager.makeReal(element)

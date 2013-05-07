@@ -83,8 +83,9 @@ def snatchOne(ele, downloads):
             createGenericEvent(ele, 'Snatch', 'Trying to snatch %s with %s' % (download.name, downloader))
             log.info('Trying to snatch %s with %s' % (download.name, downloader))
             if downloader.addDownload(download):
-                ele.status = common.SNATCHED # games save status automatically
-                download.status = common.SNATCHED # downloads don't
+                ele.status = common.SNATCHED
+                ele.save()
+                download.status = common.SNATCHED
                 download.save()
                 notify(ele)
                 return ele.status #exit on first success
@@ -142,7 +143,8 @@ def runChecker():
                 if download.id:
                     commentOnDownload(download)
             elif status == common.SNATCHED:
-                game.status = common.SNATCHED #status setting on Game saves automatically
+                game.status = common.SNATCHED
+                game.save()
                 download.status = common.SNATCHED
                 download.save()
             elif status == common.FAILED:
@@ -171,14 +173,6 @@ def ppGame(game, download, path):
         download.save()
     return False
 
-
-#TDOD: make this play nice with multiple providers !!
-def updateGames():
-    log("running game updater")
-    for game in Game.select():
-        if game.status == common.DELETED:
-            continue
-        updateGame(game)
 
 
 def updateElement(element, force=False):

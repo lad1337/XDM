@@ -16,6 +16,7 @@ class Sabnzbd(Downloader):
             if not host.startswith('http'):
                 log("Fixing url. Adding http://")
                 self.c.host = "http://%s" % host
+            host = self.c.host
         else:
             if not host.startswith('http'):
                 host = "http://%s" % host
@@ -25,20 +26,16 @@ class Sabnzbd(Downloader):
 
         return "%s:%s/sabnzbd/api" % (host, port)
 
-    def _chooseCat(self, platform):
-            return ''
-
     def addDownload(self, download):
-        ele = download.element
         payload = {'apikey': self.c.apikey,
                  'name': download.url,
                  'nzbname': self._downloadName(download),
                  'mode': 'addurl'
                  }
-        cat = self._chooseCat(ele)
+
+        cat = self._getCategory(download.element)
         if cat is not None:
             payload['cat'] = cat
-
         try:
             r = requests.get(self._baseUrl(), params=payload, timeout=10)
         except:

@@ -41,6 +41,9 @@ class Plugin(object):
         if self._type != 'DownloadType':
             log("Creating new plugin %s" % self.name)
         if self.addMediaTypeOptions:
+            if self.type == 'MP32iTunes':
+                print self._config
+                print 'addMediaTypeOptions', self.addMediaTypeOptions
             self._create_media_type_configs() #this adds the configs for media types
         self.c = ConfigWrapper()
         self.config_meta = ConfigMeta(self.config_meta)
@@ -86,6 +89,7 @@ class Plugin(object):
             method = getattr(self, method_name)
             setattr(self, method_name, pluginMethodWrapper(self.name, method, alternative))
 
+
     def _get_enabled(self):
         return self.c.enabled
 
@@ -120,18 +124,22 @@ class Plugin(object):
         return os.path.abspath(__file__)
 
     def _create_media_type_configs(self):
-        if self._type in (MediaTypeManager.__name__, System.__name__, Notifier.__name__):
+        if self._type in (MediaTypeManager.__name__, System.__name__):
             return
 
         for mtm in common.PM.getMediaTypeManager():
             if type(self.addMediaTypeOptions) is list and mtm.identifier not in self.addMediaTypeOptions:
                 continue
 
-            #enable options for mediatype on this indexer
+            #enable options for mediatype on this plugin
+            log('Creating runFor field on %s from %s' % (self.__class__, mtm.__class__))
             name = helper.replace_some('%s_runfor' % mtm.name)
             self._config[name] = False
             self.config_meta[name] = {'human': 'Run for %s' % mtm.name, 'type': 'enabled', 'mediaType': mtm.mt}
-            #log('Creating multi config fields on %s from %s' % (self.__class__, mtm.__class__))
+            if self.addMediaTypeOptions == 'runFor':
+                continue
+
+            log('Creating multi config fields on %s from %s' % (self.__class__, mtm.__class__))
             for configType in [x.__name__ for x in mtm.elementConfigsFor]:
                 for element in Element.select().where(Element.type == configType):
                     prefix = self.useConfigsForElementsAs
@@ -149,15 +157,13 @@ class Plugin(object):
                         h_name = '%s %s' % (prefix, config['sufix'])
                         c_type = config['type']
                     else:
-                        prefix = self.useConfigsForElementsAs
-                        h_name = '%s for %s' % (prefix, config['sufix'])
+                        prefix = self.useConfigsForElementsAs.lower()
+                        h_name = '%s for %s' % (self.useConfigsForElementsAs, config['sufix'])
                         c_type = prefix.lower()
-                    c_name = helper.replace_some('%s %s %s' % (mtm.name, prefix.lower(), config['sufix']))
+                    c_name = helper.replace_some('%s %s %s' % (mtm.name, prefix, config['sufix']))
                     self._config[c_name] = config['default']
-                    element = None
-                    if 'element' in config and config['root']:
-                        element = mtm.root
-                    self.config_meta[c_name] = {'human': h_name, 'type': c_type, 'mediaType': mtm.mt, 'element': mtm.root}
+                    element = mtm.root
+                    self.config_meta[c_name] = {'human': h_name, 'type': c_type.lower(), 'mediaType': mtm.mt, 'element': element}
 
     def __getattribute__(self, name):
         useAs = object.__getattribute__(self, 'useConfigsForElementsAs')
@@ -167,11 +173,24 @@ class Plugin(object):
 
     def _getUseConfigsForElementsAsWrapper(self, element):
         for curConfig in self.c.configs:
+            """print '\n#####################'
+            print '--', 'config:',curConfig
+            print '--', 'config value:',curConfig.value
+            print '--', 'element:', element
+            print '--', 'config.element:', curConfig.element
+            if curConfig.element is None:
+                print '__', 'no config.element'
+            else:
+                print '--', curConfig.type, 'vs', self.useConfigsForElementsAs.lower()
+                print '--', curConfig.mediaType, 'vs', element.mediaType
+                print '--', 'isAncestorOf', curConfig.element.isAncestorOf(element)
+            """
             if curConfig.element is None:
                 continue
             if curConfig.mediaType == element.mediaType and\
-            self.useConfigsForElementsAs.lower() == curConfig.type and\
-            curConfig.element.isAncestorOf(element): # is the config elemtn "above" the element in question
+                self.useConfigsForElementsAs.lower() == curConfig.type and\
+                curConfig.element.isAncestorOf(element): # is the config elemtn "above" the element in question
+
                 return curConfig.value
         return None
 
@@ -304,6 +323,7 @@ class Indexer(DownloadTyped):
 class Notifier(Plugin):
     """Plugins of this class send out notification"""
     _type = 'Notifier'
+    addMediaTypeOptions = True
     name = "prints"
 
     def __init__(self, *args, **kwargs):
@@ -412,9 +432,13 @@ class MediaTypeManager(Plugin):
 
     def __init__(self, instance):
         self.single = True
-        super(MediaTypeManager, self).__init__(instance)
-        self.searcher = None
+        
         self.config_meta['enable'] = {'on_enable': 'recachePlugins'}
+        self._config['default_new_status_select'] = common.WANTED.id
+        self.config_meta['default_new_status_select'] = {'human': 'Status for newly added %s' % self.__class__.__name__}
+        super(MediaTypeManager, self).__init__(instance)
+        
+        self.searcher = None
         self.s = {'root': self.__class__.__name__}
         l = list(self.order)
         for i, e in enumerate(l):
@@ -526,5 +550,10 @@ class MediaTypeManager(Plugin):
         root.setField('term', term)
         root.saveTemp()
         return root
+
+    def _default_new_status_select(self):
+        return {common.UNKNOWN.id: common.UNKNOWN.name,
+                common.WANTED.id: common.WANTED.name,
+                common.IGNORE.id: common.IGNORE.name}
 
 __all__ = ['System', 'PostProcessor', 'Provider', 'Indexer', 'Notifier', 'Downloader', 'MediaTypeManager', 'Element', 'DownloadType']

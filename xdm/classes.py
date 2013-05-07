@@ -199,7 +199,7 @@ class Element(BaseModel):
             if fd is not None:
                 return fd
             else:
-                raise AttributeError("No attribute %s nor field with that name" % name)
+                raise AttributeError("No attribute '%s' nor field with that name" % name)
 
     def getImage(self, name, provider=''):
         for img in self.images:
