@@ -86,13 +86,12 @@ class Plugin(object):
             method = getattr(self, method_name)
             setattr(self, method_name, pluginMethodWrapper(self.name, method, alternative))
 
-
     def _get_enabled(self):
         return self.c.enabled
 
     def _set_enabled(self, value):
         self.c.enabled = value
-    
+
     # shortcut to the enabled config option
     enabled = property(_get_enabled, _set_enabled)
 
@@ -202,6 +201,8 @@ class Plugin(object):
     def getMyScore(self):
         return common.PM.getPluginScore(self)
 
+    def testMe(self):
+        return (True, 'Everything fine')
 
 class DownloadType(Plugin):
     _type = 'DownloadType'
@@ -221,12 +222,7 @@ class DownloadTyped(Plugin):
         Plugin.__init__(self, instance=instance)
 
     def _getDownloadTypeExtension(self, downloadTypeIdentifier):
-        for dt in common.PM.DT:
-            if dt.identifier == downloadTypeIdentifier:
-                return dt.extension
-        else:
-            log.warning("Download type with identifier %s was not found" % downloadTypeIdentifier)
-            return 'txt'
+        return common.getDownloadTypeExtension(downloadTypeIdentifier)
 
     def getSupportedDownloadExtensions(self):
         extensions = {}
@@ -244,7 +240,7 @@ class Downloader(DownloadTyped):
         """Add nzb to downloader"""
         return False
 
-    def getGameStaus(self, game):
+    def getElementStaus(self, element):
         """return tuple of Status and a path (str)"""
         return (common.UNKNOWN, Download(), '')
 
@@ -325,10 +321,8 @@ class Notifier(Plugin):
     def __init__(self, *args, **kwargs):
         self._config['on_snatch'] = False
         self.config_meta['on_snatch'] = {'human': 'Send on snatch'}
-        
         self._config['on_complete'] = True # this is called after ppe
         self.config_meta['on_complete'] = {'human': 'Send on complete'}
-        
         self._config['on_warning'] = False
         self.config_meta['on_warning'] = {'human': 'Send on warning'}
         self._config['on_error'] = False
@@ -399,8 +393,19 @@ class PostProcessor(Plugin):
     _type = 'PostProcessor'
     types = [] # media types the downloader can handle
 
-    def ppPath(self, game, path):
-        return False
+    def __init__(self, instance='Default'):
+        self._config['stop_after_me_select'] = common.STOPPPONSUCCESS
+        self.config_meta['stop_after_me_select'] = {'human': 'Stop other PostProcessors on'}
+        Plugin.__init__(self, instance=instance)
+
+    def _stop_after_me_select(self):
+        return {common.STOPPPONSUCCESS: 'Success',
+                common.STOPPPONFAILURE: 'Failure',
+                common.STOPPPALWAYS: 'Always',
+                common.DONTSTOPPP: "Don't stop others"}
+
+    def postProcessPath(self, element, path):
+        return (False, '')
 
 
 class System(Plugin):
@@ -447,6 +452,7 @@ class Filter(Plugin):
         # True and 'same as original' -> pass
         # True and 'something new' -> add the new string
         return (True, string)
+
 
 class MediaTypeManager(Plugin):
     _type = 'MediaTypeManager'
@@ -514,10 +520,13 @@ class MediaTypeManager(Plugin):
                         e.save()
 
     def getDownloadableElements(self, asList=True):
-        return self.getElementsWithStatusIn(common.getHomeStatuses(), asList)
+        return self.getElementsWithStatusIn(common.getHomeStatuses(), asList, [self.download.__name__])
 
-    def getElementsWithStatusIn(self, status, asList=True):
-        out = Element.select().where(Element.mediaType == self.mt, Element.type == self.download.__name__, Element.status << status)
+    def getElementsWithStatusIn(self, status, asList=True, types=None):
+        if types is None:
+            out = Element.select().where(Element.mediaType == self.mt, Element.type == self.download.__name__, Element.status << status)
+        else:
+            out = Element.select().where(Element.mediaType == self.mt, Element.type == self.download.__name__, Element.status << status, Element.type << types)
         if asList:
             out = list(out)
         return out

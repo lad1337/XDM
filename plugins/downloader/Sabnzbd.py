@@ -58,9 +58,9 @@ class Sabnzbd(Downloader):
         self._history = response['history']['slots']
         return self._history
 
-    def getGameStaus(self, game):
+    def getElementStaus(self, element):
         """returns a Status and path"""
-        #log("Checking for status of %s in Sabnzbd" % game)
+        #log("Checking for status of %s in Sabnzbd" % element)
         download = Download()
         download.status = common.UNKNOWN
         if not self._history:
@@ -81,7 +81,7 @@ class Sabnzbd(Downloader):
             # i dont think this is needed
             if slot_game is None:
                 continue
-            if slot_game.id != game.id:
+            if slot_game.id != element.id:
                 continue #wrong slot
 
             try:

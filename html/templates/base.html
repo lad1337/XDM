@@ -11,15 +11,13 @@
         <meta name="description" content="">
         <meta name="viewport" content="width=device-width">
 
-        <!-- Bootstrap -->
-        <link href="/bootstrap/css/bootstrap.min.css" rel="stylesheet" media="screen">
         <script src="/js/vendor/modernizr-2.6.2.min.js"></script>
 
+        <!-- Bootstrap -->
+        <link href="/bootstrap/css/bootstrap.min.css" rel="stylesheet" media="screen">
+
         <link rel="stylesheet" href="/css/main.css">
-        <link rel="stylesheet" href="/css/smoothness/jquery-ui-1.10.1.custom.css">
-        <link rel="stylesheet" href="/css/qtip.css">
-        <link rel="stylesheet" href="/css/jquery.fancybox.css">
-        
+        <link rel="stylesheet" href="/css/smoothness/jquery-ui-1.10.1.custom.css">        
         
         <script src="/js/vendor/jquery-1.9.0.min.js"></script>
         <script src="/js/vendor/jquery-ui-1.10.1.custom.min.js"></script>
@@ -33,7 +31,7 @@
         {% endblock %}
     </head>
     <body>
-        <div id="container" class="{{ active_page }}">
+        <div id="container" class="{{ active_page }} page-container">
             {% set navigation_bar = [
                                     ('/', 'index', 'Home', [('/completed/', 'completed', 'Completed'),
                                                             ('/deleted/', 'deleted', 'Deleted')]),

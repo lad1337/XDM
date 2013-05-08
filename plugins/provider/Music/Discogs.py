@@ -11,7 +11,7 @@ class Discogs(Provider):
     types = ['de.lad1337.music']
     _config = {'enabled': True,
                'search_range_select': 'master'}
-    config_meta = {'plugin_desc': 'Information provider for music from http://www.discogs.com'
+    config_meta = {'plugin_desc': 'Information provider for music from http://www.discogs.com. Note: Image download is limited to 1000 per 24h per IP'
                    }
 
     search_range_select_map = {'master': {'t': 'Master Releases', 'c': ('MasterRelease',)},

@@ -21,6 +21,7 @@ def replace_all(text):
 
 
 def replace_x(text, dic):
+    text = u'%s' % text
     for i, j in dic.iteritems():
         text = text.replace(i, j)
     return text
@@ -289,6 +290,7 @@ def getActionsTpl():
                 <a href="/delete?id={{this.id}}" class="action-delete btn btn-danger btn-mini">Delete</a>
                 <a href="/forcesearch?id={{this.id}}" class="action-search btn btn-primary btn-mini">Search</a>
                 <a href="/refreshinfo?id={{this.id}}" class="action-reload btn btn-primary btn-mini">Refresh</a>
+                <a href="#" class="action-downloads btn btn-info btn-mini" onclick="showEvents(this, {{this.id}});return false;">Events</a>
                 <a href="#" class="action-downloads btn btn-info btn-mini" onclick="showDownlads(this, {{this.id}});return false;">Downloads</a>
             </div>"""
 

@@ -3,8 +3,9 @@ import re
 
 
 class RegEx(Filter):
-    version = "0.1"
-    addMediaTypeOptions = 'runFor'
+    version = "0.2"
+    #addMediaTypeOptions = 'runFor'
+    useConfigsForElementsAs = 'Enable'
     _config = {'regex': '.*',
                'positive': True,
                'case_sensitive': False}
@@ -12,6 +13,13 @@ class RegEx(Filter):
                    'positive': {'human': 'Accept term/download if RegEx matches'}}
 
     def compare(self, element=None, download=None, string=None):
+        if element is not None:
+            if not self._getEnable(element):
+                (True, string)
+        else:
+            # cant check if i should run
+            (True, string)
+
         if string is None:
             string = download.name
 
@@ -33,4 +41,4 @@ class RegEx(Filter):
             result = pattern.match(string)
         else:
             result = pattern.match(string, re.I)
-        return (result == self.c.positive, string)
+        return (bool(result) == bool(self.c.positive), string)

@@ -92,6 +92,12 @@ class WebRoot:
         template = self.env.get_template('downloadsFrame.html')
         return template.render(downloads=ele.downloads, **self._globals())
 
+    @cherrypy.expose
+    def ajaxGetEventsFrame(self, id):
+        template = self.env.get_template('eventsFrame.html')
+        events = History.select().where(History.obj_id == id).order_by(History.time)
+        return template.render(events=events, **self._globals())
+
 
     @cherrypy.expose
     def saveSettings(self, **kwargs):
@@ -220,6 +226,8 @@ class WebRoot:
         element = Element.get(Element.id == id)
         element.manager.makeReal(element)
         time.sleep(1)
+        t = tasks.TaskThread(tasks.searchElement, element)
+        t.start()
         raise cherrypy.HTTPRedirect('/')
 
     @cherrypy.expose

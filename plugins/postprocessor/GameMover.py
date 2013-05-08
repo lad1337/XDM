@@ -17,10 +17,10 @@ class GameMover(PostProcessor):
                    }
     useConfigsForElementsAs = 'Path'
 
-    def ppPath(self, element, filePath):
+    def postProcessPath(self, element, filePath):
         destPath = self._getPath(element)
         if not destPath:
-            log.warning("Destination path for %s is not set. Stopping PP." % element.platform)
+            log.warning("Destination path for %s is not set. Stopping PP." % element)
             return False
         # log of the whole process routine from here on except debug
         # this looks hacky: http://stackoverflow.com/questions/7935966/python-overwriting-variables-in-nested-functions

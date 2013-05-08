@@ -101,6 +101,7 @@ class BaseModel(Model):
                 if '_%s' % method in dic:
                     del dic['_%s' % method]
         return dic
+
     def _getEvents(self):
         return History.select().where(History.obj_class == self.__class__.__name__, History.obj_id == self.id)
     #events = property(_getEvents)
@@ -341,17 +342,19 @@ class Element(BaseModel):
 
     def paint(self, search=False, single=False, status=None):
         if status is None:
-            status = common.getHomeStatuses()
+            if search:
+                status = [common.TEMP]
+            else:
+                status = common.getHomeStatuses()
+
+        if self.manager.download.__name__ == self.type and self.status not in status:
+            return ''
 
         html = self.buildHtml(search)
         if single:
             return html
 
-        if self.manager.download.__name__ == self.type and self.status not in status:
-            return ''
-
         children = Element.select().where(Element.parent == self.id)
-
         for child in sorted(children, key=lambda c: c.orderFieldValue):
             html = html.replace('{{children}}', '%s{{children}}' % child.paint(search=search, single=single, status=status), 1)
 
@@ -562,7 +565,7 @@ class Config(BaseModel):
             return 'str'
 
 
-class Download(BaseModel):
+class Download_V0(BaseModel):
     element = ForeignKeyField(Element, related_name='downloads')
     name = CharField()
     url = CharField(unique=True)
@@ -572,6 +575,10 @@ class Download(BaseModel):
     indexer = CharField(True)
     indexer_instance = CharField(True)
     external_id = CharField(True)
+    pp_log = TextField(True)
+
+    class Meta:
+        db_table = 'Download'
 
     def humanSize(self):
         num = self.size
@@ -581,6 +588,19 @@ class Download(BaseModel):
             if num < 1024.0:
                 return "%3.1f %s" % (num, x)
             num /= 1024.0
+
+
+class Download(Download_V0):
+    pp_log = TextField(True)
+
+    @classmethod
+    def _migrate(cls):
+        field = QueryCompiler().field_sql(cls.pp_log)
+        table = cls._meta.db_table
+        if cls._checkForColumn(cls.pp_log):
+            return False # False like: dude stop !
+        cls._meta.database.execute_sql('ALTER TABLE %s ADD COLUMN %s' % (table, field))
+        return True
 
 
 class History(BaseModel):
@@ -597,6 +617,7 @@ class History(BaseModel):
         order_by = ('-time', '-id')
 
     def save(self, force_insert=False, only=None):
+        self.time = datetime.datetime.now()
         Model.save(self, force_insert=force_insert, only=only)
 
     @classmethod
@@ -622,11 +643,11 @@ class History(BaseModel):
             h.obj_type = obj.type
         else:
             h.obj_type = obj.__class__.__name__
-
         if h.event == 'insert' and dict_diff(old, obj.__dict__):
             h.save()
         if h.event == 'update' and dict_diff(old.__dict__, obj.__dict__):
             h.save()
+
 
     def _old(self):
         myJ = json.loads(self.old_obj)
@@ -643,18 +664,18 @@ class History(BaseModel):
             return False
 
     def human(self):
-        if self.obj_class == 'Game':
-            return self._humanGame()
+        if self.obj_class == 'Element':
+            return self._humanElement()
         elif self.obj_class == 'Download':
             return self._humanDownload()
-        elif self.obj_class == 'Generic':
+        elif self.obj_class == 'GenericEvent':
             return self._new()['msg']
         elif self.obj_class == 'Config':
             return self._humanConfig()
         return "not implemented for %s" % self.obj_class
 
     def getNiceTime(self):
-        return Helper.reltime(self.time, at=":")
+        return helper.reltime(self.time, at=":")
 
     def _humanConfig(self):
         data_o = self._old()
@@ -663,16 +684,24 @@ class History(BaseModel):
             return '%s' % self._humanDict(dict_diff(data_n, data_o))
         return 'unknown Config change'
 
-    def _humanGame(self):
+    def _humanElement(self):
         data_o = self._old()
         data_n = self._new()
         if data_n and data_o:
-            if data_n['_status'] != data_o['_status']:
-                return 'new status %s ' % Status.get(Status.id == data_n['_status'])
-            elif data_n['_status'] == data_o['_status'] and data_o['_status'] == common.SNATCHED.id:
-                return 'Game resantched: %s' % Element.get(Element.id == data_n['id'])
-            return '%s' % dict_diff(data_n, data_o)
-        return 'this case of game history is not implemented'
+            if self.event == 'update':
+                if 'status' in data_n:
+                    if data_n['status'] != data_o['status']:
+                        return 'new status %s ' % Status.get(Status.id == data_n['status'])
+                    elif data_n['status'] == data_o['status'] and data_o['status'] == common.SNATCHED.id:
+                        return 'Resantched: %s' % Element.get(Element.id == data_n['id'])
+                diff = dict_diff(data_n, data_o)
+                if diff:
+                    return '%s' % diff
+                else:
+                    return 'Save without a data change.'
+            else:
+                return data_n['msg']
+        return 'this case of Element history is not implemented'
 
     def _humanDownload(self):
         data_o = self._old()

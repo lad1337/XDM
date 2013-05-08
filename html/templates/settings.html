@@ -59,9 +59,9 @@
                         {% endfor %}
                         </select>
                         {% else %}
-                        {% if config.curType() == 'int' -%}
+                        {% if config.curType() == 'int' and 'enable' not in config.name -%}
                         {% set inputType = 'number" step="any'%}
-                        {% elif config.curType() == 'bool' %}
+                        {% elif config.curType() == 'bool' or 'enable' in config.name%}
                         {% if config.value %}
                         
                         {# this is a little dodgy. we append the checked attr with manipulating the string that is set for the input type#}

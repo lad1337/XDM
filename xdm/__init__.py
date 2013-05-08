@@ -39,6 +39,12 @@ class Common(object):
     SEARCHTERMS = 1
     FOUNDDOWNLOADS = 2
 
+    #pp stop connditions
+    STOPPPONSUCCESS = 1
+    STOPPPONFAILURE = 2
+    STOPPPALWAYS = 3
+    DONTSTOPPP = 4
+
     def getAllStatus(self):
         return [self.UNKNOWN, self.WANTED, self.SNATCHED, self.DOWNLOADED,
                   self.COMPLETED, self.FAILED, self.PP_FAIL, self.DELETED,
@@ -51,7 +57,7 @@ class Common(object):
         return filtered
 
     def getHomeStatuses(self):
-        return self.getEveryStatusBut(self.getCompletedStatuses())
+        return self.getEveryStatusBut(self.getCompletedStatuses() + [self.TEMP])
 
     def getCompletedStatuses(self):
         return [self.DELETED, self.COMPLETED, self.DOWNLOADED, self.PP_FAIL]
@@ -61,6 +67,14 @@ class Common(object):
             if s.id == id:
                 return s
         raise ValueError("There is no status with the id %s" % id)
+
+    def getDownloadTypeExtension(self, downloadTypeIdentifier):
+        for dt in self.PM.DT:
+            if dt.identifier == downloadTypeIdentifier:
+                return dt.extension
+        else:
+            #log.warning("Download type with identifier %s was not found" % downloadTypeIdentifier)
+            return 'txt'
 
 common = Common()
 

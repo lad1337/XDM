@@ -25,8 +25,9 @@ class PluginManager(object):
     def __init__(self, path='plugins'):
         self._caching = threading.Semaphore()
         self.path = path
-        self._mt_cache = {}
+        self.clearMTCache()
         self._score_cache = {}
+        self.crashed_on_init_cache = {}
 
     def updatePlugins(self):
         timer = threading.Timer(1, self._updatePlugins)
@@ -113,9 +114,16 @@ class PluginManager(object):
                             except Exception as ex:
                                 tb = traceback.format_exc()
                                 log.error("%s (%s) crashed on init i am not going to remember this one !! \nError: %s\n\n%s" % (cur_class.__name__, instance, ex, tb))
+                                if cur_class not in self.crashed_on_init_cache:
+                                    self.crashed_on_init_cache[cur_class] = {}
+                                self.crashed_on_init_cache[cur_class] = instance
                                 continue
                             if clearUnsedConfgs:
                                 i.cleanUnusedConfigs()
+                            testResult, testMessage = i.testMe()
+                            if not testResult:
+                                log.warning("%s said it can not run: %s" % (i, testMessage))
+                                i.c.enable = False
                             final_instances.append(instance)
                     else:
                         final_instances = [cur_class.identifier.replace('.', '_')]
@@ -124,6 +132,7 @@ class PluginManager(object):
                     log("I found %s instances for %s(v%s): %s" % (len(final_instances), cur_class.__name__, cur_class.version, self._cache[cur_plugin_type][cur_class]))
             #log("Final plugin cache %s" % self._cache)
 
+    #TODO make this work or remove it
     def _updatePlugins(self):
         with self._caching:
             done_types = []

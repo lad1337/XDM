@@ -215,6 +215,12 @@ footer a:hover{
     left: -27px;
 }
 
+.modal-wide{
+    width: 800px;
+    margin-left: -400px;
+}
+
+
 @media only screen and (max-width: 767px) {
     #container {
         width: 100%;

@@ -4,9 +4,27 @@
 <tbody>
 {% for download in downloads %}
     <tr>
-        <td>{{download}}</td>
+        <td style="max-width: 350px;">{{download.name}}</td>
         <td style="text-align:right;border-right: solid 1px #000;padding-right:5px;">{{download.humanSize()}}</td>
-        <td style="text-align:center;">{{download.status}}</td>
+        <td style="text-align:center;"><span class="label label-info">{{common.getDownloadTypeExtension(download.type)}}</span></td>
+        <td style="text-align:center;">
+            {{download.status}}
+            {%if download.status in common.getCompletedStatuses() and download.pp_log%}
+            <a href="#downloadLog{{download.id}}" role="button" class="btn btn-info btn-mini" data-toggle="modal">View log</a>
+            <div class="modal hide fade modal-wide" id="downloadLog{{download.id}}" data-replace="true">
+              <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h3>Log for {{download.name}}</h3>
+              </div>
+              <div class="modal-body" style="text-align: left">
+                <pre>{{download.pp_log}}</pre>
+              </div>
+              <div class="modal-footer">
+                <a href="#" class="btn" data-dismiss="modal">Close</a>
+              </div>
+            </div>
+            {%endif%}
+        </td>
         <td><a href="{{download.url}}" title="{{download.external_id}}">Direct Link</td>
         <td><a class="btn" href="/getDownload?id={{download.id}}">Get</a></td>
     </tr>

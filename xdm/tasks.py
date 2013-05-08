@@ -7,7 +7,16 @@ import os
 import json
 from xdm.jsonHelper import MyEncoder
 import threading
-from cherrypy._cprequest import Hook
+
+
+class TaskThread(threading.Thread):
+    def __init__(self, target, *args):
+        self._target = target
+        self._args = args
+        threading.Thread.__init__(self)
+
+    def run(self):
+        self._target(*self._args)
 
 
 def runSearcher():
@@ -27,21 +36,20 @@ def runSearcher():
 
 def notify(element):
     for notifier in common.PM.N:
-        createGenericEvent(element, 'Notifier', 'Sending notification with %s on status %s' % (notifier, element.status))
+        createGenericEvent(element, 'notifier', 'Sending notification with %s on status %s' % (notifier, element.status))
         if notifier.c.on_snatch and element.status == common.SNATCHED:
             notifier.sendMessage("%s has been snatched" % element.getName(), element)
         if notifier.c.on_complete and element.status in (common.COMPLETED, common.DOWNLOADED, common.PP_FAIL):
             notifier.sendMessage("%s is now %s" % (element, element.status), element)
 
 
-def createGenericEvent(game, event_type, event_msg):
+def createGenericEvent(ele, event_type, event_msg):
     h = History()
-    h.game = game
     h.event = event_type
-    h.obj_id = 0
-    h.obj_class = 'GenericEvent'
-    h.obj_type = 'Event'
-    h.old_obj = json.dumps(game, cls=MyEncoder)
+    h.obj_id = ele.id
+    h.obj_class = ele.__class__.__name__
+    h.obj_type = ele.type
+    h.old_obj = json.dumps(ele, cls=MyEncoder)
     h.new_obj = json.dumps({'_data': {'msg': event_msg}})
     h.save()
 
@@ -59,8 +67,9 @@ def commentOnDownload(download):
 def searchElement(ele):
     didSearch = False
     for indexer in common.PM.getIndexers(runFor=ele.manager):
-        createGenericEvent(ele, 'Search', 'Searching %s on %s' % (ele, indexer))
+        createGenericEvent(ele, 'search', 'Searching %s on %s' % (ele, indexer))
         downloads = indexer.searchForElement(ele) #intensiv
+        createGenericEvent(ele, 'result', '%s found %s results' % (indexer, len(downloads)))
         didSearch = True
 
         #downloads = _filterBadDownloads(blacklist, whitelist, downloads)
@@ -81,7 +90,7 @@ def snatchOne(ele, downloads):
         for download in downloads:
             if not download.type in downloader.types:
                 continue
-            createGenericEvent(ele, 'Snatch', 'Trying to snatch %s with %s' % (download.name, downloader))
+            createGenericEvent(ele, 'snatch', 'Trying to snatch %s with %s' % (download.name, downloader))
             log.info('Trying to snatch %s with %s' % (download.name, downloader))
             if downloader.addDownload(download):
                 ele.status = common.SNATCHED
@@ -134,6 +143,7 @@ def _filterBadDownloads(downloads):
             acceptence, string = curFilterPlugin.compare(element=download.element, download=download)
             if not acceptence:
                 log.info('%s did not like %s' % (curFilterPlugin, download))
+                createGenericEvent(download.element, 'filter', '%s did not like %s' % (curFilterPlugin, download))
                 break
         else:
             clean.append(download)
@@ -147,7 +157,7 @@ def runChecker():
             if not element.status == common.SNATCHED:
                 continue
             log("Checking status for %s" % element)
-            status, download, path = checker.getGameStaus(element)
+            status, download, path = checker.getElementStaus(element)
             log("%s gave back status %s for %s on download %s" % (checker, status, element, download))
             if status == common.DOWNLOADED:
                 element.status = common.DOWNLOADED
@@ -176,17 +186,24 @@ def runChecker():
 def ppElement(element, download, path):
     pp_try = False
     for pp in common.PM.getPostProcessors(runFor=element.manager):
-        createGenericEvent(element, 'PostProcess', 'Starting PP with %s' % pp)
+        createGenericEvent(element, 'postProcess', 'Starting PP with %s' % pp)
         log('Starting PP on %s with %s at %s' % (element, pp, path))
-        if pp.ppPath(element, path):
+        ppResult, pp_log = pp.postProcessPath(element, path)
+        pp_try = True
+        if ppResult:
             element.status = common.COMPLETED
             element.save()
             download.status = common.COMPLETED
+            download.pp_log = 'LOG from %s:\n%s\n######\n%s' % (pp, pp_log, download.pp_log)
             download.save()
-            return True
-        pp_try = True
+            if pp.c.stop_after_me_select == common.STOPPPONSUCCESS or pp.c.stop_after_me_select == common.STOPPPALWAYS:
+                return True
+        else:
+            if pp.c.stop_after_me_select == common.STOPPPONFAILURE or pp.c.stop_after_me_select == common.STOPPPALWAYS:
+                break
     if pp_try:
         element.status = common.PP_FAIL # tried to pp but fail
+        element.save()
         download.status = common.PP_FAIL
         download.save()
     return False
@@ -201,7 +218,7 @@ def updateElement(element, force=False):
             #TODO search element by name or with help of xem ... yeah wishful thinking
 
         new_e = p.getElement(pID)
-        createGenericEvent(element, 'Update', 'Serching for update on %s' % p)
+        createGenericEvent(element, 'refreshing', 'Serching for update on %s' % p)
         if new_e:
             log.info("%s returned an element" % p)
         else:
@@ -222,6 +239,8 @@ def removeTempElements():
         log.info("Removeing temp elements")
         for temp in Element.select().where(Element.status == common.TEMP):
             temp.delete_instance(silent=True)
+
+        log.info("Removeing temp elements DONE")
 
     timer = threading.Timer(1, action)
     timer.start()
