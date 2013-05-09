@@ -211,18 +211,22 @@ class Element(BaseModel):
         else:
             return None
 
-    def getField(self, name, provider=''):
+    def getField(self, name, provider='', returnObject=False):
         for f in list(self.fields) + self._tmp_fields:
             if f.name == name and provider and f.provider == provider:
+                if returnObject:
+                    return f
                 return f.value
-            elif f.name == name:
+            elif f.name == name and not provider:
+                if returnObject:
+                    return f
                 return f.value
         else:
             return None
 
     def setField(self, name, value, provider=''):
-        for f in self.fields:
-            if f.name == name:
+        f = self.getField(name, provider, returnObject=True)
+        if f is not None:
                 f.value = value
                 f.provider = provider
                 f.save()
@@ -454,11 +458,19 @@ class Element(BaseModel):
         for i in list(self.images):
             i.delete_instance()
 
+    def deleteDownloads(self):
+        return Download.delete().where(Download.element == self).execute()
+
+    def deleteHistory(self):
+        return History.delete().where(History.obj_id == self.id).execute()
+
     def delete_instance(self, silent=False):
         if not silent:
             log("Deleting instance: %s(%s)" % (self, self.id))
         self.deleteImages()
         self.deleteFields()
+        self.deleteDownloads()
+        self.deleteHistory()
         super(Element, self).delete_instance()
 
 
@@ -487,7 +499,7 @@ class Field(BaseModel):
     def _set_value(self, value):
         try:
             value = int(value)
-        except ValueError:
+        except (ValueError, TypeError):
             pass
 
         if type(value).__name__ in ('int', 'float'):

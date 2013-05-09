@@ -28,9 +28,7 @@ class Discogs(Provider):
 
         self.progress.reset()
         #artist = discogs.Artist('Aphex Twin')
-        mt = MediaType.get(MediaType.identifier == 'de.lad1337.music')
-        mts = MediaType.select().where(MediaType.identifier == 'de.lad1337.music')
-        q = Element.select().where(Element.mediaType << mts, Element.type == 'Platform')
+        mediatype = MediaType.get(MediaType.identifier == 'de.lad1337.music')
         mtm = common.PM.getMediaTypeManager('de.lad1337.music')
 
         if id:
@@ -49,62 +47,69 @@ class Discogs(Provider):
             s = discogs.Search(term)
             res = s.results()
 
-        root = mtm.getFakeRoot(term)
+        fakeRoot = mtm.getFakeRoot(term)
         filtered = [album for album in res if album.__class__.__name__ in self.search_range_select_map[self.c.search_range_select]['c']]
         self.progress.total = len(filtered)
 
-        for r in filtered:
+        for release in filtered:
             self.progress.addItem()
-            #print '\n\n\n\n\n\n\n', r.data['formats'], r.data['status']
-            if r.__class__.__name__ == 'Release':
-                if r.data['formats'][0]['name'] != 'CD' or not r.data['year']:
+            #print '\n\n\n\n\n\n\n', release.data['formats'], release.data['status']
+            if release.__class__.__name__ == 'Release':
+                if release.data['formats'][0]['name'] != 'CD' or not release.data['year']:
                     continue
+            self._createAlbum(fakeRoot, mediatype, release)
 
-            artist = r.artists[0]
-            # some artist names we get have some wiered (2) or (1) at the end
-            artistName = re.sub(r'\(\d{1,2}\)$', '', artist.name)
+        return fakeRoot
 
-            try:
-                artistElement = Element.getWhereField(mt, 'Artist', {'id': artistName}, self.tag, root)
-            except Element.DoesNotExist:
-                artistElement = Element()
-                artistElement.mediaType = mt
-                artistElement.parent = root
-                artistElement.type = 'Artist'
-                artistElement.setField('name', artistName, self.tag)
-                artistElement.setField('id', artistName, self.tag)
-                artistElement.saveTemp()
-            try:
-                albumElement = Element.getWhereField(mt, 'Album', {'id': r.data['id']}, self.tag, artistElement)
-            except Element.DoesNotExist:
-                albumElement = Element()
-                albumElement.mediaType = mt
-                albumElement.parent = artistElement
-                albumElement.type = 'Album'
-                albumElement.setField('name', r.title, self.tag)
-                albumElement.setField('year', r.data['year'], self.tag)
-                albumElement.setField('id', r.data['id'], self.tag)
-                if 'images' in r.data:
-                    for img in r.data['images']:
-                        if img['uri']:
-                            albumElement.setField('cover_image', img['uri'], self.tag)
-                            break
-                albumElement.saveTemp()
-                for track in r.tracklist:
-                    trackElement = Element()
-                    trackElement.mediaType = mt
-                    trackElement.parent = albumElement
-                    trackElement.type = 'Song'
-                    trackElement.setField('title', track['title'], self.tag)
-                    trackElement.setField('length', track['duration'], self.tag)
-                    trackElement.setField('position', track['position'], self.tag)
-                    trackElement.saveTemp()
-                albumElement.downloadImages()
+    def _createAlbum(self, fakeRoot, mediaType, release):
 
-        return root
+        artist = release.artists[0]
+        artistName = re.sub(r'\(\d{1,2}\)$', '', artist.name)
+        try:
+            artistElement = Element.getWhereField(mediaType, 'Artist', {'id': artistName}, self.tag, fakeRoot)
+        except Element.DoesNotExist:
+            artistElement = Element()
+            artistElement.mediaType = mediaType
+            artistElement.parent = fakeRoot
+            artistElement.type = 'Artist'
+            artistElement.setField('name', artistName, self.tag)
+            artistElement.setField('id', artistName, self.tag)
+            artistElement.saveTemp()
+        try:
+            albumElement = Element.getWhereField(mediaType, 'Album', {'id': release.data['id']}, self.tag, artistElement)
+        except Element.DoesNotExist:
+            albumElement = Element()
+            albumElement.mediaType = mediaType
+            albumElement.parent = artistElement
+            albumElement.type = 'Album'
+            albumElement.setField('name', release.title, self.tag)
+            albumElement.setField('year', release.data['year'], self.tag)
+            albumElement.setField('id', release.data['id'], self.tag)
+            if 'images' in release.data:
+                for img in release.data['images']:
+                    if img['uri']:
+                        albumElement.setField('cover_image', img['uri'], self.tag)
+                        break
+            albumElement.saveTemp()
+            for track in release.tracklist:
+                trackElement = Element()
+                trackElement.mediaType = mediaType
+                trackElement.parent = albumElement
+                trackElement.type = 'Song'
+                trackElement.setField('title', track['title'], self.tag)
+                trackElement.setField('length', track['duration'], self.tag)
+                trackElement.setField('position', track['position'], self.tag)
+                trackElement.saveTemp()
+            albumElement.downloadImages()
 
     def getElement(self, id):
-        for ele in self.searchForElement(id=id):
+        mt = MediaType.get(MediaType.identifier == 'de.lad1337.music')
+        mtm = common.PM.getMediaTypeManager('de.lad1337.music')
+        fakeRoot = mtm.getFakeRoot('%s ID: %s' % (self.tag, id))
+        release = discogs.Release(id)
+        self._createAlbum(fakeRoot, mt, release)
+
+        for ele in fakeRoot.decendants:
             if ele.getField('id', self.tag) == id:
                 return ele
         else:

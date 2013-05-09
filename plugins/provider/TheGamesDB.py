@@ -86,10 +86,12 @@ class TheGamesDB(Provider):
             self.progress.addItem()
             return g
 
-    def searchForElement(self, term='', id=0):
+    def searchForElement(self, term=''):
+        return self._searchForElement(term)
+
+    def _searchForElement(self, term='', id=0):
         self.progress.reset()
         self._pCache = {}
-        
         mt = MediaType.get(MediaType.identifier == 'de.lad1337.games')
         mtm = mt.manager
         rootElement = mtm.getFakeRoot(term)
@@ -119,7 +121,7 @@ class TheGamesDB(Provider):
 
     def getElement(self, id):
         id = int(id)
-        root = self.searchForElement(id=id)
+        root = self._searchForElement(id=id)
         for game in root.decendants:
             print game, game.getField('id', self.tag), 'vs', id
             if game.getField('id', self.tag) == id:

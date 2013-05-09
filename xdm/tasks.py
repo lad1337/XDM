@@ -161,6 +161,7 @@ def runChecker():
             log("%s gave back status %s for %s on download %s" % (checker, status, element, download))
             if status == common.DOWNLOADED:
                 element.status = common.DOWNLOADED
+                element.save()
                 if download.id:
                     download.status = common.DOWNLOADED
                     download.save()
@@ -178,9 +179,11 @@ def runChecker():
                 download.save()
                 if common.SYSTEM.c.again_on_fail:
                     element.status = common.WANTED
+                    element.save()
                     searchElement(element)
                 else:
                     element.status = common.FAILED
+                    element.save()
 
 
 def ppElement(element, download, path):
@@ -216,7 +219,10 @@ def updateElement(element, force=False):
         if not pID:
             log.info('we dont have this element(%s) on provider(%s) yet. we will search for it' % (element, p))
             #TODO search element by name or with help of xem ... yeah wishful thinking
-
+            #new_e = p.searchForElement(element.getName())
+            log.warning('getting an element by name is not implemented can not refresh')
+            return None
+        log.debug('Getting element with provider id %s on %s' % (pID, p))
         new_e = p.getElement(pID)
         createGenericEvent(element, 'refreshing', 'Serching for update on %s' % p)
         if new_e:
@@ -225,13 +231,9 @@ def updateElement(element, force=False):
             log.info("%s returned NO element" % p)
         if new_e and new_e != element:
             log.info("Found new version of %s" % element)
-            new_e.id = element.id
-            new_e.status = element.status
-            #delete old version
-            element.deleteWithChildren()
-            new_e.manager.makeReal(element)
-            new_e.save()
-            new_e.downloadImages()
+            for f in list(new_e.fields):
+                element.setField(f.name, f.value, f.provider)
+            return
 
 
 def removeTempElements():

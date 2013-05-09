@@ -374,7 +374,7 @@ class Provider(Plugin):
     instead create a new class that holds the information
     """
 
-    def searchForElement(self, term='', id=0):
+    def searchForElement(self, term=''):
         """return always a list of games even if id is given, list might be empty or only contain 1 item"""
         return Element()
 
@@ -478,7 +478,11 @@ class MediaTypeManager(Plugin):
         for i, e in enumerate(l):
             attributes = [attr for attr in dir(e) if isinstance(getattr(e, attr), (types.IntType, types.StringType)) and not attr.startswith('_')]
             if not i:
-                self.s[e.__name__] = {'parent': 'root', 'child': l[i + 1], 'class': e, 'attr': attributes}
+                if len(l) > 1:
+                    self.s[e.__name__] = {'parent': 'root', 'child': l[i + 1], 'class': e, 'attr': attributes}
+                else:
+                    self.s[e.__name__] = {'parent': 'root', 'child': None, 'class': e, 'attr': attributes}
+                    self.leaf = e.__name__
             else:
                 if i == len(l) - 1:
                     self.s[e.__name__] = {'parent': l[i - 1], 'child': None, 'class': e, 'attr': attributes}
