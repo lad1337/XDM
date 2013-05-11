@@ -24,6 +24,7 @@ class Movie(object):
             <img src="{{this.poster_image}}" class="pull-left"/>
             <span class="v-name">{{this.name}}</span>
             <div class="content well">
+                {{statusSelect}}
                 <p class="overview">
                 {{this.overview}}
                 </p>
@@ -35,7 +36,7 @@ class Movie(object):
                     </a>
                 {% endfor %}
                 {%endif%}
-                <div class="actions-container">{{actions}}{{status}}</div>
+                <div class="actions-container">{{actionButtons}}{{infoButtons}}</div>
             </div>
         </div>
         """
@@ -56,6 +57,7 @@ class Movies(MediaTypeManager):
     identifier = 'de.lad1337.movies'
     addConfig = {}
     addConfig[Indexer] = [{'type':'category', 'default': None, 'prefix': 'Category for', 'sufix': 'Movies'}]
+    addConfig[Downloader] = [{'type':'category', 'default': None, 'prefix': 'Category for', 'sufix': 'Movies'}]
 
     def makeReal(self, movie):
         movie.parent = self.root

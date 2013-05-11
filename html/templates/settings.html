@@ -39,6 +39,9 @@
                     {%endif%}
                     <div class="clearfix"></div>
                 </h4>
+                <div style="display: none;">
+                {{plugin.getConfigHtml()}}
+                </div>
                 <p class="muted">{{plugin['config_meta']['plugin_desc']|striptags|urlize}}</p>
                 <div class="plugin {{ plugin._type }}" id="{{ plugin.name.replace(' ', '_').replace('(', '').replace(')', '') }}_content">
                 {% for config in plugin.c.configs %}
@@ -179,7 +182,6 @@ $(document).ready(function() {
                 }
 
             var notice = $('span[title="'+$(i).data('identifier')+'"].support-for-mediatype', t);
-            console.log(notice)
             if(notice.length)
                 $(i).addClass('btn-striped animate btn-info')
             
@@ -199,21 +201,7 @@ $(document).ready(function() {
 
     });
 
-    
-    $("label").each(function(){
-        var curLabel = $(this);
-        var curInput = $('input[type!="hidden"]', curLabel.parent());
-        // check for the for attr to not beeing invasive
-        if(typeof(curLabel.attr('for')) == "undefined" && curInput.length){
-            var id = curInput.attr('id');
-            if(!id){
-                // remove "0." from the random to get ids without a dot
-                id = $.now()+((''+Math.random()).split('.')[1]);
-                curInput.attr('id',id);
-            }
-            curLabel.attr('for',id);
-        }
-    });
+    labelInputConnector($('label'));
 
     $('.nav.nav-list a[data-toggle="tab"]').on('show', function (e) {
         var t = $(e.target)
@@ -230,7 +218,10 @@ $(document).ready(function() {
             })
         }
     });
-
+    
+    $("input.removeInstance").click(function(){       
+        document.location = '/removeInstance?plugin=' + $(this).data('plugin') + '&instance=' + $(this).data('instance')
+    });
 
     
     $('input[type="submit"]').click(function(event){
@@ -280,9 +271,15 @@ pluginAjaxCall = function(self, p_type, p_instance, id, action){
             data['field_'+$(i).data('configname')] = $(i).val()
     });
     $.getJSON('/pluginAjaxCall', data, function(res){
-        if(res['result'])
+        if(res['result']){
             noty({text: p_type+'('+p_instance+') - '+$(self).val()+': '+res['msg'], type: 'success', timeout: 2000})
-        else
+            
+            var data = res['data']
+            if(hasOwnProperty(data, 'callFunction')){
+                var fn = window[data['callFunction']];
+                fn(data['functionData']);
+            }
+        }else
             noty({text: p_type+'('+p_instance+') - '+$(self).val()+': '+res['msg'], type: 'error'})    
         $(self).removeClass('btn-striped animate')
     });

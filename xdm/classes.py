@@ -305,21 +305,26 @@ class Element(BaseModel):
             tpl = self.getTemplate()
         env = Environment(loader=DictLoader({'this': tpl,
                                              'actions': helper.getActionsTpl(),
+                                             'info': helper.getInfoTpl(),
                                              'addActions': helper.getAddActionsTpl(),
                                              'status': helper.getStatusTpl()}))
         elementTemplate = env.get_template('this')
         if not search:
             actionTemplate = env.get_template('actions')
+            infoTemplate = env.get_template('info')
+            infoHtml = infoTemplate.render(this=self)
             statusTemplate = env.get_template('status')
             statusHtml = statusTemplate.render(this=self, globalStatus=Status.select())
         else:
             actionTemplate = env.get_template('addActions')
             statusHtml = ''
+            infoHtml = ''
         actionsHtml = actionTemplate.render(this=self)
         statusCssClass = 'status-%s' % self.status.name.lower()
         return elementTemplate.render(children='{{children}}',
-                                      actions=actionsHtml,
-                                      status=statusHtml,
+                                      actionButtons=actionsHtml,
+                                      infoButtons=infoHtml,
+                                      statusSelect=statusHtml,
                                       this=self,
                                       statusCssClass=statusCssClass,
                                       **self.buildFieldDict())
@@ -473,6 +478,18 @@ class Element(BaseModel):
         self.deleteHistory()
         super(Element, self).delete_instance()
 
+    def getConfigs(self):
+        return Config.select().where(Config.obj_id == self.id)
+
+    def getConfig(self, plugin, configName):
+        try:
+            return Config.get(Config.element == self,
+                              Config.name == configName,
+                              Config.instance == plugin.instance,
+                              Config.section == plugin.type,
+                              Config.module == 'Plugin')
+        except Config.DoesNotExist:
+            return None
 
 class Field(BaseModel):
     element = ForeignKeyField(Element, related_name='fields')
@@ -537,6 +554,18 @@ class Config(BaseModel):
     class Meta:
         database = xdm.CONFIG_DATABASE
         order_by = ('name',)
+
+    def copy(self):
+        new = Config()
+        new.module = self.module
+        new.section = self.section
+        new.instance = self.instance
+        new.name = self.name
+        new.type = self.type
+        new.mediaType = self.mediaType
+        new.element = self.element
+        new.id = None
+        return new
 
     def _get_value(self):
         if self._value_bool in (1, 0):
@@ -626,7 +655,7 @@ class History(BaseModel):
 
     class Meta():
         database = xdm.HISTORY_DATABASE
-        order_by = ('-time', '-id')
+        order_by = ('-time',)
 
     def save(self, force_insert=False, only=None):
         self.time = datetime.datetime.now()
@@ -659,7 +688,6 @@ class History(BaseModel):
             h.save()
         if h.event == 'update' and dict_diff(old.__dict__, obj.__dict__):
             h.save()
-
 
     def _old(self):
         myJ = json.loads(self.old_obj)
@@ -719,11 +747,19 @@ class History(BaseModel):
         data_o = self._old()
         data_n = self._new()
         if data_n and data_o:
-            if data_n['status'] != data_o['status']:
-                return 'marked download as %s ' % Status.get(Status.id == data_n['status'])
-            elif data_n['status'] == data_o['status'] and data_o['status'] == common.SNATCHED.id:
-                return 'Download resantched: %s' % Download.get(Download.id == data_n['id'])
-            return '%s' % dict_diff(data_n, data_o)
+            
+            if self.event == 'update':
+                if data_n['status'] != data_o['status']:
+                    return 'marked download as %s ' % Status.get(Status.id == data_n['status'])
+                elif data_n['status'] == data_o['status'] and data_o['status'] == common.SNATCHED.id:
+                    return 'Download resantched: %s' % Download.get(Download.id == data_n['id'])
+                diff = dict_diff(data_n, data_o)
+                if diff:
+                    return '%s' % diff
+                else:
+                    return 'Save without a data change.'
+            else:
+                return data_n['msg']
         return 'this case of download history is not implemented'
 
     def _humanDict(self, diff):

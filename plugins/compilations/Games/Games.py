@@ -20,7 +20,7 @@ class Game(object):
         # {{this.getField('image')}} will return the image obj. str(Image) is the local src
         return """
         <tr class="game">
-            <td>{{actions}}{{status}}</td>
+            <td>{{actionButtons}}<br/>{{infoButtons}}<br/>{{statusSelect}}</td>
             <td style="width:200px;height:282px;position:relative;" class="coverContainer">
             <div class="cover">
                 <div class="back">
@@ -63,7 +63,7 @@ class Platform(object):
         """
 
     def getName(self):
-        return '%s' % self.name
+        return '%s' % self.alias
 
 
 class Games(MediaTypeManager):

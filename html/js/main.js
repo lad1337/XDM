@@ -64,42 +64,141 @@ function ajaxDeleteElement(id, deleteNode){
 };
 
 
-function showEvents(sender, id){
-    $(sender).addClass('btn-striped animate');
-    var downloadsFrame = $('#eventsFrame')
-    if(!downloadsFrame.length) {
-        // set up the bootstrap dialog
-        downloadsFrame = $('<div id="eventsFrame" class="modal hide fade modal-wide"><div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button><h3>Events</h3></div><div class="modal-body"></div></div>').appendTo('body')
-        downloadsFrame.append('<div class="modal-footer"><button class="btn" data-dismiss="modal">Close</button></div>')
-        $('body').append(downloadsFrame)
-    }
+function createModal(name){
+    var id = name+'Frame';
+    var modalFrame = $('#'+id);
     
-    $('.modal-body', downloadsFrame).empty();
-    $.post('/ajaxGetEventsFrame', {'id': id}, function(res){
-        $('.modal-body', downloadsFrame).html(res)
-        downloadsFrame.modal();
+    modalFrame.remove()
+    // set up the bootstrap dialog
+    modalFrame = $('<div id="'+id+'" class="modal hide fade modal-wide"><div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button><h3>'+name+'</h3></div><div class="modal-body"></div></div>').appendTo('body')
+    modalFrame.append('<div class="modal-footer"><button class="btn" data-dismiss="modal">Close</button></div>')
+    
+    var otherOpenModals = $('body>div.modal:not([style="display: none;"]):not(#'+id+')').modal('hide')
+    console.log(otherOpenModals)
+    $('body').append(modalFrame)
+    if(otherOpenModals.length){
+        $('[data-dismiss="modal"]', modalFrame).click(function(e){
+            otherOpenModals.modal('show')
+        });
+        $('.modal-footer button:first',modalFrame).text('Back')
+    }
+    return modalFrame
+}
+
+function ajaxModal(sender, name, url, data){
+    $(sender).addClass('btn-striped animate');
+    var myModal = createModal(name)
+    $.post(url, data, function(res){
+        $('.modal-body', myModal).html(res)
+        myModal.modal();
         $(sender).removeClass('btn-striped animate');
-    })    
+    });
+    return myModal;
+}
+
+
+function showEvents(sender, id){
+    data = {'id': id}
+    name = 'Events'
+    var myModal = ajaxModal(sender, name, '/ajaxGetEventsFrame', data)
+    // check for events
+    if(!$('.modal-body tr:not(.notice)', myModal).length)
+        $('.modal-footer', myModal).append('<input class="btn btn-warning" value="Clear Events" type="submit"></div>')
+    //hook up the clear event button
+    $('input[type="submit"]', myModal).click(function(e){
+        var t = $(this);
+        t.addClass('btn-striped animate')
+        $.getJSON('/ajaxClearEvents', data, function(res){
+            if(res['result']){
+                noty({text: res['msg'], type: 'success', timeout: 1000})
+                $('.modal-body', myModal).html('<h4>No events yet.</h4>')
+            }else{
+                noty({text: res['msg'], type: 'error'})  
+                saveButtons.addClass('btn-warning')
+            }
+            t.removeClass('btn-striped animate')
+        }).error(function(){
+            noty({text: 'Server error. Is it running? Check logs', type: 'error'}) 
+            t.removeClass('animate')
+        })
+    })
+}
+
+function showDownlads(sender, id){
+    data = {'id': id}
+    name = 'Downloads'
+    ajaxModal(sender, name, '/ajaxGetDownloadsFrame', data)
+}
+
+function showConfigs(sender, id){
+    data = {'id': id}
+    name = 'Configuration'
+    var myModal = ajaxModal(sender, name, '/ajaxGetConfigFrame', data)
+    
+    $('.modal-footer', myModal).append('<input class="btn btn-success" value="Save" type="submit"></div>')
+    window.setTimeout(function(){
+        console.log('myModal', myModal[0])
+        console.log('tab as', $('.nav-tabs a[data-toggle="tab"]:first'))
+        console.log($('.nav-tabs a[data-toggle="tab"]:first', myModal))
+        $('.nav-tabs a[data-toggle="tab"]:first', myModal).tab('show')
+        formAjaxSaveConnect($('input[type="submit"]', myModal), $('#config-'+id))
+    }, 1000);
+
+}
+
+function labelInputConnector(labels){
+    labels.each(function(){
+        var curLabel = $(this);
+        var curInput = $('input[type!="hidden"]', curLabel.parent());
+        // check for the for attr to not beeing invasive
+        if(typeof(curLabel.attr('for')) == "undefined" && curInput.length){
+            var id = curInput.attr('id');
+            if(!id){
+                // remove "0." from the random to get ids without a dot
+                id = $.now()+((''+Math.random()).split('.')[1]);
+                curInput.attr('id',id);
+            }
+            curLabel.attr('for',id);
+        }
+    });
 }
 
 
 
+function formAjaxSaveConnect(saveButtons, theForm){
+    saveButtons.click(function(event){
+        console.log(this)
+        if($(this).hasClass('animate')){
+            event.preventDefault();
+            return false;
+        }else if($(this).hasClass('btn-warning')){
+            return true;
+        }
+        event.preventDefault();
+        
+        saveButtons.addClass('btn-striped animate')
+        data = theForm.serialize()
+        
 
-function showDownlads(sender, id){
-    $(sender).addClass('btn-striped animate');
-    var downloadsFrame = $('#dowloadsFrame')
-    if(!downloadsFrame.length) {
-        // set up the bootstrap dialog
-        downloadsFrame = $('<div id="dowloadsFrame" class="modal hide fade modal-wide"><div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button><h3>Downloads</h3></div><div class="modal-body"></div></div>').appendTo('body')
-        downloadsFrame.append('<div class="modal-footer"><button class="btn" data-dismiss="modal">Close</button></div>')
-        $('body').append(downloadsFrame)
-    }
-    
-    $('.modal-body', downloadsFrame).empty();
-    $.post('/ajaxGetDownloadsFrame', {'id': id}, function(res){
-        $('.modal-body', downloadsFrame).html(res)
-        downloadsFrame.modal();
-        $(sender).removeClass('btn-striped animate');
-    })
+        $.getJSON('/ajaxSave', data, function(res){
+            if(res['result']){
+                $(this).button('loading');
+                noty({text: res['msg'], type: 'success', timeout: 1000})
+            }else{
+                noty({text: res['msg'], type: 'error'})  
+                saveButtons.addClass('btn-warning')
+            }
+            saveButtons.removeClass('btn-striped animate')
+        }).error(function(){
+            noty({text: 'Server error. Is it running? Check logs', type: 'error'}) 
+            saveButtons.removeClass('animate btn-success').addClass('btn-warning')
+        })
+    });
+}
+
+function hasOwnProperty(obj, prop) {
+    var proto = obj.__proto__ || obj.constructor.prototype;
+    return (prop in obj) &&
+        (!(prop in proto) || proto[prop] !== obj[prop]);
 }
 

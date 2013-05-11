@@ -219,8 +219,12 @@ footer a:hover{
     width: 800px;
     margin-left: -400px;
 }
-
-
+.info-buttons .info-events{
+    width: 35px;
+}
+.info-buttons .info-downloads{
+    width: 39px;
+}
 @media only screen and (max-width: 767px) {
     #container {
         width: 100%;

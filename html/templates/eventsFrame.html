@@ -9,7 +9,11 @@
         <td>{{event.human()}}</td>
     </tr>
 {%else%}
-    <tr><td><h5>No events yet.</h5></td></tr>
+    <tr class="notice">
+        <td>
+            <h4>No events yet.</h4>
+        </td>
+    </tr>
 {% endfor %}
 </tbody>
 </table>

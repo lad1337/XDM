@@ -4,7 +4,6 @@ import re
 import types
 from xdm import common, helper
 from xdm.classes import *
-from xdm.classes import MediaType
 from xdm.logger import *
 from meta import *
 from xdm.helper import replace_all
@@ -31,54 +30,39 @@ class Plugin(object):
     addMediaTypeOptions = True
     screenName = ''
 
+    elementConfig = {}
+    elementConfig_meta = {}
+
     def __init__(self, instance='Default'):
         """returns a new instance of the Plugin with the config loaded get the configuration as self.c.<name_of_config>"""
+        #setup names
         if not self.screenName:
             self.screenName = self.__class__.__name__
         self.name = "%s (%s)" % (self.screenName, instance)
         self.type = self.__class__.__name__
         self.instance = instance.replace('.', '_')
+        # log message
         if self._type != 'DownloadType':
             log("Creating new plugin %s" % self.name)
+        #setup other config options from mediatypes
         if self.addMediaTypeOptions:
             self._create_media_type_configs() #this adds the configs for media types
-        self.c = ConfigWrapper()
-        self.config_meta = ConfigMeta(self.config_meta)
-        self._claimed_configs = []
 
+        self._claimed_configs = []
+        # plugin configs
+        self.c = ConfigWrapper(self, self._config)
+        self.config_meta = ConfigMeta(self.config_meta)
         if not ('enabled' in self._config and self._config['enabled']):
             self._config['enabled'] = False
         self._config['plugin_order'] = 0
+        self._collect_plugin_configs()
 
-        enabled_obj = None
-        for k, v in self._config.items():
-            #print "looking for", self.__class__.__name__, 'Plugin', k, instance
-            try:
-                cur_c = Config.get(Config.section == self.__class__.__name__,
-                                  Config.module == 'Plugin',
-                                  Config.name == k,
-                                  Config.instance == self.instance)
-            except Config.DoesNotExist:
-                cur_c = Config()
-                cur_c.module = 'Plugin'
-                cur_c.section = self.__class__.__name__
-                cur_c.instance = self.instance
-                cur_c.name = k
-                cur_c.value = v
-                if cur_c.name in self.config_meta and self.config_meta[cur_c.name]:
-                    for field in ('type', 'element', 'mediaType'):
-                        if field in self.config_meta[cur_c.name] is not None:
-                            if self.config_meta[cur_c.name][field] is not None:
-                                log('Setting %s for %s to %s' % (cur_c.name, field, self.config_meta[cur_c.name][field]))
-                                setattr(cur_c, field, self.config_meta[cur_c.name][field])
+        # element configs
+        self.e = ConfigWrapper(self, self.elementConfig)
+        self.elementConfig_meta = ConfigMeta(self.elementConfig_meta)
+        self._collect_element_configs()
 
-                cur_c.save()
-            self._claimed_configs.append(cur_c.get_id())
-            if k == 'enabled':
-                enabled_obj = cur_c
-            self.c.addConfig(cur_c)
-        self.c.finalSort(enabled_obj)
-
+        # method wrapping
         methodList = [method for method in dir(self) if isinstance(getattr(self, method), (types.FunctionType, types.BuiltinFunctionType, types.MethodType, types.BuiltinMethodType, types.UnboundMethodType)) \
                       and not method.startswith('_')]
         for method_name in methodList:
@@ -95,17 +79,74 @@ class Plugin(object):
     # shortcut to the enabled config option
     enabled = property(_get_enabled, _set_enabled)
 
+    def _collect_plugin_configs(self):
+        enabled_obj = None
+        for k, v in self._config.items():
+            #print "looking for", self.__class__.__name__, 'Plugin', k, instance
+            try:
+                cur_c = Config.get(Config.section == self.__class__.__name__,
+                                  Config.module == 'Plugin',
+                                  Config.name == k,
+                                  Config.instance == self.instance)
+            except Config.DoesNotExist:
+                if self.type == 'SystemConfig':
+                    print 'init system config k:%s v:%s' % (k, v)
+                cur_c = Config()
+                cur_c.module = 'Plugin'
+                cur_c.section = self.__class__.__name__
+                cur_c.instance = self.instance
+                cur_c.name = k
+                cur_c.value = v
+                if cur_c.name in self.config_meta and self.config_meta[cur_c.name]:
+                    for field in ('type', 'element', 'mediaType'):
+                        if field in self.config_meta[cur_c.name] is not None:
+                            if self.config_meta[cur_c.name][field] is not None:
+                                log('Setting %s for %s to %s' % (cur_c.name, field, self.config_meta[cur_c.name][field]))
+                                setattr(cur_c, field, self.config_meta[cur_c.name][field])
+                cur_c.save()
+
+            if cur_c.type == 'element_config':
+                continue
+            self._claimed_configs.append(cur_c.get_id())
+            if k == 'enabled':
+                enabled_obj = cur_c
+            self.c.addConfig(cur_c)
+        self.c.finalSort(enabled_obj)
+
+    def _collect_element_configs(self):
+        for k, v in self.elementConfig.items():
+            cur_configs = Config.select().where(Config.section == self.__class__.__name__,
+                                          Config.module == 'Plugin',
+                                          Config.name == k,
+                                          Config.instance == self.instance,
+                                          Config.type == 'element_config')
+            cur_configs = list(cur_configs)
+            if len(cur_configs):
+                for c in cur_configs:
+                    self.e.addConfig(c)
+                    self._claimed_configs.append(c.get_id())
+        self.e.finalSort()
+
     def deleteInstance(self):
         for c in self.c.configs:
+            log("Deleting config %s from %s" % (c, self))
+            c.delete_instance()
+        for c in self.e.configs:
             log("Deleting config %s from %s" % (c, self))
             c.delete_instance()
 
     def cleanUnusedConfigs(self):
         amount = 0
-        for cur_c in Config.select().where(Config.section == self.__class__.__name__&
-                                  Config.module == 'Plugin'&
-                                  Config.instance == self.instance):
-            if cur_c.get_id() in self._claimed_configs:
+        configs = list(Config.select().where(Config.section == self.__class__.__name__,
+                                  Config.module == 'Plugin',
+                                  Config.instance == self.instance))
+        for cur_c in configs:
+
+            if cur_c.element is not None and cur_c.type == 'element_config':
+                # element configs ae only loade on the fly,
+                # to register them we get them all if the current config has an element attached
+                self.e.getConfigsFor(cur_c.element)
+            if cur_c in self.c.configs or cur_c in self.e.configs:
                 continue
             else:
                 log('Deleting unclaimed config %s(%s) in %s' % (cur_c, cur_c.get_id(), self))
@@ -203,6 +244,9 @@ class Plugin(object):
 
     def testMe(self):
         return (True, 'Everything fine')
+
+    def getConfigHtml(self):
+        return ''
 
 class DownloadType(Plugin):
     _type = 'DownloadType'
@@ -427,12 +471,19 @@ class Filter(Plugin):
     _type = 'Filter'
     name = 'Does Nothing'
 
+    class FilterResult(object):
+        def __init__(self, result=False, reason=''):
+            self.result = result
+            self.reason = reason
+
     def __init__(self, instance='Default'):
         self._config['run_on_hook_select'] = ''
         self.config_meta['run_on_hook_select'] = {'human': 'Run on stage'}
         #self._config['positive'] = True
         #self.config_meta['positive'] = {'human': 'Keep the the matches'}
+        
         Plugin.__init__(self, instance=instance)
+        
 
     def _run_on_hook_select(self):
         return {common.SEARCHTERMS: 'Search Term',

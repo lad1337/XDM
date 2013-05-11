@@ -119,6 +119,7 @@ class Sabnzbd(Downloader):
         else:
             return (False, {}, 'We got some strange message from sab. I guess this wont work :/')
 
+
     config_meta = {'plugin_desc': 'Sabnzb downloader. Send Nzbs and check for status',
                    'plugin_buttons': {'test_connection': {'action': _testConnection, 'name': 'Test connection'}},
                    'host': {'on_live_change': _testConnection},

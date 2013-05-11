@@ -1,6 +1,7 @@
 from xdm.logger import *
 import collections
 import traceback
+from xdm.classes import Config
 
 
 class ConfigWrapper(object):
@@ -8,15 +9,51 @@ class ConfigWrapper(object):
     also handels the saving of the new config"""
     configs = []
 
-    def __init__(self):
+    def __init__(self, plugin, configDefinition):
+        self._plugin = plugin
+        self._configDefinition = configDefinition
         self.configs = []
 
     def addConfig(self, c):
         self.configs.append(c)
 
-    def finalSort(self, enabled):
+    def finalSort(self, enabled=None):
         self.configs.sort(key=lambda x: x.name, reverse=False)
-        self.configs.insert(0, self.configs.pop(self.configs.index(enabled)))
+        if enabled is not None:
+            self.configs.insert(0, self.configs.pop(self.configs.index(enabled)))
+
+    def getConfig(self, name, element=None):
+        for cur_c in self.configs:
+            if cur_c.name == name and element is None:
+                return cur_c
+            elif cur_c.name == name and element == cur_c.element:
+                return cur_c
+        return None
+
+    def getConfigsFor(self, element):
+        out = []
+        for k, v in self._configDefinition.items():
+            try:
+                cur_c = Config.get(Config.section == self._plugin.__class__.__name__,
+                                   Config.module == 'Plugin',
+                                   Config.instance == self._plugin.instance,
+                                   Config.name == k,
+                                   Config.element == element)
+            except Config.DoesNotExist:
+                cur_c = Config()
+                cur_c.module = 'Plugin'
+                cur_c.section = self._plugin.__class__.__name__
+                cur_c.instance = self._plugin.instance
+                cur_c.name = k
+                if v == k:
+                    v = getattr(self._plugin.c, v)
+                cur_c.value = v
+                cur_c.type = 'element_config'
+                cur_c.element = element
+                cur_c.save()
+            out.append(cur_c)
+            self.addConfig(cur_c)
+        return out
 
     def __getattr__(self, name):
         for cur_c in self.configs:

@@ -140,11 +140,16 @@ def _filterBadDownloads(downloads):
             download = old_download
 
         for curFilterPlugin in common.PM.getFilters(hook=common.FOUNDDOWNLOADS, runFor=download.element.manager):
-            acceptence, string = curFilterPlugin.compare(element=download.element, download=download)
-            if not acceptence:
-                log.info('%s did not like %s' % (curFilterPlugin, download))
-                createGenericEvent(download.element, 'filter', '%s did not like %s' % (curFilterPlugin, download))
+            filterResult = curFilterPlugin.compare(element=download.element, download=download)
+            if not filterResult.result:
+                log.info('%s did not like %s, reason: %s' % (curFilterPlugin, download, filterResult.reason))
+                #createGenericEvent(download.element, 'filter', '%s did not like %s, reason: %s' % (curFilterPlugin, download, filterResult.reason))
+                createGenericEvent(download, 'filter', '%s did not like me, reason: %s' % (curFilterPlugin, filterResult.reason))
                 break
+            else:
+                log.info('%s liked %s, reason: %s' % (curFilterPlugin, download, filterResult.reason))
+                createGenericEvent(download.element, 'filter', '%s liked %s, reason: %s' % (curFilterPlugin, download, filterResult.reason))
+                createGenericEvent(download, 'filter', '%s liked me, reason: %s' % (curFilterPlugin, filterResult.reason))
         else:
             clean.append(download)
     return clean

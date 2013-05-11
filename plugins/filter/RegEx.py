@@ -18,7 +18,7 @@ class RegEx(Filter):
                 (True, string)
         else:
             # cant check if i should run
-            (True, string)
+            return self.FilterResult(True, 'No element given')
 
         if string is None:
             string = download.name
@@ -41,4 +41,4 @@ class RegEx(Filter):
             result = pattern.match(string)
         else:
             result = pattern.match(string, re.I)
-        return (bool(result) == bool(self.c.positive), string)
+        return self.FilterResult(bool(result) == bool(self.c.positive), string)
