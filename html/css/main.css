@@ -219,6 +219,10 @@ footer a:hover{
     width: 800px;
     margin-left: -400px;
 }
+
+.modal-wide .modal-body{
+    max-height: 440px;
+}
 .info-buttons .info-events{
     width: 35px;
 }

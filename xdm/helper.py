@@ -48,6 +48,8 @@ def statusLabelClass(status):
         return 'label label-success'
     elif status == common.FAILED:
         return 'label label-important'
+    elif status == common.PP_FAIL:
+        return 'label label-warning'
     else:
         return 'label'
 
