@@ -8,6 +8,7 @@ from logger import *
 from datetime import datetime
 import inspect
 import urllib
+from xdm import common
 
 
 def replace_some(text):
@@ -36,6 +37,19 @@ def replaceUmlaute(text):
     return replace_x(text, {u'ü': u'ue', u'ä': u'ae', u'ö': 'oe',
                             u'Ü': u'UE', u'Ä': u'AE', u'Ö': 'OE',
                             u'ß': 'ss'})
+
+
+def statusLabelClass(status):
+    if status == common.UNKNOWN:
+        return 'label'
+    elif status == common.SNATCHED:
+        return 'label label-info'
+    elif status in (common.DOWNLOADED, common.COMPLETED):
+        return 'label label-success'
+    elif status == common.FAILED:
+        return 'label label-important'
+    else:
+        return 'label'
 
 
 # form couchpotato

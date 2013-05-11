@@ -15,7 +15,7 @@ class RegEx(Filter):
     def compare(self, element=None, download=None, string=None):
         if element is not None:
             if not self._getEnable(element):
-                (True, string)
+                self.FilterResult(True, string)
         else:
             # cant check if i should run
             return self.FilterResult(True, 'No element given')

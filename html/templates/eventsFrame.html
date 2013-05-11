@@ -4,8 +4,8 @@
 <tbody>
 {% for event in events %}
     <tr title="{{event.id}}">
-        <td>{{event.getNiceTime()}}</td>
-        <td>{{event.event}}</td>
+        <td class="nice-time">{{event.getNiceTime()}}</td>
+        <td class="event-type">{{event.event}}</td>
         <td>{{event.human()}}</td>
     </tr>
 {%else%}

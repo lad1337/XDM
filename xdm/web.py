@@ -19,6 +19,7 @@ class WebRoot:
         WebRoot.appPath = app_path
         self.env = Environment(loader=FileSystemLoader(os.path.join('html', 'templates')))
         self.env.filters['idSafe'] = helper.replace_some
+        self.env.filters['statusLabelClass'] = helper.statusLabelClass
 
     def _globals(self):
         return {'mtms': common.PM.MTM, 's': Status.select(), 'system': common.SYSTEM, 'PM': common.PM, 'common': common}

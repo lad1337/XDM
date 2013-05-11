@@ -2,6 +2,7 @@
 from xdm.plugins import *
 from xdm.helper import replace_all
 from lib import requests
+from xdm import helper
 
 
 class Newznab(Indexer):
@@ -132,17 +133,17 @@ class Newznab(Indexer):
                         if config.name.lower().endswith(subName.lower()):
                             data[config.name] = subID
 
-        dataWrapper = {'callFunction': 'newsznab_spreadCategories',
+        dataWrapper = {'callFunction': 'newsznab_' + self.instance + '_spreadCategories',
                        'functionData': data}
 
         return (True, dataWrapper, 'I found %s categories' % len(data))
 
     def getConfigHtml(self):
         return """<script>
-                function newsznab_spreadCategories(data){
+                function newsznab_""" + self.instance + """_spreadCategories(data){
                   console.log(data);
                   $.each(data, function(k,i){
-                      $('input[name$="'+k+'"]').val(i)
+                      $('#""" + helper.replace_some(self.name) + """ input[name$="'+k+'"]').val(i)
                   });
                 };
                 </script>

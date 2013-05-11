@@ -469,6 +469,9 @@ class Element(BaseModel):
     def deleteHistory(self):
         return History.delete().where(History.obj_id == self.id).execute()
 
+    def deleteConfig(self):
+        return Config.delete().where(Config.element == self.id).execute()
+
     def delete_instance(self, silent=False):
         if not silent:
             log("Deleting instance: %s(%s)" % (self, self.id))
@@ -476,6 +479,7 @@ class Element(BaseModel):
         self.deleteFields()
         self.deleteDownloads()
         self.deleteHistory()
+        self.deleteConfig()
         super(Element, self).delete_instance()
 
     def getConfigs(self):

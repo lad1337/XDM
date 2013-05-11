@@ -225,6 +225,18 @@ footer a:hover{
 .info-buttons .info-downloads{
     width: 39px;
 }
+
+td.nice-time{
+    width: 28%;
+}
+
+td.download-size,
+.event-type{
+    border-right: 1px solid #ddd;
+    text-align: right;
+    padding-right: 5px;
+}
+
 @media only screen and (max-width: 767px) {
     #container {
         width: 100%;

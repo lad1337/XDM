@@ -4,6 +4,7 @@ from lib import requests
 #TODO: 
 class Boxcar(Notifier):
     version = "0.4"
+    addMediaTypeOptions = 'runFor'
     _config = {'email': '',
                'screenname': 'XDM'}
 
