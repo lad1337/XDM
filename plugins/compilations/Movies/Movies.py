@@ -21,8 +21,37 @@ class Movie(object):
         # {{this.getField('image')}} will return the image obj. str(Image) is the local src
         return """
         <div class="movie pull-left {{statusCssClass}}">
-            <img src="{{this.poster_image}}" class="pull-left"/>
+            <i class="icon-thumbs-up"></i>
+            <div class="door door-left">
+                <img src="{{this.poster_image}}"/>
+            </div>
+            <div class="door door-right">
+                <img src="{{this.poster_image}}"/>
+            </div>
+            <div class="inner">            
+                <h4>{{this.getName()}}</h4>
+                <i class="icon-remove btn btn-mini"></i>
+                <div class="buttons">
+                    {{actionButtons}}<br/>
+                    {{infoButtons}}
+                </div>
+                {%if this.getField('tailer_count')%}
+                <ul>
+                {% for trailerIndex in range(this.getField('tailer_count'))%}
+                    <li><a href="http://youtube.com/watch?v={{this.getField('youtube_trailer_id_'~trailerIndex)}}" class="trailer">
+                        <i class="icon-film"></i>
+                        {{this.getField('youtube_trailer_name_'~trailerIndex)}}
+                    </a></li>
+                {% endfor %}
+                </ul>
+                {%endif%}
+                <a href="#" class="btn btn-mini btn-info overview" data-placement="bottom" data-toggle="popover" title="Overview for {{this.getName()}}" data-content="{{overview}}" data-container=".de-lad1337-movies">Overview</a>
+                {{statusSelect}}
+            </div>
+        
             <span class="v-name">{{this.name}}</span>
+            <!--
+            <img src="{{this.poster_image}}" class="pull-left"/>
             <div class="content well">
                 {{statusSelect}}
                 <p class="overview">
@@ -38,6 +67,7 @@ class Movie(object):
                 {%endif%}
                 <div class="actions-container">{{actionButtons}}{{infoButtons}}</div>
             </div>
+            -->
         </div>
         """
 
