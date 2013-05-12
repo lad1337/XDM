@@ -74,7 +74,7 @@ class PluginManager(object):
             if systemOnly:
                 classes = (plugins.System,)
             else:
-                classes = (plugins.System, plugins.Notifier, plugins.MediaTypeManager, plugins.Downloader, plugins.Filter, plugins.Indexer, plugins.Provider, plugins.PostProcessor, plugins.DownloadType)
+                classes = (plugins.System, plugins.Notifier, plugins.MediaTypeManager, plugins.Downloader, plugins.Filter, plugins.MediaAdder, plugins.Indexer, plugins.Provider, plugins.PostProcessor, plugins.DownloadType)
             for cur_plugin_type in classes: #for plugin types
                 cur_plugin_type_name = cur_plugin_type.__name__
                 cur_classes = self.find_subclasses(cur_plugin_type, reloadModules, debug=debug)
@@ -267,7 +267,6 @@ class PluginManager(object):
         return self._getRunners(self._getAny(plugins.Provider, i, returnAll), runFor)
     P = property(getProvider)
 
-
     # none filtered
     def getDownloaderTypes(self, i='', returnAll=False):
         return self._getAny(plugins.DownloadType, i, returnAll)
@@ -285,12 +284,17 @@ class PluginManager(object):
         return self._getAny(plugins.MediaTypeManager, i, returnAll)
     MTM = property(getMediaTypeManager)
 
+    def getMediaAdder(self, i='', returnAll=False):
+        return self._getAny(plugins.MediaAdder, i, returnAll)
+    MA = property(getMediaAdder)
+
     def getAll(self, returnAll=False):
         return self.getSystems(returnAll=returnAll) +\
                 self.getIndexers(returnAll=returnAll) +\
                 self.getDownloaders(returnAll=returnAll) +\
                 self.getFilters(returnAll=returnAll) +\
                 self.getPostProcessors(returnAll=returnAll) +\
+                self.getMediaAdder(returnAll=returnAll) +\
                 self.getNotifiers(returnAll=returnAll) +\
                 self.getProvider(returnAll=returnAll) +\
                 self.getDownloaderTypes(returnAll=returnAll) +\

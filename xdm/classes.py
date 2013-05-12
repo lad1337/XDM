@@ -430,21 +430,17 @@ class Element(BaseModel):
 
     @classmethod
     def getWhereField(cls, mt, type, attributes, provider='', parent=0):
-        #TODO do this completely  as a DB query !
-        if parent:
-            eles = Element.select().where(Element.type == type, Element.mediaType == mt, Element.parent == parent)
-        else:
-            eles = Element.select().where(Element.type == type, Element.mediaType == mt)
-
-        for element in eles:
-            for fOfe in element.fields:
-                if fOfe.name in attributes:
-                    if fOfe.value == attributes[fOfe.name]:
-                        continue
-                    else:
-                        break
-            else:
-                return element
+        fs = list(Field.select().where(Field.name << attributes.keys(), Field.provider == provider).order_by(Field.element))
+        last_e = None
+        lastAttributeOK = False
+        for f in fs:
+            if last_e != f.element:
+                if lastAttributeOK:
+                    #last one was cool
+                    return last_e
+                lastAttributeOK = False
+                last_e = f.element
+            lastAttributeOK = str(attributes[f.name]) == str(f.value)
         raise Element.DoesNotExist
 
     def deleteWithChildren(self, silent=False):

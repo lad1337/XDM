@@ -7,8 +7,8 @@
 .de-lad1337-movies .movie{
     
     position: relative;
-    height: 260px;
-    min-width: 176px;
+    height: 274px;
+    width: 186px;
     
     perspective: 1200;
     -webkit-perspective: 1200;
@@ -39,8 +39,8 @@
 
 .de-lad1337-movies .inner{
     position: absolute;
-    height: 260px;
-    min-width: 176px;
+    height: 274px;
+    width: 186px;
     top: 0;
     left: 0;
     z-index: 0;
@@ -114,8 +114,8 @@
 .de-lad1337-movies .door{
     overflow: hidden;
     position: absolute;
-    height: 260px;
-    width: 88px;
+    height: 274px;
+    width: 93px;
     top: 0;
     left: 0;
     z-index: 10;
@@ -126,13 +126,13 @@
     transition: all 0.6s ease-in-out;
 }
 .de-lad1337-movies .door-right{
-    left: 88px;
+    left: 93px;
 }
 .de-lad1337-movies .door img{
     top: 0;
-    height: 260px;
-    width: 176px;
-    max-width: 176px;
+    height: 274px;
+    width: 186px;
+    max-width: 186px;
     position: relative;
 }
 .de-lad1337-movies .door-left img{
@@ -140,7 +140,7 @@
 }
 
 .de-lad1337-movies .door-right img{
-    left: -88px;
+    left: -93px;
 }
 
 

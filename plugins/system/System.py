@@ -14,6 +14,7 @@ class SystemConfig(System):
                'interval_search': 120, # minutes
                'interval_update': 1440, # minutes
                'interval_check': 3,
+               'interval_mediaadder': 3,
                'enabled': True,
                'again_on_fail': False,
                'resnatch_same': False,

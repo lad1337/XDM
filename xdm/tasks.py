@@ -90,13 +90,15 @@ def snatchOne(ele, downloads):
         for download in downloads:
             if not download.type in downloader.types:
                 continue
-            createGenericEvent(ele, 'snatch', 'Trying to snatch %s with %s' % (download.name, downloader))
+            createGenericEvent(ele, 'snatchTry', 'Trying to snatch %s with %s' % (download.name, downloader))
+            createGenericEvent(download, 'snatchTry', '%s is trying to snatch me' % (downloader))
             log.info('Trying to snatch %s with %s' % (download.name, downloader))
             if downloader.addDownload(download):
                 ele.status = common.SNATCHED
                 ele.save()
                 download.status = common.SNATCHED
                 download.save()
+                createGenericEvent(download, 'snatch', '%s snatched me' % (downloader))
                 notify(ele)
                 return ele.status #exit on first success
             triedSnatch = True
@@ -238,7 +240,41 @@ def updateElement(element, force=False):
             log.info("Found new version of %s" % element)
             for f in list(new_e.fields):
                 element.setField(f.name, f.value, f.provider)
+            element.deleteImages()
+            element.downloadImages()
             return
+
+
+def runMediaAdder():
+    for adder in common.PM.MA:
+        medias = adder.runShedule()
+        successfulAdd = []
+        for media in medias:
+            #print '######'
+            #print media.mediaTypeIdentifier
+            #print media.externalID
+            #print media.name
+            mtm = common.PM.getMediaTypeManager(media.mediaTypeIdentifier)
+            try:
+                new_e = Element.getWhereField(mtm.mt, media.elementType, {'id': media.externalID}, media.providerTag, mtm.root)
+            except Element.DoesNotExist:
+                pass
+            else:
+                log('We already have %s' % new_e)
+                successfulAdd.append(media)
+                continue
+            for provider in common.PM.getProvider(runFor=mtm):
+                log.info('%s is looking for %s(%s) on %s' % (adder, media.name, media.externalID, provider))
+                ele = provider.getElement(media.externalID)
+                if ele:
+                    log.info('we found %s. now lets gets real' % ele)
+                    if ele.manager.makeReal(ele):
+                        createGenericEvent(ele, 'autoAdd', 'I was added by %s' % adder)
+                        if media not in successfulAdd:
+                            successfulAdd.append(media)
+                else:
+                    log.info('%s did not find %s(%s)' % (provider, media.name, media.externalID))
+        adder.successfulAdd(successfulAdd)
 
 
 def removeTempElements():

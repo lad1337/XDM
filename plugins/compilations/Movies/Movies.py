@@ -48,26 +48,6 @@ class Movie(object):
                 <a href="#" class="btn btn-mini btn-info overview" data-placement="bottom" data-toggle="popover" title="Overview for {{this.getName()}}" data-content="{{overview}}" data-container=".de-lad1337-movies">Overview</a>
                 {{statusSelect}}
             </div>
-        
-            <span class="v-name">{{this.name}}</span>
-            <!--
-            <img src="{{this.poster_image}}" class="pull-left"/>
-            <div class="content well">
-                {{statusSelect}}
-                <p class="overview">
-                {{this.overview}}
-                </p>
-                {%if this.getField('tailer_count')%}
-                {% for trailerIndex in range(this.getField('tailer_count'))%}
-                    <a href="http://youtube.com/watch?v={{this.getField('youtube_trailer_id_'~trailerIndex)}}" class="trailer">
-                        <i class="icon-film"></i>
-                        {{this.getField('youtube_trailer_name_'~trailerIndex)}}
-                    </a>
-                {% endfor %}
-                {%endif%}
-                <div class="actions-container">{{actionButtons}}{{infoButtons}}</div>
-            </div>
-            -->
         </div>
         """
 
@@ -109,7 +89,8 @@ class Tmdb(Provider):
     screenName = 'TheMovieDB'
     single = True
     types = ['de.lad1337.movies']
-    _config = {'enabled': True}
+    _config = {'enabled': True,
+               'img_size_select': 'm'}
 
     def __init__(self, instance='Default'):
         tmdb.configure('5c235bb1b487932ebf0a9935c8b39b0a')
@@ -130,6 +111,12 @@ class Tmdb(Provider):
 
         return fakeRoot
 
+    def _img_size_select(self):
+        return {'o': 'Orginal size (slow web page)',
+                'l': 'Large 500px wide',
+                'm': 'Medium 185px wide',
+                's': 'Small 92px wide'}
+
     def _createMovie(self, fakeRoot, mediaType, tmdbMovie):
         movie = Element()
         movie.mediaType = mediaType
@@ -142,15 +129,13 @@ class Tmdb(Provider):
             movie.setField('year', rl_date.split('-')[0], self.tag)
         else:
             movie.setField('year', 0, self.tag)
-        movie.setField('poster_image', tmdbMovie.get_poster(), self.tag)
+        movie.setField('poster_image', tmdbMovie.get_poster(img_size=self.c.img_size_select), self.tag)
         movie.setField('overview', tmdbMovie.get_overview(), self.tag)
         movie.setField('runtime', tmdbMovie.get_runtime(), self.tag)
         movie.setField('id', tmdbMovie.get_id(), self.tag)
         movie.setField('id', tmdbMovie.get_imdb_id(), 'imdb')
         index = 0
         for index, youtubeTrailer in enumerate(tmdbMovie.get_trailers()['youtube']):
-
-            print youtubeTrailer['source']
             trailerIDFieldName = 'youtube_trailer_id_%s' % index
             trailerNameFieldName = 'youtube_trailer_name_%s' % index
             movie.setField(trailerIDFieldName, youtubeTrailer['source'], self.tag)
@@ -160,6 +145,7 @@ class Tmdb(Provider):
         movie.saveTemp()
 
     def getElement(self, id):
+        """we like tmdb ids"""
         mediaType = MediaType.get(MediaType.identifier == 'de.lad1337.movies')
         mtm = common.PM.getMediaTypeManager('de.lad1337.movies')
         fakeRoot = mtm.getFakeRoot('tmdb ID: %s' % id)
@@ -167,8 +153,8 @@ class Tmdb(Provider):
         self._createMovie(fakeRoot, mediaType, tmdbMovie)
 
         for ele in fakeRoot.decendants:
-            print ele, ele.getField('id', self.tag)
-            if ele.getField('id', self.tag) == id:
+            #print ele, ele.getField('id', self.tag)
+            if str(ele.getField('id', self.tag)) == str(id):
                 return ele
         else:
             return False

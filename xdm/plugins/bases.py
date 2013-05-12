@@ -481,9 +481,8 @@ class Filter(Plugin):
         self.config_meta['run_on_hook_select'] = {'human': 'Run on stage'}
         #self._config['positive'] = True
         #self.config_meta['positive'] = {'human': 'Keep the the matches'}
-        
+
         Plugin.__init__(self, instance=instance)
-        
 
     def _run_on_hook_select(self):
         return {common.SEARCHTERMS: 'Search Term',
@@ -503,6 +502,26 @@ class Filter(Plugin):
         # True and 'same as original' -> pass
         # True and 'something new' -> add the new string
         return (True, string)
+
+
+class MediaAdder(Plugin):
+    _type = 'MediaAdder'
+    name = 'Does Nothing'
+
+    class Media(object):
+        def __init__(self, mediaTypeIdentifier, externalID, providerTag, elementType, name, additionalData={}):
+            self.mediaTypeIdentifier = mediaTypeIdentifier
+            self.externalID = externalID
+            self.providerTag = providerTag
+            self.elementType = elementType
+            self.name = name
+            self.additionalData = additionalData
+
+    def runShedule(self):
+        return []
+
+    def successfulAdd(self, mediaList):
+        return False
 
 
 class MediaTypeManager(Plugin):
@@ -657,4 +676,4 @@ class MediaTypeManager(Plugin):
                 common.WANTED.id: common.WANTED.name,
                 common.IGNORE.id: common.IGNORE.name}
 
-__all__ = ['System', 'PostProcessor', 'Provider', 'Indexer', 'Notifier', 'Downloader', 'MediaTypeManager', 'Element', 'DownloadType', 'Filter']
+__all__ = ['System', 'PostProcessor', 'Provider', 'Indexer', 'Notifier', 'Downloader', 'MediaTypeManager', 'Element', 'DownloadType', 'Filter', 'MediaAdder']

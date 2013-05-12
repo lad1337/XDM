@@ -214,6 +214,10 @@ class RunApp():
         log.info("Setting up download status checker scheduler every %s seconds" % rate)
         folderProcessingScheduler = cherrypy.process.plugins.Monitor(cherrypy.engine, runChecker, rate, 'Check Downloads')
         folderProcessingScheduler.subscribe()
+        rate = common.SYSTEM.c.interval_mediaadder * 60
+        log.info("Setting up mediaadder scheduler every %s seconds" % rate)
+        folderProcessingScheduler = cherrypy.process.plugins.Monitor(cherrypy.engine, runMediaAdder, rate, 'Check for Media')
+        folderProcessingScheduler.subscribe()
 
         log.info("Starting the XDM web server")
         cherrypy.tree.mount(WebRoot(app_path), config=conf)
@@ -238,6 +242,10 @@ def runSearcher():
 
 def runChecker():
     tasks.runChecker()
+
+
+def runMediaAdder():
+    tasks.runMediaAdder()
 
 if __name__ == '__main__':
     RunApp().RunWebServer()

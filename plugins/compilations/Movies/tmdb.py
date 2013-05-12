@@ -74,7 +74,7 @@ class Core(object):
         return size_list[img_size]
 
     def poster_sizes(self,img_size):
-        size_list = {'s':'w92','m':'185','l':'w500','o':'original'}
+        size_list = {'s':'w92','m':'w185','l':'w500','o':'original'}
         return size_list[img_size]
 
     def profile_sizes(self,img_size):
@@ -212,7 +212,7 @@ class Movie(Core):
         return self.movies["title"]
 
     # Sizes = s->w92 m->w185 l->w500 o->original(default)
-    def get_poster(self,img_size="o"):
+    def get_poster(self, img_size="o"):
         img_path = self.movies["poster_path"]
         if img_path:
             return config['api']['base.url']+self.poster_sizes(img_size)+img_path
