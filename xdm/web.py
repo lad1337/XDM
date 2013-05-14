@@ -87,6 +87,11 @@ class WebRoot:
         return e.manager.paint(e)
 
     @cherrypy.expose
+    def getChildrensPaint(self, id):
+        e = Element.get(Element.id == id)
+        return e.manager.paintChildrenOf(e)
+
+    @cherrypy.expose
     def ajaxGetDownloadsFrame(self, id):
         ele = Element.get(Element.id == id)
         template = self.env.get_template('downloadsFrame.html')
@@ -142,7 +147,7 @@ class WebRoot:
         if 'element_id' in kwargs:
             element = Element.get(Element.id == kwargs['element_id'])
             del kwargs['element_id']
-            
+
         # this is slow !!
         # because i create each plugin for each config value that is for that plugin
         # because i need the config_meta from the class to create the action list
@@ -150,7 +155,7 @@ class WebRoot:
         for k, v in kwargs.items():
             log("config K:%s V:%s" % (k, v))
             parts = k.split('-')
-            print parts
+            #print parts
             # parts[0] plugin class name
             # parts[1] plugin instance name
             # parts[2] config name
@@ -297,10 +302,12 @@ class WebRoot:
         p = common.PM.getInstanceByName(p_type, p_instance)
         p_function = getattr(p, action)
         fn_args = []
-        for name in inspect.getargspec(p_function).args:
-            field_name = 'field_%s' % name
-            if field_name in kwargs:
-                fn_args.append(kwargs[field_name])
+        if hasattr(p_function, 'args'):
+            for name in p_function.args:
+                log('function %s needs %s' % (action, name))
+                field_name = 'field_%s' % name
+                if field_name in kwargs:
+                    fn_args.append(kwargs[field_name])
         try:
             status, data, msg = p_function(*fn_args)
         except Exception as ex:

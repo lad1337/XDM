@@ -23,7 +23,7 @@ class Album(object):
     _orderBy = 'year'
 
     def getTemplate(self):
-        return """<div class="Album {{statusCssClass}}">
+        return """<div class="Album {{statusCssClass}}" data-id="{{this.id}}">
                       <img src="{{this.cover_image}}">
                       <p>{{name}}<br><span class="artistName">{{this.parent.name}}</span></p>
                       <div class="indi">&#x25B2;</div>
@@ -32,7 +32,7 @@ class Album(object):
                               <strong class="bORw">{{name}}</strong>{{actionButtons}}{{infoButtons}}{{statusSelect}}
                               <p class="bORw">{{this.parent.name}} ({{this.year}})</p>
                           </div>
-                          <ol class="bORw">{{children}}</ol>
+                          <ol class="bORw"></ol>
                       </div>
                   </div>
                 """

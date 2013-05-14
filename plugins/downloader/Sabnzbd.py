@@ -98,6 +98,7 @@ class Sabnzbd(Downloader):
         else:
             return (common.UNKNOWN, download, '')
 
+    @profileMeMaybe
     def _testConnection(self, host, port, apikey):
         payload = {'mode': 'version',
                    'output': 'json'}
@@ -118,7 +119,7 @@ class Sabnzbd(Downloader):
             return (True, {}, 'Connetion Established!')
         else:
             return (False, {}, 'We got some strange message from sab. I guess this wont work :/')
-
+    _testConnection.args = ['host', 'port', 'apikey']
 
     config_meta = {'plugin_desc': 'Sabnzb downloader. Send Nzbs and check for status',
                    'plugin_buttons': {'test_connection': {'action': _testConnection, 'name': 'Test connection'}},

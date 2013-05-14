@@ -2,8 +2,13 @@
 import xdm
 from classes import *
 from classes import __all__ as allClasses
-from xdm import common, classes
+from xdm import common
 from xdm.logger import *
+import os
+
+
+def initCheck():
+    common.HOMEDIR = os.path.expanduser("~")
 
 
 def initDB():

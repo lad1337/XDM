@@ -291,6 +291,17 @@ def daemonize():
     dev_null = file('/dev/null', 'r')
     os.dup2(dev_null.fileno(), sys.stdin.fileno())
 
+def getSystemDataDir(progdir):
+    if sys.platform == 'darwin':
+        home = os.environ.get('HOME')
+        if home:
+            return '%s/Library/Application Support/SickBeard' % home
+        else:
+            return progdir
+    elif sys.platform == "win32":
+        #TODO: implement
+        return progdir
+
 
 def getContainerTpl():
     return '<div class="{{type}}">{{children}}<div class="clearfix"></div></div>'
@@ -300,43 +311,4 @@ def getLeafTpl():
     return '{{this.getName()}}<br>'
 
 
-def getActionsTpl():
-    return """
-            <div class="action-buttons btn-group">
-                <a href="/delete?id={{this.id}}" class="action-delete btn btn-danger btn-mini">Delete</a>
-                <a href="/forcesearch?id={{this.id}}" class="action-search btn btn-primary btn-mini">Search</a>
-                <a href="/refreshinfo?id={{this.id}}" class="action-reload btn btn-primary btn-mini">Refresh</a>
-            </div>"""
 
-
-def getInfoTpl():
-    return """<div class="info-buttons btn-group">
-                <a href="#" class="info-config btn btn-mini"  onclick="showConfigs(this, {{this.id}});return false;">Config</a>
-                <a href="#" class="info-events btn btn-info btn-mini" onclick="showEvents(this, {{this.id}});return false;">Events</a>
-                <a href="#" class="info-downloads btn btn-info btn-mini" onclick="showDownlads(this, {{this.id}});return false;">Down&hellip;</a>
-            </div>"""
-
-
-def getAddActionsTpl():
-    return """
-            <div class="action-buttons btn-group">
-                <a href="/makePermanent?id={{this.id}}" class="action-delete btn btn-success btn-mini" >Add</a>
-            </div>"""
-
-
-def getStatusTpl():
-    return """
-            <div class="status-select btn-group">
-            <button class="btn btn-mini dropdown-toggle" data-toggle="dropdown">
-              {{this.status.name}}
-              <span class="caret"></span>
-            </button>
-            <ul class="dropdown-menu">
-                {% for s in globalStatus %}
-                {% if not s.hidden %}
-                <li><a href="/setStatus?s={{s.id}}&id={{this.id}}">{{s.name}}</a></li>
-                {% endif %}
-                {% endfor %}
-            </ul>
-            </div>
-    """

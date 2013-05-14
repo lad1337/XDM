@@ -9,6 +9,7 @@ class Movie(object):
     overview = ''
     runtime = ''
     poster_image = ''
+    backdrop_image = ''
 
     _orderBy = 'name'
 
@@ -28,12 +29,12 @@ class Movie(object):
             <div class="door door-right">
                 <img src="{{this.poster_image}}"/>
             </div>
-            <div class="inner">            
+            <div class="inner">
                 <h4>{{this.getName()}}</h4>
                 <i class="icon-remove btn btn-mini"></i>
                 <div class="buttons">
-                    {{actionButtons}}<br/>
-                    {{infoButtons}}
+                    {{iconActionButtons}}
+                    {{iconInfoButtons}}
                 </div>
                 {%if this.getField('tailer_count')%}
                 <ul>
@@ -45,8 +46,8 @@ class Movie(object):
                 {% endfor %}
                 </ul>
                 {%endif%}
-                <a href="#" class="btn btn-mini btn-info overview" data-placement="bottom" data-toggle="popover" title="Overview for {{this.getName()}}" data-content="{{overview}}" data-container=".de-lad1337-movies">Overview</a>
                 {{statusSelect}}
+                <a href="#" class="btn btn-mini btn-info overview" data-placement="bottom" data-toggle="popover" title="Overview for {{this.getName()}}" data-content="{{overview}}" data-container=".de-lad1337-movies">Overview</a>
             </div>
         </div>
         """
@@ -96,6 +97,7 @@ class Tmdb(Provider):
         tmdb.configure('5c235bb1b487932ebf0a9935c8b39b0a')
         Provider.__init__(self, instance=instance)
 
+    @profileMeMaybe
     def searchForElement(self, term=''):
         self.progress.reset()
         mediaType = MediaType.get(MediaType.identifier == 'de.lad1337.movies')
@@ -130,6 +132,7 @@ class Tmdb(Provider):
         else:
             movie.setField('year', 0, self.tag)
         movie.setField('poster_image', tmdbMovie.get_poster(img_size=self.c.img_size_select), self.tag)
+        movie.setField('backdrop_image', tmdbMovie.get_backdrop('s'), self.tag)
         movie.setField('overview', tmdbMovie.get_overview(), self.tag)
         movie.setField('runtime', tmdbMovie.get_runtime(), self.tag)
         movie.setField('id', tmdbMovie.get_id(), self.tag)

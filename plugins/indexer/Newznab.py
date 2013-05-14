@@ -97,6 +97,7 @@ class Newznab(Indexer):
             return (False, {}, 'Wrong apikey!')
 
         return (True, {}, 'Connection made!')
+    _testConnection.args = ['host', 'port', 'apikey']
 
     # this is neither clean nor pretty
     # but its just a gimick and should illustrate how to use ajax calls that send data back
@@ -137,6 +138,7 @@ class Newznab(Indexer):
                        'functionData': data}
 
         return (True, dataWrapper, 'I found %s categories' % len(data))
+    _gatherCategories.args = ['host', 'port']
 
     def getConfigHtml(self):
         return """<script>

@@ -91,7 +91,7 @@
                 {% if plugin['config_meta']['plugin_buttons'] %}
                 {% for name, button in plugin['config_meta']['plugin_buttons'].items()%}
                 <p>
-                    <input type="button" class="btn" value="{%if button['name']%}{{button['name']}}{%else%}{{name.replace('_',' ')}}{%endif%}" onClick="pluginAjaxCall(this, '{{ plugin.type }}', '{{ plugin.instance }}', '{{ plugin.name.replace(' ', '_').replace('(', '').replace(')', '') }}_content', '{{button['action'].__name__}}')"/>
+                    <input type="button" class="btn" value="{%if button['name']%}{{button['name']}}{%else%}{{name.replace('_',' ')}}{%endif%}" onClick="pluginAjaxCall(this, '{{ plugin.type }}', '{{ plugin.instance }}', '{{ plugin.name|idSafe }}_content', '{{button['action'].__name__}}')"/>
                     <span class="muted">{{button['desc']}}</span>
                 </p>
                 {% endfor %}

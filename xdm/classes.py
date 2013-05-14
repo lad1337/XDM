@@ -11,9 +11,14 @@ import json
 from jsonHelper import MyEncoder
 from xdm.helper import dict_diff
 import types
+
+#from jinja2 import FileSystemBytecodeCache
 from jinja2.environment import Environment
 from jinja2.loaders import FileSystemLoader, DictLoader
-from os import path
+
+#bcc = FileSystemBytecodeCache(pattern='%s.cache')
+#, bytecode_cache=bcc
+elementButtonEnvironment = Environment(loader=FileSystemLoader(os.path.join('html', 'templates', 'buttons')))
 
 
 class BaseModel(Model):
@@ -162,6 +167,7 @@ class Element(BaseModel):
         self._tmp_fields = []
         self._fnChecked = []
         super(Element, self).__init__(*args, **kwargs)
+        self.__fieldCache = list(self.fields)
 
     def __str__(self):
         return '%s(%s) %s' % (self.type, self.mediaType, self.getName())
@@ -211,7 +217,9 @@ class Element(BaseModel):
         else:
             return None
 
-    def getField(self, name, provider='', returnObject=False):
+    def getField(self, name, provider=None, returnObject=False):
+        #this is faster then a db query oO
+        #my mother had me tested
         for f in list(self.fields) + self._tmp_fields:
             if f.name == name and provider and f.provider == provider:
                 if returnObject:
@@ -298,35 +306,53 @@ class Element(BaseModel):
     def imgPath(self):
         return os.path.join(xdm.CACHEPATH, self.type, self.imgName())
 
-    def buildHtml(self, search=False):
+    def buildHtml(self, search=False, curIndex=0):
         if search:
             tpl = self.getSearchTemplate()
         else:
             tpl = self.getTemplate()
-        env = Environment(loader=DictLoader({'this': tpl,
-                                             'actions': helper.getActionsTpl(),
-                                             'info': helper.getInfoTpl(),
-                                             'addActions': helper.getAddActionsTpl(),
-                                             'status': helper.getStatusTpl()}))
+        env = Environment(loader=DictLoader({'this': tpl}))
+        elementButtonEnvironment
         elementTemplate = env.get_template('this')
+        actionTemplate = None
+        infoTemplate = None
         if not search:
-            actionTemplate = env.get_template('actions')
-            infoTemplate = env.get_template('info')
-            infoHtml = infoTemplate.render(this=self)
-            statusTemplate = env.get_template('status')
+            if '{{actionButtons}}' in tpl:
+                actionTemplate = elementButtonEnvironment.get_template('actions.html')
+            elif '{{iconActionButtons}}' in tpl:
+                actionTemplate = elementButtonEnvironment.get_template('actionsIcons.html')
+
+            if '{{infoButtons}}' in tpl:
+                infoTemplate = elementButtonEnvironment.get_template('info.html')
+            elif '{{iconInfoButtons}}' in tpl:
+                infoTemplate = elementButtonEnvironment.get_template('infoIcons.html')
+
+            statusTemplate = elementButtonEnvironment.get_template('status.html')
             statusHtml = statusTemplate.render(this=self, globalStatus=Status.select())
         else:
-            actionTemplate = env.get_template('addActions')
+            actionTemplate = elementButtonEnvironment.get_template('actionsAdd.html')
             statusHtml = ''
+        # render action buttons
+        if actionTemplate is not None:
+            actionsHtml = actionTemplate.render(this=self)
+        else:
+            actionsHtml = ''
+        # render info buttons
+        if infoTemplate is not None:
+            infoHtml = infoTemplate.render(this=self)
+        else:
             infoHtml = ''
-        actionsHtml = actionTemplate.render(this=self)
+        # status class
         statusCssClass = 'status-%s' % self.status.name.lower()
         return elementTemplate.render(children='{{children}}',
                                       actionButtons=actionsHtml,
+                                      iconActionButtons=actionsHtml,
                                       infoButtons=infoHtml,
+                                      iconInfoButtons=infoHtml,
                                       statusSelect=statusHtml,
                                       this=self,
                                       statusCssClass=statusCssClass,
+                                      loopIndex=curIndex,
                                       **self.buildFieldDict())
 
     def buildFieldDict(self):
@@ -335,12 +361,6 @@ class Element(BaseModel):
             out[f.name] = f.value
             out['%s_%s' % (f.provider, f.name)] = f.value
         out['type'] = self.type
-        p = self.parent
-        if p:
-            for pf in p.fields:
-                out['%s_%s' % (p.type, pf.name)] = pf.value
-                out['%s_%s_%s' % (p.type, pf.provider, pf.name)] = pf.value
-
         return out
 
     def getDefinedAttr(self):
@@ -349,7 +369,7 @@ class Element(BaseModel):
             attrs[attr] = self.getField(attr)
         return attrs
 
-    def paint(self, search=False, single=False, status=None):
+    def paint(self, search=False, single=False, status=None, curIndex=0, onlyChildren=False):
         if status is None:
             if search:
                 status = [common.TEMP]
@@ -359,13 +379,19 @@ class Element(BaseModel):
         if self.manager.download.__name__ == self.type and self.status not in status:
             return ''
 
-        html = self.buildHtml(search)
+        if not onlyChildren:
+            html = self.buildHtml(search, curIndex=curIndex)
+        else:
+            html = '{{children}}'
         if single:
             return html
 
         children = Element.select().where(Element.parent == self.id)
-        for child in sorted(children, key=lambda c: c.orderFieldValue):
-            html = html.replace('{{children}}', '%s{{children}}' % child.paint(search=search, single=single, status=status), 1)
+        curIndex = 0
+        if '{{children}}' in html:
+            for child in sorted(children, key=lambda c: c.orderFieldValue):
+                html = html.replace('{{children}}', '%s{{children}}' % child.paint(search=search, single=single, status=status, curIndex=curIndex), 1)
+                curIndex += 1
 
         html = html.replace('{{children}}', '')
         return html
@@ -490,6 +516,7 @@ class Element(BaseModel):
                               Config.module == 'Plugin')
         except Config.DoesNotExist:
             return None
+
 
 class Field(BaseModel):
     element = ForeignKeyField(Element, related_name='fields')
@@ -747,7 +774,6 @@ class History(BaseModel):
         data_o = self._old()
         data_n = self._new()
         if data_n and data_o:
-            
             if self.event == 'update':
                 if data_n['status'] != data_o['status']:
                     return 'marked download as %s ' % Status.get(Status.id == data_n['status'])

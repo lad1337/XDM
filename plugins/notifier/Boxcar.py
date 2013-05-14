@@ -1,7 +1,7 @@
 from xdm.plugins import *
 from lib import requests
 
-#TODO: 
+
 class Boxcar(Notifier):
     version = "0.4"
     addMediaTypeOptions = 'runFor'
@@ -12,6 +12,7 @@ class Boxcar(Notifier):
         log("Testing boxcar")
         result = self._sendMessage("Test from XDM", email, screenname, None)
         return (result, {}, 'Message send. Check your device(s)')
+    _sendTest.args = ['email', 'screenname']
 
     def _sendEnabled(self):
         log("Testing boxcar")

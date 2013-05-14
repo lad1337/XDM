@@ -10,7 +10,7 @@ else:
 os.chdir(app_path)
 sys.path.append(os.path.join(app_path, 'rootLibs'))
 
-
+import argparse
 import cherrypy
 import threading
 import cherrypy.process.plugins
@@ -21,7 +21,7 @@ from xdm.helper import launchBrowser, daemonize
 import cherrypy.lib.auth_basic
 import xdm
 import logging
-from xdm.init import initDB
+from xdm.init import initDB, initCheck
 from xdm.plugins import PluginManager
 
 from xdm import common
@@ -40,31 +40,22 @@ if not os.path.exists(xdm.CACHEDIR):
 
 
 class RunApp():
-    
-    
-    def __init__(self):
-        usage = "usage: %prog [-options] [arg]"
-        p = OptionParser(usage=usage)
-        p.add_option('-d', '--daemonize', action = "store_true",
-                     dest = 'daemonize', help = "Run the server as a daemon")
-        p.add_option('-D', '--debug', action = "store_true",
-                     dest = 'debug', help = "Debug Log to screen")
-        p.add_option('', '--pluginImportDebug', action = "store_true",
-                     dest = 'pluginImportDebug', help = "Extra verbosy Debug during plugin import")
-        p.add_option('-p', '--pidfile',
-                     dest = 'pidfile', default = None,
-                     help = "Store the process id in the given file")
-        p.add_option('-P', '--port',
-                     dest = 'port', default = None,
-                     help = "Force webinterface to listen on this port")
-        p.add_option('-n', '--nolaunch', action = "store_true",
-                     dest = 'nolaunch', help="Don't start browser")
-        p.add_option('-b', '--datadir', default = None,
-                     dest = 'datadir', help="Set the directory for the database")
-        p.add_option('-c', '--config', default = None,
-                     dest = 'config', help="Path to configfile")
 
-        options, args = p.parse_args()
+    def __init__(self):
+
+        p = argparse.ArgumentParser(prog='XDM')
+        p.add_argument('-d', '--daemonize', action="store_true", dest='daemonize', help="Run the server as a daemon.")
+        p.add_argument('-D', '--debug', action="store_true", dest='debug', help="Print debug log to screen.")
+        p.add_argument('-p', '--pidfile', dest='pidfile', default=None, help="Store the process id in the given file.")
+        p.add_argument('-P', '--port', dest='port', default=None, help="Force webinterface to listen on this port.")
+        p.add_argument('-n', '--nolaunch', action="store_true", dest='nolaunch', help="Don't start the browser.")
+        p.add_argument('-b', '--datadir', dest='datadir', default=None, help="Set the directory for the database.")
+        p.add_argument('-c', '--config', dest='config', default=None, help="Path to config file")
+        p.add_argument('--pluginImportDebug', action="store_true", dest='pluginImportDebug', help="Extra verbosy debug during plugin import is printed.")
+        p.add_argument('--profile', dest='profile', nargs='*', default=None, help="Wrap a decorated(!) function in a profiler. By default all decorated functions are profiled. Decorate your function with @profileMeMaybe")
+
+        options = p.parse_args()
+        common.STARTOPTIONS = options
 
         #Set the Paths
         if options.datadir:
@@ -78,10 +69,11 @@ class RunApp():
         if not os.access(datadir, os.W_OK):
             raise SystemExit("Data dir must be writeable '" + datadir + "'")
 
-        if options.config:
+        #TODO: rewrite for the config.db
+        """if options.config:
             config_path = options.config
         else:
-            config_path = os.path.join(datadir, 'Gamez.ini')
+            config_path = os.path.join(datadir, 'Gamez.ini')"""
 
         # Daemonize
         if options.daemonize:
@@ -98,9 +90,15 @@ class RunApp():
             print "------------------- XDM Debug Messages ON -------------------"
             logger.cLogger.setLevel(logging.DEBUG)
             log.info('XDM Debug mode ON')
-
+        # Profile
+        if options.profile is not None:
+            print "------------------- XDM Profiling ON -------------------"
+            log.info('XDM profiling mode ON')
+            common.RUNPROFILER = True
         #Set global variables
-        xdm.CONFIG_PATH = config_path
+        
+        # see TODO for the config option
+        #xdm.CONFIG_PATH = config_path
         xdm.DATADIR = datadir
         xdm.DATABASE_PATH = os.path.join(xdm.DATADIR, xdm.DATABASE_NAME)
         xdm.CONFIG_DATABASE_PATH = os.path.join(xdm.DATADIR, xdm.CONFIG_DATABASE_NAME)
@@ -110,6 +108,7 @@ class RunApp():
         xdm.CONFIG_DATABASE.init(xdm.CONFIG_DATABASE_PATH)
         xdm.HISTORY_DATABASE.init(xdm.HISTORY_DATABASE_PATH)
 
+        initCheck()
         initDB()
 
         sys.path.append(os.path.join(app_path, 'rootLibs'))

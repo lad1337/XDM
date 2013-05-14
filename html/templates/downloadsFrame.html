@@ -4,7 +4,7 @@
 <tbody>
 {% for download in downloads %}
     <tr>
-        <td style="max-width: 350px;">{{download.name}}</td>
+        <td style="max-width: 350px;">{{download.name.replace('.','.&shy;')}}</td>
         <td class="download-size">{{download.humanSize()}}</td>
         <td style="text-align:center;"><span class="label label-info">{{common.getDownloadTypeExtension(download.type)}}</span></td>
         <td style="text-align:center;">

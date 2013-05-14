@@ -7,6 +7,7 @@ from xdm.classes import *
 from xdm.logger import *
 from meta import *
 from xdm.helper import replace_all
+from lib.profilehooks import profile
 
 
 """plugins should not set the status of an element !!! it will be done in the loops that call / use the plugins"""
@@ -629,6 +630,13 @@ class MediaTypeManager(Plugin):
     def headInject(self):
         return ''
 
+    @xdm.profileMeMaybe
+    def paintChildrenOf(self, root, status=None):
+        if status is None:
+            status = common.getAllStatus()
+        return root.paint(status=status, onlyChildren=True)
+
+    @xdm.profileMeMaybe
     def paint(self, root=None, status=None):
         if status is None:
             status = common.getHomeStatuses()

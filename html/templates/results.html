@@ -29,7 +29,7 @@
                     <span class="progressbar-front-text"></span>
                 </div>
             </div>
-            <div class="inner" style="display:none;"></div>
+            <div class="searchTabPaneInner" style="display:none;"></div>
         </div>
         {% endif %}
         {% for oldRoot in mt.getSearches() %}
@@ -40,7 +40,7 @@
                     <span class="progressbar-front-text"></span>
                 </div>
             </div>
-            <div class="inner" style="display:none;"></div>
+            <div class="searchTabPaneInner" style="display:none;"></div>
         </div>
         {% endfor %}
     </div>
@@ -53,9 +53,9 @@ data_{{mt.instance}}['search_query'] = '{{search_query}}'
 var searching{{mt.instance}} = true;
 jQuery.get( '/ajaxSearch', data_{{mt.instance}}, function(res){
     var p = $('#{{mt.instance}}-current')
-    $('.inner', p).html(res)
+    $('.searchTabPaneInner', p).html(res)
     $('.progress', p).hide("slide", { direction: "up" }, 500)
-    $('.inner', p).show("slide", { direction: "up" }, 500)
+    $('.searchTabPaneInner', p).show("slide", { direction: "up" }, 500)
 });
 
 var parent_{{mt.instance}} = $('#{{mt.instance}}-current');
@@ -89,7 +89,7 @@ function ajaxSearchProgress(parent, data){
             $('.progress span' ,parent).html(res['count'])
         }
         console.log(data['mt'], res)
-        if(!$('.inner', parent).html())
+        if(!$('.searchTabPaneInner', parent).html())
             window.setTimeout(function() {ajaxSearchProgress(parent, data)}, 1000);
         });
 };
@@ -106,11 +106,11 @@ $(document).ready(function() {
         var tab = $(t.attr('href'));
         data = {}
         data['id'] = t.data('id')
-        if(data['id'] && !$('.inner', tab).html())
+        if(data['id'] && !$('.searchTabPaneInner', tab).html())
             jQuery.get( '/getPaint', data, function(res){
-                $('.inner', tab).html(res)
+                $('.searchTabPaneInner', tab).html(res)
                 $('.progress', tab).hide("slide", { direction: "up" }, 500)
-                $('.inner', tab).show("slide", { direction: "up" }, 500)
+                $('.searchTabPaneInner', tab).show("slide", { direction: "up" }, 500)
             });
       })
 });

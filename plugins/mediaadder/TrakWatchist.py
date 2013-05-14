@@ -12,7 +12,7 @@ unwatchlistMovieURL = baseURL + "movie/unwatchlist.json/"
 
 class TraktWatchlist(MediaAdder):
     version = "0.1"
-    addMediaTypeOptions = 'runFor'
+    addMediaTypeOptions = False
     screenName = 'Trakt Wachlist'
     _config = {'username': '',
                'password': '',
@@ -53,8 +53,11 @@ class TraktWatchlist(MediaAdder):
     # get the movie watchlist
     def _getMovieWatchlist(self, username, password, apikey):
         url = self._makeURL(movieWatchlistURL, apikey, username)
-        r = requests.get(url, auth=(username, self._hash(password)))
-        return r.json()
+        try:
+            r = requests.get(url, auth=(username, self._hash(password)))
+            return r.json()
+        except:
+            return []
 
     def _removeMovieFromWatchlist(self, username, password, apikey, movieList):
         url = self._makeURL(unwatchlistMovieURL, apikey, "")
@@ -67,11 +70,13 @@ class TraktWatchlist(MediaAdder):
         postdata = {'movies': traktMovieList,
                     'username': username,
                     'password': self._hash(password)}
-
-        r = requests.post(url, data=json.dumps(postdata))
         try:
-            return r.json()['status'] == 'success'
-        except ValueError:
+            r = requests.post(url, data=json.dumps(postdata))
+            try:
+                return r.json()['status'] == 'success'
+            except ValueError:
+                return False
+        except:
             return False
 
     # construct the url

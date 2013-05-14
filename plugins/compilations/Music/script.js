@@ -1,6 +1,7 @@
 
 $(document).ready(function() {
     $('.de-lad1337-music').on('click', '.Album>img', function(){
+        var thisImg = this
         var clickedIndex = 0;
         var p = $(this).parent();
         var pp =  p.parent();
@@ -29,29 +30,38 @@ $(document).ready(function() {
             $('.de-lad1337-music .Album').removeClass('active').css('padding-bottom', 0)
             $('.de-lad1337-music .songs').css('height', 0);
             
-            var colums = 2;
-            if($('.de-lad1337-music').width()<598)
-                colums = 1
-            
-            var neededHeight = Math.round($('ol li', p).length/colums)*20+80;
-            if(neededHeight<200)
-                neededHeight = 200
-            $('.songs', p).css('height', neededHeight+'px');
-            p.css('padding-bottom', (neededHeight)+'px');
-            lastInRow.css('padding-bottom', (neededHeight)+'px')
-            p.addClass('active');
-            rgb = getAverageRGB(this, [0,0,0,1]);
-            stringColor = 'rgb('+rgb.r+','+rgb.g+','+rgb.b+')'
-            $('.songs', p).css('background', stringColor)
-            $('.indi', p).css('color', stringColor)
-            //console.log(invertColor(stringColor), brightness(stringColor))
-            if(!$('.songs>img' ,p).length){
-                $('.songs' ,p).append('<div class="coverOverlay"></div>')
-                $('.songs' ,p).append($(this).clone())
-                $('.songs .coverOverlay', p).css('box-shadow', 'inset 0 0 14px 9px ' + stringColor);
-            }
-            if(brightness(stringColor) < 130)
-                $('.songs .bORw', p).css('color', '#fff')
+            data = {}
+            data['id'] = p.data('id')
+            jQuery.get( '/getChildrensPaint', data, function(res){
+                $('.songs ol',p).html(res)
+                
+                var colums = 2;
+                if($('.de-lad1337-music').width()<598)
+                    colums = 1
+                
+                var neededHeight = Math.round($('ol li', p).length/colums)*20+80;
+                if(neededHeight<200)
+                    neededHeight = 200
+                $('.songs', p).css('height', neededHeight+'px');
+                p.css('padding-bottom', (neededHeight)+'px');
+                lastInRow.css('padding-bottom', (neededHeight)+'px')
+                p.addClass('active');
+                rgb = getAverageRGB(thisImg, [0,0,0,1]);
+                stringColor = 'rgb('+rgb.r+','+rgb.g+','+rgb.b+')'
+                $('.songs', p).css('background', stringColor)
+                $('.indi', p).css('color', stringColor)
+                //console.log(invertColor(stringColor), brightness(stringColor))
+                if(!$('.songs>img' ,p).length){
+                    $('.songs' ,p).append('<div class="coverOverlay"></div>')
+                    $('.songs' ,p).append($(thisImg).clone())
+                    $('.songs .coverOverlay', p).css('box-shadow', 'inset 0 0 14px 9px ' + stringColor);
+                }
+                if(brightness(stringColor) < 130)
+                    $('.songs .bORw', p).css('color', '#fff')
+                
+                
+                
+            });
         };
     });
     

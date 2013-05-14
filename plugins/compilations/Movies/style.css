@@ -50,16 +50,8 @@
     -moz-transition: all 0.6s ease-in-out;
     -o-transition: all 0.6s ease-in-out;
     transition: all 0.6s ease-in-out;
-    
-    background: -moz-linear-gradient(top,  rgba(0,0,0,0) 0%, rgba(0,0,0,0.65) 100%); /* FF3.6+ */
-    background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,rgba(0,0,0,0)), color-stop(100%,rgba(0,0,0,0.65))); /* Chrome,Safari4+ */
-    background: -webkit-linear-gradient(top,  rgba(0,0,0,0) 0%,rgba(0,0,0,0.65) 100%); /* Chrome10+,Safari5.1+ */
-    background: -o-linear-gradient(top,  rgba(0,0,0,0) 0%,rgba(0,0,0,0.65) 100%); /* Opera 11.10+ */
-    background: -ms-linear-gradient(top,  rgba(0,0,0,0) 0%,rgba(0,0,0,0.65) 100%); /* IE10+ */
-    background: linear-gradient(to bottom,  rgba(0,0,0,0) 0%,rgba(0,0,0,0.65) 100%); /* W3C */
-    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#00000000', endColorstr='#a6000000',GradientType=0 ); /* IE6-9 */
-        
-    padding: 8px;
+    background: url(stage.jpg);
+    padding: 14px;
     box-sizing: border-box;
     border-bottom: 2px solid #333;
     overflow: hidden;
@@ -67,6 +59,7 @@
 
 .de-lad1337-movies .movie.active .inner{
     opacity: 1;
+    overflow: show;
 }
 
 .de-lad1337-movies .inner i.icon-remove{
@@ -91,24 +84,20 @@
 .de-lad1337-movies .movie .inner .buttons{
     position: absolute;
     bottom: 0;
-    left: 16px;
+    left: 0;
     width: 100%%;
     height: 0;
     -webkit-transition: all 0.6s ease-in-out;
     -moz-transition: all 0.6s ease-in-out;
     -o-transition: all 0.6s ease-in-out;
     transition: all 0.6s ease-in-out;
+    text-align: center;
 }
 .de-lad1337-movies .movie.active .inner .buttons{
-    height: 55px;
+    height: 43px;
 }
 .de-lad1337-movies .movie .inner h4{
-    background-color: #000;
-    -webkit-background-clip: text;
-    -moz-background-clip: text;
-    background-clip: text;
-    color: transparent;
-    text-shadow: rgba(255,255,255,0.5) 3px 0px 3px;
+    color: #fff;
 }
 
 .de-lad1337-movies .door{

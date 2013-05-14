@@ -1,4 +1,8 @@
 from lib.peewee import *
+from os.path import join
+from lib.profilehooks import profile as profileHookFunction
+from functools import wraps
+
 
 DATADIR = ""
 CONFIG_PATH = ""
@@ -15,8 +19,13 @@ HISTORY_DATABASE_NAME = "history.db"
 HISTORY_DATABASE_PATH = "./"
 HISTORY_DATABASE = SqliteDatabase(None, threadlocals=True, autocommit=True)
 
+ENCRYPTION_FILENAME = 'xdm_encryption_key.txt'
+
 
 class Common(object):
+
+    STARTOPTIONS = None # the argparse.Namespace object
+
     PM = None # PluginManager hold the plugins
     SYSTEM = None # system holds the config and maybe later more
 
@@ -44,6 +53,9 @@ class Common(object):
     STOPPPONFAILURE = 2
     STOPPPALWAYS = 3
     DONTSTOPPP = 4
+
+    HOMEDIR = None
+    RUNPROFILER = False
 
     def getAllStatus(self):
         return [self.UNKNOWN, self.WANTED, self.SNATCHED, self.DOWNLOADED,
@@ -77,4 +89,22 @@ class Common(object):
             return 'txt'
 
 common = Common()
+
+
+#maybe move this some place else
+def profileMeMaybe(target):
+    @wraps(target)
+    def wrapper(*args, **kwargs):
+        if common.RUNPROFILER:
+            if not common.STARTOPTIONS.profile: # empty list profile all
+                print 'Profiling function "%s" with arguments %s and keyword arguments %s' % (target.__name__, args, kwargs)
+                return profileHookFunction(target, immediate=True)(*args, **kwargs)
+            elif target.__name__ in common.STARTOPTIONS.profile: # a list with function names
+                print 'Profiling function "%s" with arguments %s and keyword arguments %s' % (target.__name__, args, kwargs)
+                return profileHookFunction(target, immediate=True)(*args, **kwargs)
+        # fallback normal call
+        return target(*args, **kwargs)
+
+    return wrapper
+
 

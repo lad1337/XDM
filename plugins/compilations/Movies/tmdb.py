@@ -197,7 +197,9 @@ class Movie(Core):
     # Sizes = s->w300 m->w780 l->w1280 o->original(default)
     def get_backdrop(self,img_size="o"):
         img_path = self.movies["backdrop_path"]
-        return config['api']['base.url']+self.backdrop_sizes(img_size)+img_path
+        if img_path is not None:
+            return config['api']['base.url']+self.backdrop_sizes(img_size)+img_path
+        return None
 
     def get_original_title(self):
         return self.movies["original_title"]
@@ -216,8 +218,7 @@ class Movie(Core):
         img_path = self.movies["poster_path"]
         if img_path:
             return config['api']['base.url']+self.poster_sizes(img_size)+img_path
-        else:
-            return None
+        return None
 
     def get_trailers(self, language=None):
         return self.getJSON(config['urls']['movie.trailers'] % self.movie_id, language=language)
