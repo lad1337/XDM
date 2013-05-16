@@ -865,7 +865,7 @@ class Image(BaseModel):
 
     def getSrc(self):
         if self.type: # type is only set after we down loaded the image
-            return os.path.join(xdm.IMAGEPATH_RELATIVE, str(self.element.mediaType), self.imgName()).replace(xdm.PROGDIR, '')
+            return '/%s' % os.path.join(xdm.IMAGEPATH_RELATIVE, str(self.element.mediaType), self.imgName()).replace(xdm.PROGDIR, '')
         else:
             return self.url
 

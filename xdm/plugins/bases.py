@@ -112,8 +112,6 @@ class Plugin(object):
                                   Config.name == k,
                                   Config.instance == self.instance)
             except Config.DoesNotExist:
-                if self.type == 'SystemConfig':
-                    print 'init system config k:%s v:%s' % (k, v)
                 cur_c = Config()
                 cur_c.module = 'Plugin'
                 cur_c.section = self.__class__.__name__
