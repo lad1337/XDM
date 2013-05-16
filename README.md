@@ -1,15 +1,16 @@
 XDM
 ===
 
-XDM: Xtentable Download Manager.
-Plugin based media collection manager.
+XDM: Xtentable Download Manager. Plugin based media collection manager.
 
 XDM is at BETA STAGE
-Current offical site [http://xdm.lad1337.de](http://xdm.lad1337.de)
+Current offical site [http://xdm.lad1337.de](http://xdm.lad1337.de)<br/>
+Official main plugin repository at [https://github.com/lad1337/XDM-main-plugin-repo/](https://github.com/lad1337/XDM-main-plugin-repo/)
 
 
 Libraries in use
 ===============
+
 Backend
 -------
 
@@ -41,6 +42,8 @@ Frontend
 - [noty](http://needim.github.io/noty/): jquery notification plugin
 - [jQuery resize event](http://benalman.com/projects/jquery-resize-plugin/): With jQuery resize event, you can now bind resize event handlers to elements other than window.
 - [JQuery Countdown Timer](http://jaspreetchahal.org/a-simple-jquery-countdown-timer-with-callback/): A simple jQuery Countdown Timer with callback
+
+(Plugins may use more libraries)
 
 Screenshots
 ===========
