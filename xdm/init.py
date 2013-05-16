@@ -83,6 +83,9 @@ def postDB():
     common.PM = PluginManager()
     common.PM.cache(debug=common.STARTOPTIONS.pluginImportDebug, systemOnly=True,)
     common.SYSTEM = common.PM.getSystems('Default')[0] # yeah SYSTEM is a plugin
+    if not common.SYSTEM.c.extra_plugin_path:
+        log.info('Setting extra plugin path to %s' % xdm.PLUGININSTALLPATH)
+        common.SYSTEM.c.extra_plugin_path = xdm.PLUGININSTALLPATH
     if os.path.isdir(common.SYSTEM.c.extra_plugin_path):
         log('Adding eyternal plugin path %s to the python path' % common.SYSTEM.c.extra_plugin_path)
         sys.path.append(common.SYSTEM.c.extra_plugin_path)

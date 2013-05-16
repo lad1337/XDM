@@ -162,6 +162,9 @@ class Plugin(object):
     def _get_plugin_file_path(self):
         return os.path.abspath(__file__)
 
+    def get_plugin_isntall_path(self):
+        return common.PM.path_cache[self.__class__.__name__]
+
     def _create_media_type_configs(self):
         if self._type in (MediaTypeManager.__name__, System.__name__):
             return
@@ -253,6 +256,7 @@ class Plugin(object):
     def _get_minor_version(self):
         return int(self.version.split('.')[1])
     minor_version = property(_get_minor_version)
+    
     def _get_major_version(self):
         return int(self.version.split('.')[0])
     major_version = property(_get_major_version)

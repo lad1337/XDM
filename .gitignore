@@ -2,6 +2,8 @@
 *.db
 *.log*
 images/*
+temp/*
+extraPlugins/*
 *pylintOutput*
 
 # python bins

@@ -10,6 +10,7 @@ import inspect
 import urllib
 from xdm import common
 import xdm
+import shutil
 
 
 def replace_some(text):
@@ -291,7 +292,7 @@ def getSystemDataDir(progdir):
 
 
 def cleanTempFolder():
-    os.remove(xdm.TEMPPATH)
+    shutil.rmtree(xdm.TEMPPATH)
     os.mkdir(xdm.TEMPPATH)
 
 

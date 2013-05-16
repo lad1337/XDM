@@ -18,12 +18,22 @@
             </tr>
         {% for plugin in common.PM.getAll(True, 'Default')%}
             <tr>
-                <td>{{plugin.screenName}}<br/><span class="muted">{{plugin.identifier}}</span></td>
+                <td>
+                    {{plugin.screenName}}<br/>
+                    <span class="muted">
+                        {{plugin.identifier}}
+                    </span>
+                </td>
                 <td>{{plugin._type}}</td>
                 <td>
                     {{plugin.version}}
                 </td>
-                <td>{{plugin.config_meta['plugin_desc']|striptags|urlize}}</td>
+                <td>
+                    <p>{{plugin.config_meta['plugin_desc']|striptags|urlize}}</p>
+                    <span class="muted" style="font-size:90%;">
+                        {{plugin.get_plugin_isntall_path()}}
+                    </span>
+                </td>
                 <td>{{plugin.getMyScore()|round(2)}}</td>
                 <td>{%if plugin.testMe()%}<i class="icon-check"></i>{%else%}<i class="icon-warning-sign"></i>{%endif%}</td>
                 <td style="width: 120px;">
@@ -115,8 +125,9 @@ function installModalFromUrl(button){
 
 var firstMessage = true;
 function installModal(button){
-    data = {'identifier': $(button).data('identifier')}
-    name = 'Instaling'
+    id = $(button).data('identifier');
+    data = {'identifier': id}
+    name = 'Installing '+id
     var frame = ajaxModal(button, name, '/ajax/installPlugin', data)
     
     firstMessage = true;        

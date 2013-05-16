@@ -4,12 +4,13 @@ from lib import requests
 import datetime
 from xdm.plugins.bases import __all__ as allClasses
 import time
-from xdm import common, helper
+from xdm import common, helper, actionManager
 
 from lib import requests
 import zipfile, StringIO
 import xdm
 import os
+import shutil
 
 
 class RepoManager(object):
@@ -67,14 +68,18 @@ class RepoManager(object):
             return True
         return False
 
-    def isInstalled(self, identifier):
-        return identifier in self.updateable_plugins
+    def isInstalled(self, plugins, identifier):
+        for plugin in plugins:
+            if plugin.identifier == identifier:
+                return True
+        return False
 
     def _prepareIntall(self):
         self._read_messages = []
         helper.cleanTempFolder()
 
     def install(self, identifier):
+        self._prepareIntall()
         self.install_messages = [('info', 'install.py -i %s' % identifier)]
         self.setNewMessage('info', 'Getting download URL')
 
@@ -86,11 +91,11 @@ class RepoManager(object):
 
         if plugin_to_update is None:
             self.setNewMessage('error', 'Could not find a plugin with identifier %s' % identifier)
-            self.setNewMessage('Done!')
+            self.setNewMessage('info', 'Done!')
             return
 
         self.setNewMessage('info', 'Installing %s(%s)' % (plugin_to_update.name, plugin_to_update.versionHuman()))
-
+        old_instalation = None
         for plugin in common.PM.getAll(returnAll=True, instance='Default'):
             if plugin.identifier == plugin_to_update.identifier:
                 if self._updateable(repo_plugin, plugin_to_update):
@@ -99,9 +104,20 @@ class RepoManager(object):
                     return
                 else:
                     self.setNewMessage('info', '%s is already installed but has an update' % plugin_to_update.name)
+                    old_instalation = plugin
                     break
         else:
             self.setNewMessage('info', '%s is not yet installed' % plugin_to_update)
+
+        if old_instalation is not None:
+            old_plugin_path = os.path.abspath(old_instalation.get_plugin_isntall_path())
+            old_plugin_path_parent = os.path.abspath(os.path.join(old_plugin_path, os.pardir))
+            self.setNewMessage('info', 'Renaming old install path %s' % old_plugin_path)
+            new_dir = '__old__%s%s' % (plugin.type, plugin.version)
+            new_dir = new_dir.replace(' ', '-').replace('.', '_')
+            new_path = os.path.join(old_plugin_path_parent, new_dir)
+            self.setNewMessage('info', 'to %s' % new_path)
+            os.rename(old_plugin_path, new_path)
 
         if repo_plugin.format == 'zip':
             downloader = ZipPluginInstaller()
@@ -110,18 +126,17 @@ class RepoManager(object):
             self.setNewMessage('info', 'Done!')
             return
 
-        install_path = xdm.PLUGININSTALLPATH
-        extra_plugin_path = common.SYSTEM.c.extra_plugin_path
-        if extra_plugin_path and os.path.isdir(extra_plugin_path):
-            install_path = extra_plugin_path
+        install_path = common.SYSTEM.c.extra_plugin_path
+
         self.setNewMessage('info', 'Installing into %s' % install_path)
-        self.setNewMessage('info', 'Starting download. please wait...' % plugin_to_update)
-        self.setNewMessage('info', plugin_to_update.download_url, install_path)
-        if downloader.install(self, plugin_to_update):
-            self.setNewMessage('info', 'Instalation successful')
+        self.setNewMessage('info', 'Starting download. please wait...')
+        if downloader.install(self, plugin_to_update, install_path):
+            self.setNewMessage('info', 'Installation successful')
             self.setNewMessage('info', 'Recaching plugins')
+            actionManager.executeAction('recachePlugins', ['RepoManager'])
+            self.setNewMessage('info', 'Recaching done (refresh page to see).')
         else:
-            self.setNewMessage('error', 'Instalation unsuccessful')
+            self.setNewMessage('error', 'Installation unsuccessful')
 
         self.setNewMessage('info', 'Done!')
 
@@ -139,19 +154,36 @@ class RepoManager(object):
 
 class ZipPluginInstaller():
 
-    def install(self, manager, repo_plugin, install_path=''):
+    def install(self, manager, repo_plugin, install_path):
         r = requests.get(repo_plugin.download_url)
         manager.setNewMessage('info', 'Download done.')
         z = zipfile.ZipFile(StringIO.StringIO(r.content))
         z.extractall(xdm.TEMPPATH)
         manager.setNewMessage('info', 'Extration done.')
+        plugin_folder = ''
         for root, dirs, files in os.walk(xdm.TEMPPATH):
             for cur_dir in dirs:
                 if cur_dir == repo_plugin.name:
                     manager.setNewMessage('info', 'Found extracted plugin folder.')
                     manager.setNewMessage('info', os.path.join(root, cur_dir))
-        
-                
+                    plugin_folder = os.path.join(root, cur_dir)
+                    break
+            if plugin_folder:
+                break
+        else:
+            manager.setNewMessage('error', 'Could not find the extracted plugin')
+            manager.setNewMessage('error', '"name" must match folder name!')
+            return False
+
+        manager.setNewMessage('info', 'Copying files to:')
+        plugin_des = '%s %s' % (repo_plugin.name, repo_plugin.versionHuman())
+        plugin_des = plugin_des.replace(' ', '-').replace('.', '_')
+        final_path = os.path.join(install_path, repo_plugin.type, plugin_des)
+        manager.setNewMessage('info', final_path)
+
+        shutil.copytree(plugin_folder, final_path)
+        return True
+
 
 class Repo(object):
 

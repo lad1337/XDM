@@ -17,6 +17,7 @@ from xdm.plugins.bases import MediaTypeManager
 
 class PluginManager(object):
     _cache = {}
+    _mt_cache = {}
     path_cache = {}
     pylintScoreWarning = 7
     pylintScoreError = 4
@@ -24,7 +25,7 @@ class PluginManager(object):
     def __init__(self, path='plugins'):
         self._caching = threading.Semaphore()
         self.path = path
-        self.clearMTCache()
+        self.clearCache()
         self._score_cache = {}
         self.crashed_on_init_cache = {}
 
@@ -59,8 +60,10 @@ class PluginManager(object):
                 log.error("Error during writing of the pylint output")
         return s
 
-    def clearMTCache(self):
+    def clearCache(self):
+        self.path_cache = {}
         self._mt_cache = {}
+        self._cache = {}
 
     def cache(self, reloadModules=False, debug=False, systemOnly=False, clearUnsedConfgs=False, calculateScore=True):
         if systemOnly:
@@ -69,7 +72,7 @@ class PluginManager(object):
             log.info('Loading/searching all plugins')
 
         with self._caching:
-            self.clearMTCache()
+            self.clearCache()
             if systemOnly:
                 classes = (plugins.System,)
             else:
@@ -380,7 +383,7 @@ class PluginManager(object):
                     continue
 
         for root, dirs, files in os.walk(path):
-            if 'pluginRootLibarys' in root:
+            if 'pluginRootLibarys' in root or '__old__' in root:
                 continue
             if debug:
                 print dirs
