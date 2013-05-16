@@ -5,7 +5,7 @@
 {% set plugins = common.PM.getAll(returnAll=True, instance='Default')%}
 {% for repo in repos %}
     <tr>
-        <td colspan="7" style="text-align: center;">{{repo.name}}</td>
+        <td colspan="7" style="text-align: center;"><a href="{{repo.info_url}}">{{repo.name}}</a></td>
     </tr>
     {% for plugin in repo.getPlugins()%}
     <tr>
