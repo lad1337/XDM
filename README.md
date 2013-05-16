@@ -26,6 +26,7 @@ Backend
 - [gitdb](https://pypi.python.org/pypi/gitdb): Git Object Database
 - [async](https://github.com/gitpython-developers/async): Distribute interdependent tasks to 0 or more threads
 - [smmap](https://pypi.python.org/pypi/smmap): A pure git implementation of a sliding window memory map manager
+- [tmdb](http://github.com/doganaydin/themoviedb): themoviedb.org wrapper for api v3
 
 Frontend
 ---------
