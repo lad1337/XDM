@@ -293,5 +293,11 @@ def cacheRepos():
     common.REPOMANAGER.cache()
     common.REPOMANAGER.checkForUpdate(common.PM.getAll(True, 'Default'))
 
+
+# these might not belong in here
 def installPlugin(identifier):
     common.REPOMANAGER.install(identifier)
+
+
+def deinstallPlugin(identifier):
+    common.REPOMANAGER.deinstall(identifier)

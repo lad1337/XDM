@@ -61,7 +61,7 @@ function ajaxDeleteElement(id, deleteNode){
 
 
 function createModal(name){
-    var id = name+'Frame';
+    var id = makeSafeForCSS(name+'Frame');
     var modalFrame = $('#'+id);
     
     modalFrame.remove()
@@ -198,7 +198,33 @@ function hasOwnProperty(obj, prop) {
         (!(prop in proto) || proto[prop] !== obj[prop]);
 }
 
+//http://stackoverflow.com/questions/7627000/javascript-convert-string-to-safe-class-name-for-css
+function makeSafeForCSS(name) {
+    return name.replace(/[^a-z0-9]/g, function(s) {
+        var c = s.charCodeAt(0);
+        if (c == 32) return '-';
+        if (c >= 65 && c <= 90) return '_' + s.toLowerCase();
+        return '__' + ('000' + c.toString(16)).slice(-4);
+    });
+}
 
+
+var countdownCount;
+var countDownInterval;
+//countdownCount= 30;
+//countDownInterval = setInterval(timer, 1000); //1000 will  run it every 1 second
+
+function timer(){
+    countdownCount=countdownCount-1;
+  if (countdownSeconds <= 0)
+  {
+     clearInterval(countDownInterval);
+     //counter ended, do something here
+     return;
+  }
+
+  $('#countdownContainer').text(countdownCount)
+}
 
 function pluginAjaxCall(self, p_type, p_instance, id, action){
     if($(self).hasClass('animate'))

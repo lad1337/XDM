@@ -120,9 +120,15 @@ class AjaxCalls:
         t = tasks.TaskThread(tasks.installPlugin, identifier)
         t.start()
         return '<ul id="install-shell" class="shell"></ul>'
-    
+
     @cherrypy.expose
-    def getInstallMessage(self):
+    def deinstallPlugin(self, identifier=''):
+        t = tasks.TaskThread(tasks.deinstallPlugin, identifier)
+        t.start()
+        return '<ul id="install-shell" class="shell"></ul>'
+
+    @cherrypy.expose
+    def getRepoMessage(self):
         return json.dumps({'result': True, 'data': common.REPOMANAGER.getLastInstallMessages(), 'msg':''})
 
     @cherrypy.expose

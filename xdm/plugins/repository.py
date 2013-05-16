@@ -78,6 +78,35 @@ class RepoManager(object):
         self._read_messages = []
         helper.cleanTempFolder()
 
+    def deinstall(self, identifier):
+        self._read_messages = []
+        self.install_messages = [('info', 'deinstall.py -i %s' % identifier)]
+        old_instalation = None
+        for plugin in common.PM.getAll(returnAll=True, instance='Default'):
+            if plugin.identifier == identifier:
+                self.setNewMessage('info', 'Deinstalling %s' % plugin.type)
+                old_instalation = plugin
+                break
+        else:
+            self.setNewMessage('error', 'Could not find a plugin with identifier %s' % identifier)
+            self.setNewMessage('error', 'Deinstallation unsuccessful')
+            self.setNewMessage('info', 'Done!')
+            return
+        install_path = os.path.abspath(old_instalation.get_plugin_isntall_path())
+        self.setNewMessage('info', 'Deleting plugin folder')
+        self.setNewMessage('info', install_path)
+        try:
+            shutil.rmtree(install_path)
+        except Exception as ex:
+            log.error('Something went wrong while deleting %s' % install_path)
+            self.setNewMessage('error', 'Error during deletion')
+            self.setNewMessage('error', '%s' % ex)
+        else:
+            self.setNewMessage('info', 'Recaching plugins')
+            actionManager.executeAction('recachePlugins', ['RepoManager'])
+            self.setNewMessage('info', 'Recaching done (refresh page to see).')
+        self.setNewMessage('info', 'Done!')
+
     def install(self, identifier):
         self._prepareIntall()
         self.install_messages = [('info', 'install.py -i %s' % identifier)]
@@ -130,7 +159,15 @@ class RepoManager(object):
 
         self.setNewMessage('info', 'Installing into %s' % install_path)
         self.setNewMessage('info', 'Starting download. please wait...')
-        if downloader.install(self, plugin_to_update, install_path):
+        install_result = False
+        try:
+            install_result =  downloader.install(self, plugin_to_update, install_path)
+        except Exception as ex:
+            log.error('Something went wrong during download')
+            self.setNewMessage('error', 'Error during download')
+            self.setNewMessage('error', '%s' % ex)
+
+        if install_result:
             self.setNewMessage('info', 'Installation successful')
             self.setNewMessage('info', 'Recaching plugins')
             actionManager.executeAction('recachePlugins', ['RepoManager'])
