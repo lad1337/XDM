@@ -107,7 +107,7 @@ class RepoManager(object):
                     old_instalation = plugin
                     break
         else:
-            self.setNewMessage('info', '%s is not yet installed' % plugin_to_update)
+            self.setNewMessage('info', '%s is not yet installed' % plugin_to_update.name)
 
         if old_instalation is not None:
             old_plugin_path = os.path.abspath(old_instalation.get_plugin_isntall_path())
@@ -151,6 +151,15 @@ class RepoManager(object):
     def setNewMessage(self, lvl, msg):
         self.install_messages.append((lvl, msg))
 
+    def setFolderUpAsModule(self, path):
+        if not os.path.isdir(path):
+            os.mkdir(path)
+        init_path = os.path.join(path, '__init__.py')
+        if not os.path.isfile(init_path):
+            init_file = open(init_path, 'w')
+            init_file.write('')
+            init_file.close()
+
 
 class ZipPluginInstaller():
 
@@ -178,7 +187,9 @@ class ZipPluginInstaller():
         manager.setNewMessage('info', 'Copying files to:')
         plugin_des = '%s %s' % (repo_plugin.name, repo_plugin.versionHuman())
         plugin_des = plugin_des.replace(' ', '-').replace('.', '_')
-        final_path = os.path.join(install_path, repo_plugin.type, plugin_des)
+        plugin_root = os.path.join(install_path, repo_plugin.type)
+        manager.setFolderUpAsModule(plugin_root)
+        final_path = os.path.join(plugin_root, plugin_des)
         manager.setNewMessage('info', final_path)
 
         shutil.copytree(plugin_folder, final_path)

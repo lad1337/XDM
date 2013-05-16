@@ -37,10 +37,12 @@
                 <td>{{plugin.getMyScore()|round(2)}}</td>
                 <td>{%if plugin.testMe()%}<i class="icon-check"></i>{%else%}<i class="icon-warning-sign"></i>{%endif%}</td>
                 <td style="width: 120px;">
-                    {%if plugin.screenName != 'SystemConfig'%}<a class="btn btn-danger btn-block" href="#" onClick="deinstallModal(this)" data-identifier="{{plugin.identifier}}" data-type="{{plugin.type}}"">Deinstall</a>{%endif%}
+                    {%if common.SYSTEM.c.extra_plugin_path in plugin.get_plugin_isntall_path()%}
+                    <a class="btn btn-danger btn-block" href="#" onClick="deinstallModal(this)" data-identifier="{{plugin.identifier}}" data-type="{{plugin.type}}"">Deinstall</a>
                     {% set new_version = common.REPOMANAGER.hasUpdate(plugin.identifier)%}
                     {%if new_version%}
                     <a href="#" class="btn btn-success btn-block" onClick="installModal(this); return false;" data-identifier="{{plugin.identifier}}">Update to {{new_version}}</a>
+                    {%endif%}
                     {%endif%}
                 </td>
             </tr>

@@ -54,7 +54,7 @@ class RunApp():
         if options.version:
             print common.getVersionHuman()
             exit()
-        log.info('Starting XDM v%s' % common.getVersionHuman())
+        log.info('Starting XDM %s' % common.getVersionHuman())
 
         #Set the Paths
         if options.datadir:
