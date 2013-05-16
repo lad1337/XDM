@@ -29,7 +29,7 @@ class Discogs(Provider):
         self.progress.reset()
         #artist = discogs.Artist('Aphex Twin')
         mediatype = MediaType.get(MediaType.identifier == 'de.lad1337.music')
-        mtm = common.PM.getMediaTypeManager('de.lad1337.music')
+        mtm = common.PM.getMediaTypeManager('de.lad1337.music')[0]
 
         if id:
             try:
@@ -104,7 +104,7 @@ class Discogs(Provider):
 
     def getElement(self, id):
         mt = MediaType.get(MediaType.identifier == 'de.lad1337.music')
-        mtm = common.PM.getMediaTypeManager('de.lad1337.music')
+        mtm = common.PM.getMediaTypeManager('de.lad1337.music')[0]
         fakeRoot = mtm.getFakeRoot('%s ID: %s' % (self.tag, id))
         release = discogs.Release(id)
         self._createAlbum(fakeRoot, mt, release)

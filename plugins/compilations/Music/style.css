@@ -47,6 +47,11 @@
     cursor: pointer;
 }
 
+.de-lad1337-music .Album>img.btn-striped.animate{
+    margin: 0;
+    padding: 10px;
+}
+
 .de-lad1337-music .Album.status-snatched>img{
     box-shadow: 0px 1px 10px rgba(0,160,0,0.6);
 }

@@ -1,14 +1,27 @@
+import version
 from lib.peewee import *
 from os.path import join
 from lib.profilehooks import profile as profileHookFunction
 from functools import wraps
 
-
+HOME_PATH = ""
+APP_PATH = ""
 DATADIR = ""
 CONFIG_PATH = ""
 PROGDIR = ""
-CACHEDIR = "images"
-CACHEPATH = ""
+
+IMAGEDIR = "images"
+IMAGEPATH = ""
+IMAGEPATH_RELATIVE = ""
+
+TEMPDIR = 'temp'
+TEMPPATH = ''
+TEMPPATH_RELATIVE = ''
+
+PLUGININSTALLDIR = 'extraPlugins'
+PLUGININSTALLPATH = ''
+PLUGININSTALLPATH_RELATIVE = ''
+
 DATABASE_NAME = "data.db"
 DATABASE_PATH = "./"
 DATABASE = SqliteDatabase(None, threadlocals=True, autocommit=True)
@@ -19,7 +32,10 @@ HISTORY_DATABASE_NAME = "history.db"
 HISTORY_DATABASE_PATH = "./"
 HISTORY_DATABASE = SqliteDatabase(None, threadlocals=True, autocommit=True)
 
-ENCRYPTION_FILENAME = 'xdm_encryption_key.txt'
+major_names = {0: 'Zim',
+               1: 'Gir',
+               2: 'Dib',
+               3: 'Gaz'}
 
 
 class Common(object):
@@ -28,6 +44,8 @@ class Common(object):
 
     PM = None # PluginManager hold the plugins
     SYSTEM = None # system holds the config and maybe later more
+    UPDATER = None # CoreUpdater instance
+    REPOMANAGER = None # RepoManager() instance
 
     # will be set to the obj during initDB()
     UNKNOWN = None
@@ -54,7 +72,6 @@ class Common(object):
     STOPPPALWAYS = 3
     DONTSTOPPP = 4
 
-    HOMEDIR = None
     RUNPROFILER = False
 
     def getAllStatus(self):
@@ -88,6 +105,22 @@ class Common(object):
             #log.warning("Download type with identifier %s was not found" % downloadTypeIdentifier)
             return 'txt'
 
+    def getVersionFloat(self):
+        return float('%s.%s' % (str(version.major * 1000 + version.minor * 100 + version.revision), version.build))
+
+    def getVersionTuple(self):
+        return (version.major, version.minor, version.revision, version.build)
+
+    def getVersionString(self):
+        if version.build:
+            return '%s.%s.%s.%s' % (version.major, version.minor, version.revision, version.build)
+        return '%s.%s.%s' % (version.major, version.minor, version.revision)
+
+    def getVersionHuman(self):
+        if version.build:
+            return "XDM '%s' %s.%s.%s.%s" % (major_names[version.major], version.major, version.minor, version.revision, version.build)
+        return "XDM '%s' %s.%s.%s" % (major_names[version.major], version.major, version.minor, version.revision)
+
 common = Common()
 
 
@@ -95,16 +128,14 @@ common = Common()
 def profileMeMaybe(target):
     @wraps(target)
     def wrapper(*args, **kwargs):
-        if common.RUNPROFILER:
-            if not common.STARTOPTIONS.profile: # empty list profile all
-                print 'Profiling function "%s" with arguments %s and keyword arguments %s' % (target.__name__, args, kwargs)
-                return profileHookFunction(target, immediate=True)(*args, **kwargs)
-            elif target.__name__ in common.STARTOPTIONS.profile: # a list with function names
-                print 'Profiling function "%s" with arguments %s and keyword arguments %s' % (target.__name__, args, kwargs)
-                return profileHookFunction(target, immediate=True)(*args, **kwargs)
-        # fallback normal call
-        return target(*args, **kwargs)
+        if not common.STARTOPTIONS.profile: # empty list profile all
+            print 'Profiling function "%s" with arguments %s and keyword arguments %s' % (target.__name__, args, kwargs)
+            return profileHookFunction(target, immediate=True)(*args, **kwargs)
+        elif target.__name__ in common.STARTOPTIONS.profile: # a list with function names
+            print 'Profiling function "%s" with arguments %s and keyword arguments %s' % (target.__name__, args, kwargs)
+            return profileHookFunction(target, immediate=True)(*args, **kwargs)
 
-    return wrapper
-
+    if common.RUNPROFILER:
+        return wrapper
+    return target
 

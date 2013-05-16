@@ -142,7 +142,7 @@ class MediaType(BaseModel):
     identifier = CharField()
 
     def _getMyManager(self):
-        return common.PM.getMediaTypeManager(self.identifier)
+        return common.PM.getMediaTypeManager(self.identifier)[0]
     manager = property(_getMyManager)
 
     def __str__(self):
@@ -272,7 +272,7 @@ class Element(BaseModel):
         self._tmp_fields = []
 
     def _getMyManager(self):
-        return common.PM.getMediaTypeManager(self.mediaType.identifier)
+        return common.PM.getMediaTypeManager(self.mediaType.identifier)[0]
     manager = property(_getMyManager)
 
     def _amIaLeaf(self):
@@ -304,7 +304,7 @@ class Element(BaseModel):
         return "%s (%s).jpeg" % (helper.replace_all(self.name), self.id)
 
     def imgPath(self):
-        return os.path.join(xdm.CACHEPATH, self.type, self.imgName())
+        return os.path.join(xdm.IMAGEPATH_RELATIVE, self.type, self.imgName())
 
     def buildHtml(self, search=False, curIndex=0):
         if search:
@@ -375,7 +375,6 @@ class Element(BaseModel):
                 status = [common.TEMP]
             else:
                 status = common.getHomeStatuses()
-
         if self.manager.download.__name__ == self.type and self.status not in status:
             return ''
 
@@ -845,11 +844,21 @@ class Image(BaseModel):
 
     def getSrc(self):
         if self.type: # type is only set after we down loaded the image
-            return os.path.join(xdm.CACHEPATH, str(self.element.mediaType), self.imgName()).replace(xdm.PROGDIR, '')
+            return os.path.join(xdm.IMAGEPATH_RELATIVE, str(self.element.mediaType), self.imgName()).replace(xdm.PROGDIR, '')
         else:
             return self.url
 
     def imgName(self):
         return helper.fileNameClean("%s (%s) %s.%s" % (helper.replace_all(self.element.name), self.element.id,self.name, self.type))
 
-__all__ = ['Status', 'Config', 'Download', 'History', 'Element', 'MediaType', 'Field', 'Image']
+
+class Repo(BaseModel):
+    name = CharField()
+    url = CharField()
+
+    class Meta:
+        database = xdm.CONFIG_DATABASE
+        order_by = ('name',)
+
+
+__all__ = ['Status', 'Config', 'Download', 'History', 'Element', 'MediaType', 'Field', 'Image', 'Repo']

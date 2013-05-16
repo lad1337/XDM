@@ -16,27 +16,20 @@ import threading
 import cherrypy.process.plugins
 from cherrypy.process.plugins import PIDFile
 from cherrypy import server
+import cherrypy.lib.auth_basic
+import logging # get the debug log level
+import xdm
+from xdm import init
+from xdm import common
+from xdm import logger # need this to set the log level
+from xdm import tasks
+from xdm.logger import *
+from xdm.plugins import PluginManager
 from xdm.web import WebRoot
 from xdm.helper import launchBrowser, daemonize
-import cherrypy.lib.auth_basic
-import xdm
-import logging
-from xdm.init import initDB, initCheck
-from xdm.plugins import PluginManager
-
-from xdm import common
-from xdm import logger
-from xdm.logger import *
 
 from optparse import OptionParser
 
-from xdm import tasks
-
-
-xdm.PROGDIR = app_path
-xdm.CACHEPATH = os.path.join(app_path, xdm.CACHEDIR)
-if not os.path.exists(xdm.CACHEDIR):
-    os.mkdir(xdm.CACHEDIR)
 
 
 class RunApp():
@@ -45,6 +38,7 @@ class RunApp():
 
         p = argparse.ArgumentParser(prog='XDM')
         p.add_argument('-d', '--daemonize', action="store_true", dest='daemonize', help="Run the server as a daemon.")
+        p.add_argument('-v', '--version', action="store_true", dest='version', help="Print Version and exit.")
         p.add_argument('-D', '--debug', action="store_true", dest='debug', help="Print debug log to screen.")
         p.add_argument('-p', '--pidfile', dest='pidfile', default=None, help="Store the process id in the given file.")
         p.add_argument('-P', '--port', dest='port', default=None, help="Force webinterface to listen on this port.")
@@ -56,6 +50,11 @@ class RunApp():
 
         options = p.parse_args()
         common.STARTOPTIONS = options
+
+        if options.version:
+            print common.getVersionHuman()
+            exit()
+        log.info('Starting XDM v%s' % common.getVersionHuman())
 
         #Set the Paths
         if options.datadir:
@@ -95,38 +94,11 @@ class RunApp():
             print "------------------- XDM Profiling ON -------------------"
             log.info('XDM profiling mode ON')
             common.RUNPROFILER = True
-        #Set global variables
-        
-        # see TODO for the config option
-        #xdm.CONFIG_PATH = config_path
-        xdm.DATADIR = datadir
-        xdm.DATABASE_PATH = os.path.join(xdm.DATADIR, xdm.DATABASE_NAME)
-        xdm.CONFIG_DATABASE_PATH = os.path.join(xdm.DATADIR, xdm.CONFIG_DATABASE_NAME)
-        xdm.HISTORY_DATABASE_PATH = os.path.join(xdm.DATADIR, xdm.HISTORY_DATABASE_NAME)
 
-        xdm.DATABASE.init(xdm.DATABASE_PATH)
-        xdm.CONFIG_DATABASE.init(xdm.CONFIG_DATABASE_PATH)
-        xdm.HISTORY_DATABASE.init(xdm.HISTORY_DATABASE_PATH)
-
-        initCheck()
-        initDB()
-
-        sys.path.append(os.path.join(app_path, 'rootLibs'))
-        common.PM = PluginManager()
-        common.PM.cache(debug=options.pluginImportDebug, systemOnly=True,)
-        common.SYSTEM = common.PM.getSystems('Default') # yeah SYSTEM is a plugin
-        if os.path.isdir(common.SYSTEM.c.extra_plugin_path):
-            log('Adding eyternal plugin path %s to the python path' % common.SYSTEM.c.extra_plugin_path)
-            sys.path.append(common.SYSTEM.c.extra_plugin_path)
-        common.PM.updatePlugins()
-        common.PM.cache(debug=options.pluginImportDebug)
-        common.SYSTEM = common.PM.getSystems('Default') # yeah SYSTEM is a plugin
-
-        # lets init all plugins once
-        for plugin in common.PM.getAll():
-            log("Plugin %s loaded successfully" % plugin.name)
-
-        tasks.removeTempElements()
+        init.preDB(app_path, datadir)
+        init.db()
+        init.postDB()
+        init.runTasks()
 
         self.pluginResPaths = {}
         for pType, path in common.PM.path_cache.items():
@@ -152,17 +124,14 @@ class RunApp():
         try:
             if not options.nolaunch:
                 print "------------------- launch Browser ( " + str(host) + ":" + str(port) + ") -------------------"
-                timer = threading.Timer(5, launchBrowser, [host, port, https])
+                timer = threading.Timer(2, launchBrowser, [host, port, https])
                 timer.start()
             return
         except:
             pass
 
         # update config for cherrypy
-        cherrypy.config.update({
-                                    'global': {
-                                               'server.socket_port': port
-                                              }
+        cherrypy.config.update({'global': {'server.socket_port': port}
                                 })
 
     def RunWebServer(self):
@@ -175,7 +144,7 @@ class RunApp():
         images_path = os.path.join(app_path, 'html', 'img')
         js_path = os.path.join(app_path, 'html', 'js')
         bootstrap_path = os.path.join(app_path, 'html', 'bootstrap')
-        images = xdm.CACHEPATH
+        images = xdm.IMAGEPATH
 
         username = common.SYSTEM.c.login_user
         password = common.SYSTEM.c.login_password

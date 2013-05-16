@@ -1,0 +1,30 @@
+
+
+<table class="table table-condensed table-striped table-bordered" style="background: #fff;">
+{% for repo in repos %}
+    <tr>
+        <td colspan="7" style="text-align: center;">{{repo.name}}</td>
+    </tr>
+    {% for plugin in repo.getPlugins()%}
+    <tr>
+        <td>{{plugin.name}}</td>
+        <td>{{plugin.identifier}}</td>
+        <td>{{plugin.type}}{%if not plugin.checkType()%}<span class="label label-important">Unkown type!</span>{%endif%}</td>
+        <td>{{plugin.versionHuman()}}</td>
+        <td>{{plugin.desc|striptags|urlize}}</td>
+        <td><a href="{{plugin.download_url}}">Download Link</a></td>
+        <td>
+            {%if common.REPOMANAGER.isInstalled(plugin.identifier)%}
+            {% set new_version = common.REPOMANAGER.hasUpdate(plugin.identifier)%}
+            {%if new_version%}
+            <a href="#" class="btn btn-success btn-block" onClick="installModal(this); return false;" data-identifier="{{plugin.identifier}}">Update</a>
+            {%endif%}
+            {%else%}
+            {%if plugin.checkType()%}<a class="btn btn-info" href="#" onClick="installModal(this); return false;" data-identifier="{{plugin.identifier}}">Install</a>{%endif%}
+            {%endif%}
+            
+        </td>
+    </tr>
+    {%endfor%}
+{% endfor %}
+</table>

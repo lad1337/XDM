@@ -1,13 +1,12 @@
 import datetime
-import xdm
-
 
 import json
 import logging
 import logging.handlers
 import inspect
 from jsonHelper import MyEncoder
-from xdm import common, helper
+from xdm import common
+import traceback
 
 
 lvlNames = {logging.ERROR:          {'c': '   ERROR', 'p': 'ERROR'},
@@ -37,6 +36,21 @@ formatter = logging.Formatter('%(levelname)s| %(asctime)s: %(message)s ')
 cph.setFormatter(formatter)
 cpLogger.addHandler(cph)
 """
+
+
+#http://stackoverflow.com/questions/2203424/python-how-to-retrieve-class-information-from-a-frame-object
+def get_class_from_frame(fr):
+    args, _, _, value_dict = inspect.getargvalues(fr)
+    # we check the first parameter for the frame function is
+    # named 'self'
+    if len(args) and args[0] == 'self':
+        # in that case, 'self' will be referenced in value_dict
+        instance = value_dict.get('self', None)
+        if instance:
+            # return its class
+            return getattr(instance, '__class__', None)
+    # return None otherwise
+    return None
 
 
 class StructuredMessage(object):
@@ -73,7 +87,7 @@ class LogWrapper():
         cLogger.log(lvl, sm.console())
         fLogger.log(lvl, sm)
         if lvl in (logging.WARNING, logging.ERROR):
-            callerClass = helper.get_class_from_frame(calframe[2][0])
+            callerClass = get_class_from_frame(calframe[2][0])
             #was the error/warning send by a notifier ?
             if callerClass and callerClass.__bases__ and callerClass.__bases__[0] is not None and 'Notifier' == callerClass.__bases__[0].__name__:
                 sm = StructuredMessage(logging.ERROR, 'Error while sending an error message with a notifier %s' % callerClass, calframe, **kwargs)
@@ -86,6 +100,8 @@ class LogWrapper():
                         n.sendMessage('%s: %s' % (lvlNames[lvl]['p'], msg))
 
     def error(self, msg, **kwargs):
+        tb = traceback.format_exc()
+        msg = '%s\nTraceback:\n%s' % (msg, tb)
         self._log(logging.ERROR, msg, **kwargs)
 
     def info(self, msg, **kwargs):

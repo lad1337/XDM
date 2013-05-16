@@ -23,7 +23,12 @@
     src: url('fonts/typeone.woff') format('woff'),
     url('typeone.svg#TypeOne') format('svg');
 }
-
+::selection {
+    background: #89CFF0; /* Safari */
+    }
+::-moz-selection {
+    background: #89CFF0; /* Firefox */
+}
 
 body{
     color: #303030;
@@ -239,6 +244,28 @@ td.download-size,
     border-right: 1px solid #ddd;
     text-align: right;
     padding-right: 5px;
+}
+
+#fileBrowserDialog .nav.nav-tabs.nav-stacked li i.folder{
+    min-width: 19px;
+    display: inline-block;
+}
+
+.shell {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    background: #000;
+    color: #66FF00;
+    padding: 18px;
+    min-height: 400px;
+    position: relative;
+    text-shadow: 0px 0px 10px #00ff0f, -1px -1px #000;
+    font-family: monospace;
+}
+.shell .error {
+    color: red;
+    text-shadow: 0px 0px 10px red, -1px -1px #000;
 }
 
 @media only screen and (max-width: 767px) {

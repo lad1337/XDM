@@ -9,6 +9,7 @@ from datetime import datetime
 import inspect
 import urllib
 from xdm import common
+import xdm
 
 
 def replace_some(text):
@@ -242,21 +243,6 @@ def dict_diff(first, second):
     return diff
 
 
-#http://stackoverflow.com/questions/2203424/python-how-to-retrieve-class-information-from-a-frame-object
-def get_class_from_frame(fr):
-    args, _, _, value_dict = inspect.getargvalues(fr)
-    # we check the first parameter for the frame function is
-    # named 'self'
-    if len(args) and args[0] == 'self':
-        # in that case, 'self' will be referenced in value_dict
-        instance = value_dict.get('self', None)
-        if instance:
-            # return its class
-            return getattr(instance, '__class__', None)
-    # return None otherwise
-    return None
-
-
 # taken from Sick-Beard
 # https://github.com/midgetspy/Sick-Beard/
 # i dont know how this works but is does work pretty well !
@@ -291,16 +277,22 @@ def daemonize():
     dev_null = file('/dev/null', 'r')
     os.dup2(dev_null.fileno(), sys.stdin.fileno())
 
+
 def getSystemDataDir(progdir):
     if sys.platform == 'darwin':
         home = os.environ.get('HOME')
         if home:
-            return '%s/Library/Application Support/SickBeard' % home
+            return '%s/Library/Application Support/XDM' % home
         else:
             return progdir
     elif sys.platform == "win32":
         #TODO: implement
         return progdir
+
+
+def cleanTempFolder():
+    os.remove(xdm.TEMPPATH)
+    os.mkdir(xdm.TEMPPATH)
 
 
 def getContainerTpl():
@@ -310,5 +302,6 @@ def getContainerTpl():
 def getLeafTpl():
     return '{{this.getName()}}<br>'
 
-
+def webVars(obj):
+    return vars(obj)
 

@@ -3,6 +3,7 @@ import gntp.notifier
 
 class Growl(Notifier):
     version = "0.1"
+    identifier = 'de.lad1337.growl'
     _config = {}
 
     def _sendEnable(self):

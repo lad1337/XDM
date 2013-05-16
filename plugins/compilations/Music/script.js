@@ -29,7 +29,7 @@ $(document).ready(function() {
         }else{
             $('.de-lad1337-music .Album').removeClass('active').css('padding-bottom', 0)
             $('.de-lad1337-music .songs').css('height', 0);
-            
+            $(thisImg).addClass('btn-striped animate');
             data = {}
             data['id'] = p.data('id')
             jQuery.get( '/getChildrensPaint', data, function(res){
@@ -58,7 +58,8 @@ $(document).ready(function() {
                 }
                 if(brightness(stringColor) < 130)
                     $('.songs .bORw', p).css('color', '#fff')
-                
+
+                $(thisImg).removeClass('btn-striped animate');
                 
                 
             });

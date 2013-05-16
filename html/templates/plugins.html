@@ -1,0 +1,161 @@
+{% extends "base.html" %}
+{% set title = 'Plugin Repos' -%}
+{% set active_page = active_page|default('repos') -%}
+{% block content %}
+
+
+<div class="plugin-container">
+    <h4 class="pull-left">Installed Plugins</h4>
+    <table class="table table-condensed table-striped table-bordered" style="background: #fff;">
+            <tr>   
+                <th>Name</th>
+                <th>Type</th>
+                <th>Running Version</th>
+                <th>Description</th>
+                <th>Pylint score</th>
+                <th>Test</th>
+                <th>Actions</th>
+            </tr>
+        {% for plugin in common.PM.getAll(True, 'Default')%}
+            <tr>
+                <td>{{plugin.screenName}}<br/><span class="muted">{{plugin.identifier}}</span></td>
+                <td>{{plugin._type}}</td>
+                <td>
+                    {{plugin.version}}
+                </td>
+                <td>{{plugin.config_meta['plugin_desc']|striptags|urlize}}</td>
+                <td>{{plugin.getMyScore()|round(2)}}</td>
+                <td>{%if plugin.testMe()%}<i class="icon-check"></i>{%else%}<i class="icon-warning-sign"></i>{%endif%}</td>
+                <td style="width: 120px;">
+                    {%if plugin.screenName != 'SystemConfig'%}<a class="btn btn-danger btn-block" href="#" onClick="deinstallModal(this)" data-identifier="{{plugin.identifier}}" data-type="{{plugin.type}}"">Deinstall</a>{%endif%}
+                    {% set new_version = common.REPOMANAGER.hasUpdate(plugin.identifier)%}
+                    {%if new_version%}
+                    <a href="#" class="btn btn-success btn-block" onClick="installModal(this); return false;" data-identifier="{{plugin.identifier}}">Update to {{new_version}}</a>
+                    {%endif%}
+                </td>
+            </tr>
+        {% endfor %}
+        </table>
+</div>
+
+<div class="repo-container">
+
+    <h4 class="pull-left">Repositories</h4><a href="/plugins?recache=1" class="btn btn-inverse pull-right">Refresh Repositories</a>
+    <div class="clearfix"></div>
+    <div class="progress progress-striped active">
+        <span class="progressbar-back-text">Loading...</span>
+        <div class="bar" style="width: 100%;">
+            <span class="progressbar-front-text">Loading...</span>
+        </div>
+    </div>
+    <div class="inner" style="display:none;"></div>
+    <div class="input-append pull-right">
+        <input type="text"/>
+        <a class="btn add-on" href="#" onClick="if(checkAndSetup(this)) installModalFromUrl(this); return false;" data-url="">Install from URL</a>
+    </div>
+    <div class="input-prepend pull-left">
+        <a class="btn add-on" href="#" onClick="if(checkAndSetup(this)) addRepo(this); return false;" data-url="">Add Repository</a>
+        <input type="text"/>
+    </div>
+    <div class="clearfix"></div>
+</div>
+{% endblock %}
+
+
+{% block js%}
+<script>
+
+function ajaxRepo(){
+    
+    jQuery.get( '/ajax/repo', {}, function(res){
+        if(!res){
+            console.log('rtrying')
+            window.setTimeout(function() {ajaxRepo()}, 1000);
+            return
+        }
+        $('.repo-container .inner').html(res)
+        $('.repo-container .progress').hide("slide", { direction: "up" }, 500)
+        $('.repo-container .inner').show("slide", { direction: "up" }, 500)
+    });
+};
+window.setTimeout(function(){ajaxRepo()}, 1000);
+
+function checkAndSetup(button){
+    console.log('checkAndSetup', button)
+    var b = $(button);
+    b.removeClass('btn-striped animate')
+    //http://stackoverflow.com/questions/2723140/validating-url-with-jquery-without-the-validate-plugin
+    var url = b.siblings('input').val();
+    if(!/^([a-z]([a-z]|\d|\+|-|\.)*):(\/\/(((([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!\$&'\(\)\*\+,;=]|:)*@)?((\[(|(v[\da-f]{1,}\.(([a-z]|\d|-|\.|_|~)|[!\$&'\(\)\*\+,;=]|:)+))\])|((\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.(\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.(\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.(\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5]))|(([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!\$&'\(\)\*\+,;=])*)(:\d*)?)(\/(([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!\$&'\(\)\*\+,;=]|:|@)*)*|(\/((([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!\$&'\(\)\*\+,;=]|:|@)+(\/(([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!\$&'\(\)\*\+,;=]|:|@)*)*)?)|((([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!\$&'\(\)\*\+,;=]|:|@)+(\/(([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!\$&'\(\)\*\+,;=]|:|@)*)*)|((([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!\$&'\(\)\*\+,;=]|:|@)){0})(\?((([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!\$&'\(\)\*\+,;=]|:|@)|[\uE000-\uF8FF]|\/|\?)*)?(\#((([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!\$&'\(\)\*\+,;=]|:|@)|\/|\?)*)?$/i.test(url)) {
+        b.siblings('input').stop().css("background-color", "#FFFF9C").animate({ backgroundColor: "#FFFFFF"}, 1500);
+        return false;
+    }
+    b.attr('data-url', url)
+    return true;
+    
+} 
+
+function addRepo(button){
+
+    $('.repo-container .progress').show("slide", { direction: "up" }, 500)
+    $('.repo-container .inner').hide("slide", { direction: "up" }, 500)
+    var url = $(button).data('url')
+    if(url){
+        jQuery.get( '/ajax/addRepo', {'url': url}, function(res){
+            ajaxRepo();
+        });
+    }
+    
+}
+
+function installModalFromUrl(button){
+    $(button).attr('data-download', url)
+    var modal = installModal(button)
+}
+
+var firstMessage = true;
+function installModal(button){
+    data = {'identifier': $(button).data('identifier')}
+    name = 'Instaling'
+    var frame = ajaxModal(button, name, '/ajax/installPlugin', data)
+    
+    firstMessage = true;        
+    window.setTimeout(installScrobbler, 500);
+    $('.modal-body', frame).css('padding', 0)
+
+}
+function installScrobbler(){
+    $.getJSON('/ajax/getInstallMessage', {}, function(res){
+        console.log(res)
+        var lastMessage = ''
+        $.each(res['data'],function(index, messageTuple){
+            if(firstMessage){
+                $('#install-shell').append('<li>XDM: ~$ <span class="'+messageTuple[0]+'">'+messageTuple[1]+'</span></li>')
+            }else{
+                $('#install-shell').append('<li><span class="'+messageTuple[0]+'">'+messageTuple[1]+'</span></li>')
+            }
+            firstMessage = false;
+            lastMessage = messageTuple[1]
+
+        })
+        if(lastMessage != 'Done!'){
+            window.setTimeout(installScrobbler, 500);
+        }else{
+            $('#install-shell').append('<li><span class="info">XDM: ~$</span></li>')
+        }
+    })
+}
+
+
+
+$(document).ready(function() {
+    $('.progress .bar').resize(function(event){
+        $('span', this).width($(this).parent().width())
+        $('span', $(this).parent()).css('line-height', $(this).parent().height()+'px')
+    });
+    $('.progress .bar').resize()
+    
+});
+
+</script>
+{% endblock %}

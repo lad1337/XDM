@@ -30,6 +30,7 @@ class Plugin(object):
     useConfigsForElementsAs = 'Category'
     addMediaTypeOptions = True
     screenName = ''
+    identifier = ''
 
     elementConfig = {}
     elementConfig_meta = {}
@@ -249,7 +250,15 @@ class Plugin(object):
     def getConfigHtml(self):
         return ''
 
+    def _get_minor_version(self):
+        return int(self.version.split('.')[1])
+    minor_version = property(_get_minor_version)
+    def _get_major_version(self):
+        return int(self.version.split('.')[0])
+    major_version = property(_get_major_version)
+
 class DownloadType(Plugin):
+    """Simple skeleton for a "DownloadType"."""
     _type = 'DownloadType'
     single = True
     addMediaTypeOptions = False
@@ -282,11 +291,27 @@ class Downloader(DownloadTyped):
     types = [] # types the downloader can handle ... e.g. blackhole can handle both
 
     def addDownload(self, download):
-        """Add nzb to downloader"""
+        """Add/download a Download to this downloader
+
+        Arguments:
+        download -- an Download object
+
+        return:
+        bool if the adding was successful
+        >>>> False
+        """
         return False
 
     def getElementStaus(self, element):
-        """return tuple of Status and a path (str)"""
+        """Get the staus of element that it has in this downloader
+
+        Arguments:
+        element -- an Element object
+
+        return:
+        tuple of Status, Download and a path (str)
+        >>>> (common.UNKNOWN, Download(), '')
+        """
         return (common.UNKNOWN, Download(), '')
 
     def _downloadName(self, download):
@@ -331,17 +356,19 @@ class Indexer(DownloadTyped):
         self.searchForElement = searchForElement
         DownloadTyped.__init__(self, instance=instance)
 
-    def _getCategory(self, e):
-        for cur_c in self.c.configs:
-            if cur_c.type == 'category' and e.mediaType == cur_c.mediaType and cur_c.element in e.ancestors:
-                return cur_c.value
-
+    #TODO: implement / define / use
     def getLatestRss(self):
-        """return list of Gamez"""
+        """return list of ???"""
         return []
 
     def searchForElement(self, element):
-        """return list of Download()"""
+        """Returns a list of Downloads that where found for element
+
+        For each download following attributes are set automatically after this is called
+        download.indexer = self.type
+        download.indexer_instance = self.instance
+        download.status = common.UNKNOWN
+        """
         return []
 
     def _getSearchNames(self, game):
@@ -381,7 +408,11 @@ class Notifier(Plugin):
 
 
 class Provider(Plugin):
-    """get game information"""
+    """Plugins of this class create elemnets based on mediaType structures.
+
+    creating more providers is definety more complicated then other things since
+    creating element structures based on the structure defined by the mediaType can be complicated
+    """
     _type = 'Provider'
     _tag = 'unknown'
     addMediaTypeOptions = False
@@ -413,13 +444,17 @@ class Provider(Plugin):
             self.tag = instance
         self.progress = self.Progress()
 
-    """creating more providers is definety more complicatedn then other things since
-    the platform identification is kinda based on the the id of thegamesdb
-    and the Game only has one field... but if one will take on this task please dont create just another field for the game
-    instead create a new class that holds the information
-    """
-
     def searchForElement(self, term=''):
+        """Create a MediaType structure of the type of element.mediaType
+        based on the results found
+    
+        Arguments:
+        element -- an Element object
+    
+        return:
+        tuple of Status, Download and a path (str)
+        >>>> (common.UNKNOWN, Download(), '')
+        """
         """return always a list of games even if id is given, list might be empty or only contain 1 item"""
         return Element()
 
@@ -634,6 +669,7 @@ class MediaTypeManager(Plugin):
     def paintChildrenOf(self, root, status=None):
         if status is None:
             status = common.getAllStatus()
+        log('init paint children on given root %s %s' % (root, root.id))
         return root.paint(status=status, onlyChildren=True)
 
     @xdm.profileMeMaybe

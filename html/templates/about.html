@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% set title = 'About' -%}
+{%if cur_index%}
+{% set active_page = active_page|default(cur_index) -%}
+{%endif%}
+{% block content%}
+
+<p style="text-align: center;">
+    <img src="/img/xdm-logo.svg" style="width:70%;display: inline-block;" />
+</p>
+<div class="well" style="position:relative;">
+    <a href="https://github.com/lad1337/XDM"><img style="position: absolute; top: -1px; right: -2px; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_gray_6d6d6d.png" alt="Fork me on GitHub"></a>
+    <div class="row-fluid">
+        <h3>About</h3>
+        <p>
+        Thank you for using XDM: Xtentable Download Manager!
+        </p>
+        Version: {{common.getVersionHuman()}} 
+    </div>
+    <div class="row-fluid">
+        <div class="span6">
+            <h4>XDM start options:</h4>
+            <pre>{{originalArgs|join(' ')}}</pre>
+            {%for arg, value in (common.STARTOPTIONS|vars).items()%}
+            {{arg}}: {{value}}<br>
+            {%endfor%}
+        </div>
+        <div class="span6">
+            <h4>System Information</h4>
+            System: {{platform.system()}}<br>
+            Release: {{platform.release()}}<br>
+            Version: {{platform.version()}}<br>
+            Platform: {{platform.platform()}}<br>
+            Machine: {{platform.machine()}}<br>
+            
+            Machine: {{platform.machine()}}<br>
+            Processor: {{platform.processor()}}<br>
+            Node: {{platform.node()}}<br>
+            Python_version: {{platform.python_version()}}<br>
+            Python_build: {{platform.python_build()}}<br>
+            Python_implementation: {{platform.python_implementation()}}
+        </div>
+    </div>
+</div>
+{% endblock %}

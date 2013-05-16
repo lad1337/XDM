@@ -3,7 +3,6 @@ from xdm import common
 from xdm.classes import *
 from xdm.plugins import Indexer
 import datetime
-import os
 import json
 from xdm.jsonHelper import MyEncoder
 import threading
@@ -16,7 +15,13 @@ class TaskThread(threading.Thread):
         threading.Thread.__init__(self)
 
     def run(self):
+        log.debug('Running %s' % self._target.__name__)
         self._target(*self._args)
+
+
+def coreUpdate():
+    res = common.UPDATER.check()
+    log.info('%s' % res)
 
 
 def runSearcher():
@@ -254,7 +259,7 @@ def runMediaAdder():
             #print media.mediaTypeIdentifier
             #print media.externalID
             #print media.name
-            mtm = common.PM.getMediaTypeManager(media.mediaTypeIdentifier)
+            mtm = common.PM.getMediaTypeManager(media.mediaTypeIdentifier)[0]
             try:
                 new_e = Element.getWhereField(mtm.mt, media.elementType, {'id': media.externalID}, media.providerTag, mtm.root)
             except Element.DoesNotExist:
@@ -278,14 +283,15 @@ def runMediaAdder():
 
 
 def removeTempElements():
-    def action():
-        log.info("Removeing temp elements")
-        for temp in Element.select().where(Element.status == common.TEMP):
-            temp.delete_instance(silent=True)
+    for temp in Element.select().where(Element.status == common.TEMP):
+        temp.delete_instance(silent=True)
 
-        log.info("Removeing temp elements DONE")
+    log.info("Removeing temp elements DONE")
 
-    timer = threading.Timer(1, action)
-    timer.start()
-    
-    
+
+def cacheRepos():
+    common.REPOMANAGER.cache()
+    common.REPOMANAGER.checkForUpdate(common.PM.getAll(True, 'Default'))
+
+def installPlugin(identifier):
+    common.REPOMANAGER.install(identifier)

@@ -1,8 +1,4 @@
 
-
-var playPath = 'M11.166,23.963L22.359,17.5c1.43-0.824,1.43-2.175,0-3L11.166,8.037c-1.429-0.826-2.598-0.15-2.598,1.5v12.926C8.568,24.113,9.737,24.789,11.166,23.963z';
-var playPathS = 'M84.23,73H17.968C8.91,73,1.54,65.63,1.54,56.571V20.429C1.54,11.37,8.91,4,17.968,4H84.23   c9.059,0,16.428,7.37,16.428,16.429v36.143C100.658,65.63,93.289,73,84.23,73z M17.968,13.857c-3.624,0-6.571,2.948-6.571,6.571   v36.143c0,3.624,2.948,6.571,6.571,6.571H84.23c3.623,0,6.571-2.947,6.571-6.571V20.429c0-3.624-2.948-6.571-6.571-6.571H17.968z'
-var playPathS2 = 'M42.611,23.34c0-1.344,0.898-1.809,1.995-1.029l20.802,14.774c1.096,0.779,1.096,2.053,0,2.832L44.605,54.69  c-1.097,0.778-1.995,0.315-1.995-1.031V23.34z'
     
 $(document).ready(function() {
     $(".youtube").youtube();
@@ -55,7 +51,7 @@ $(document).ready(function() {
 function ajaxDeleteElement(id, deleteNode){
     data = {};
     data['id'] = id;
-    $.getJSON('/ajaxDeleteElement', data, function(res){
+    $.getJSON('/ajax/deleteElementt', data, function(res){
         if(res['result']){
             deleteNode.hide('slow')
             noty({text: res['msg'], type: 'success', timeout:2000})
@@ -100,7 +96,7 @@ function ajaxModal(sender, name, url, data){
 function showEvents(sender, id){
     data = {'id': id}
     name = 'Events'
-    var myModal = ajaxModal(sender, name, '/ajaxGetEventsFrame', data)
+    var myModal = ajaxModal(sender, name, '/ajax/getEventsFrame', data)
     // check for events
     if(!$('.modal-body tr:not(.notice)', myModal).length)
         $('.modal-footer', myModal).append('<input class="btn btn-warning" value="Clear Events" type="submit"></div>')
@@ -108,7 +104,7 @@ function showEvents(sender, id){
     $('input[type="submit"]', myModal).click(function(e){
         var t = $(this);
         t.addClass('btn-striped animate')
-        $.getJSON('/ajaxClearEvents', data, function(res){
+        $.getJSON('/ajax/clearEvents', data, function(res){
             if(res['result']){
                 noty({text: res['msg'], type: 'success', timeout: 1000})
                 $('.modal-body', myModal).html('<h4>No events yet.</h4>')
@@ -127,13 +123,13 @@ function showEvents(sender, id){
 function showDownlads(sender, id){
     data = {'id': id}
     name = 'Downloads'
-    ajaxModal(sender, name, '/ajaxGetDownloadsFrame', data)
+    ajaxModal(sender, name, '/ajax/getDownloadsFrame', data)
 }
 
 function showConfigs(sender, id){
     data = {'id': id}
     name = 'Configuration'
-    var myModal = ajaxModal(sender, name, '/ajaxGetConfigFrame', data)
+    var myModal = ajaxModal(sender, name, '/ajax/getConfigFrame', data)
     
     $('.modal-footer', myModal).append('<input class="btn btn-success" value="Save" type="submit"></div>')
     window.setTimeout(function(){
@@ -180,7 +176,7 @@ function formAjaxSaveConnect(saveButtons, theForm){
         data = theForm.serialize()
         
 
-        $.getJSON('/ajaxSave', data, function(res){
+        $.getJSON('/ajax/save', data, function(res){
             if(res['result']){
                 $(this).button('loading');
                 noty({text: res['msg'], type: 'success', timeout: 1000})
@@ -200,5 +196,32 @@ function hasOwnProperty(obj, prop) {
     var proto = obj.__proto__ || obj.constructor.prototype;
     return (prop in obj) &&
         (!(prop in proto) || proto[prop] !== obj[prop]);
+}
+
+
+
+function pluginAjaxCall(self, p_type, p_instance, id, action){
+    if($(self).hasClass('animate'))
+        return
+
+    $(self).addClass('btn-striped animate')
+    var data = {'p_type': p_type, 'p_instance': p_instance, 'action': action};
+    $('input, select', '#'+id).each(function(k,i){
+        if(typeof $(i).data('configname') !== "undefined")
+            data['field_'+$(i).data('configname')] = $(i).val()
+    });
+    $.getJSON('/ajax/pluginCall', data, function(res){
+        if(res['result']){
+            noty({text: p_type+'('+p_instance+') - '+$(self).val()+': '+res['msg'], type: 'success', timeout: 2000})
+            
+            var data = res['data']
+            if(hasOwnProperty(data, 'callFunction')){
+                var fn = window[data['callFunction']];
+                fn(data['functionData']);
+            }
+        }else
+            noty({text: p_type+'('+p_instance+') - '+$(self).val()+': '+res['msg'], type: 'error'})    
+        $(self).removeClass('btn-striped animate')
+    });
 }
 

@@ -1,7 +1,6 @@
 import bases as plugins
 import os
 import traceback
-import xdm
 from xdm import actionManager
 from xdm.classes import *
 from xdm.logger import *
@@ -63,7 +62,7 @@ class PluginManager(object):
     def clearMTCache(self):
         self._mt_cache = {}
 
-    def cache(self, reloadModules=False, debug=False, systemOnly=False, clearUnsedConfgs=False):
+    def cache(self, reloadModules=False, debug=False, systemOnly=False, clearUnsedConfgs=False, calculateScore=True):
         if systemOnly:
             log.info('Loading/searching system plugins')
         else:
@@ -88,15 +87,17 @@ class PluginManager(object):
                     log("I found ZERO %s" % cur_plugin_type_name)
                 for cur_class, cur_path in cur_classes: # for classes of that type
                     if cur_plugin_type not in self._score_cache:
-                        score = self._getPylintScore(cur_path)
-                        self._score_cache[cur_class] = score
-                        if score <= self.pylintScoreError:
-                            log.error('Pylint Score for %s is only %.2f' % (cur_class.__name__, score))
-                        elif score <= self.pylintScoreWarning:
-                            log.warning('Pylint Score for %s is only %.2f' % (cur_class.__name__, score))
+                        if calculateScore:
+                            score = self._getPylintScore(cur_path)
+                            if score <= self.pylintScoreError:
+                                log.error('Pylint Score for %s is only %.2f' % (cur_class.__name__, score))
+                            elif score <= self.pylintScoreWarning:
+                                log.warning('Pylint Score for %s is only %.2f' % (cur_class.__name__, score))
+                            else:
+                                log.info('Pylint Score for %s is %.2f' % (cur_class.__name__, score))
                         else:
-                            log.info('Pylint Score for %s is %.2f' % (cur_class.__name__, score))
-
+                            score = 0
+                        self._score_cache[cur_class] = score
                     if not cur_plugin_type in self._cache:
                         self._cache[cur_plugin_type] = {}
                     if cur_plugin_type is not plugins.MediaTypeManager:
@@ -206,9 +207,12 @@ class PluginManager(object):
                 else:
                     new = cur_c(cur_instance)
                 if wanted_i:
-                    if wanted_i == cur_instance:
-                        return new
-                if new.enabled or returnAll:
+                    if wanted_i == cur_instance or (cls == plugins.MediaTypeManager and wanted_i == 'Default'):
+                        plugin_instances.append(new)
+                        continue
+                    elif cls == plugins.MediaTypeManager and wanted_i == cur_instance:
+                        return [new]
+                elif new.enabled or returnAll:
                     plugin_instances.append(new)
                 else:
                     pass
@@ -288,17 +292,17 @@ class PluginManager(object):
         return self._getAny(plugins.MediaAdder, i, returnAll)
     MA = property(getMediaAdder)
 
-    def getAll(self, returnAll=False):
-        return self.getSystems(returnAll=returnAll) +\
-                self.getIndexers(returnAll=returnAll) +\
-                self.getDownloaders(returnAll=returnAll) +\
-                self.getFilters(returnAll=returnAll) +\
-                self.getPostProcessors(returnAll=returnAll) +\
-                self.getMediaAdder(returnAll=returnAll) +\
-                self.getNotifiers(returnAll=returnAll) +\
-                self.getProvider(returnAll=returnAll) +\
-                self.getDownloaderTypes(returnAll=returnAll) +\
-                self.getMediaTypeManager(returnAll=returnAll)
+    def getAll(self, returnAll=False, instance=""):
+        return self.getSystems(returnAll=returnAll, i=instance) +\
+                self.getIndexers(returnAll=returnAll, i=instance) +\
+                self.getDownloaders(returnAll=returnAll, i=instance) +\
+                self.getFilters(returnAll=returnAll, i=instance) +\
+                self.getPostProcessors(returnAll=returnAll, i=instance) +\
+                self.getMediaAdder(returnAll=returnAll, i=instance) +\
+                self.getNotifiers(returnAll=returnAll, i=instance) +\
+                self.getProvider(returnAll=returnAll, i=instance) +\
+                self.getDownloaderTypes(returnAll=returnAll, i=instance) +\
+                self.getMediaTypeManager(returnAll=returnAll, i=instance)
 
     # this is ugly ... :(
     def getInstanceByName(self, class_name, instance):

@@ -101,7 +101,7 @@ class Tmdb(Provider):
     def searchForElement(self, term=''):
         self.progress.reset()
         mediaType = MediaType.get(MediaType.identifier == 'de.lad1337.movies')
-        mtm = common.PM.getMediaTypeManager('de.lad1337.movies')
+        mtm = common.PM.getMediaTypeManager('de.lad1337.movies')[0]
         fakeRoot = mtm.getFakeRoot(term)
 
         movies = tmdb.Movies(term, limit=True)
@@ -150,7 +150,7 @@ class Tmdb(Provider):
     def getElement(self, id):
         """we like tmdb ids"""
         mediaType = MediaType.get(MediaType.identifier == 'de.lad1337.movies')
-        mtm = common.PM.getMediaTypeManager('de.lad1337.movies')
+        mtm = common.PM.getMediaTypeManager('de.lad1337.movies')[0]
         fakeRoot = mtm.getFakeRoot('tmdb ID: %s' % id)
         tmdbMovie = tmdb.Movie(id)
         self._createMovie(fakeRoot, mediaType, tmdbMovie)

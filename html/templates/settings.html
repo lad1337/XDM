@@ -239,7 +239,7 @@ $(document).ready(function() {
         data = $('#theSettingsForm').serialize()
         
 
-        $.getJSON('/ajaxSave', data, function(res){
+        $.getJSON('/ajax/save', data, function(res){
             if(res['result']){
                 $(this).button('loading');
                 noty({text: res['msg'], type: 'success', timeout: 1000})
@@ -256,33 +256,5 @@ $(document).ready(function() {
     
 });
 
-
-
-
-
-pluginAjaxCall = function(self, p_type, p_instance, id, action){
-    if($(self).hasClass('animate'))
-        return
-
-    $(self).addClass('btn-striped animate')
-    var data = {'p_type': p_type, 'p_instance': p_instance, 'action': action};
-    $('input, select', '#'+id).each(function(k,i){
-        if(typeof $(i).data('configname') !== "undefined")
-            data['field_'+$(i).data('configname')] = $(i).val()
-    });
-    $.getJSON('/pluginAjaxCall', data, function(res){
-        if(res['result']){
-            noty({text: p_type+'('+p_instance+') - '+$(self).val()+': '+res['msg'], type: 'success', timeout: 2000})
-            
-            var data = res['data']
-            if(hasOwnProperty(data, 'callFunction')){
-                var fn = window[data['callFunction']];
-                fn(data['functionData']);
-            }
-        }else
-            noty({text: p_type+'('+p_instance+') - '+$(self).val()+': '+res['msg'], type: 'error'})    
-        $(self).removeClass('btn-striped animate')
-    });
-}
 </script>
 {% endblock %}

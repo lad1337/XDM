@@ -51,7 +51,7 @@ var data_{{mt.instance}}  = {}
 data_{{mt.instance}}['mt'] = '{{mt.identifier}}'
 data_{{mt.instance}}['search_query'] = '{{search_query}}'
 var searching{{mt.instance}} = true;
-jQuery.get( '/ajaxSearch', data_{{mt.instance}}, function(res){
+jQuery.get( '/ajax/search', data_{{mt.instance}}, function(res){
     var p = $('#{{mt.instance}}-current')
     $('.searchTabPaneInner', p).html(res)
     $('.progress', p).hide("slide", { direction: "up" }, 500)
@@ -81,7 +81,7 @@ window.setTimeout(function() {ajaxSearchProgress(parent_{{mt.instance}}, data_{{
 <script>
 
 function ajaxSearchProgress(parent, data){
-    jQuery.getJSON( '/ajaxSearchProgress', data, function(res){
+    jQuery.getJSON( '/ajax/searchProgress', data, function(res){
         if(res['percent']){
             $('.bar' ,parent).css('width', (res['percent'])+'%')
             $('.progress span' ,parent).html(res['count'] + '/' + res['total'])
