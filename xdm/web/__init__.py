@@ -54,6 +54,8 @@ class WebRoot:
         if not common.REPOMANAGER.cached or recache or (now - last_cache > delta):
             t = tasks.TaskThread(tasks.cacheRepos)
             t.start()
+        if recache:
+            return ''
 
         template = self.env.get_template('plugins.html')
         return template.render(**self._globals())

@@ -855,6 +855,7 @@ class Image(BaseModel):
 class Repo(BaseModel):
     name = CharField()
     url = CharField()
+    info_url = CharField()
 
     class Meta:
         database = xdm.CONFIG_DATABASE

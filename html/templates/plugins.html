@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% set title = 'Plugin Repos' -%}
-{% set active_page = active_page|default('repos') -%}
+{% set active_page = active_page|default('settings') -%}
+{% set active_sub_page = active_sub_page|default('plugins') -%}
 {% block content %}
 
 
@@ -52,7 +53,7 @@
 
 <div class="repo-container">
 
-    <h4 class="pull-left">Repositories</h4><a href="/plugins?recache=1" class="btn btn-inverse pull-right">Refresh Repositories</a>
+    <h4 class="pull-left">Repositories</h4><a href="#" onClick="ajaxRepoRecache(); return false;" class="btn btn-inverse pull-right">Refresh Repositories</a>
     <div class="clearfix"></div>
     <div class="progress progress-striped active">
         <span class="progressbar-back-text">Loading...</span>
@@ -61,13 +62,9 @@
         </div>
     </div>
     <div class="inner" style="display:none;"></div>
-    <div class="input-append pull-right">
-        <input type="text"/>
-        <a class="btn add-on" href="#" onClick="if(checkAndSetup(this)) installModalFromUrl(this); return false;" data-url="">Install from URL</a>
-    </div>
     <div class="input-prepend pull-left">
         <a class="btn add-on" href="#" onClick="if(checkAndSetup(this)) addRepo(this); return false;" data-url="">Add Repository</a>
-        <input type="text"/>
+        <input type="text" placeholder="URL to the JSON"/>
     </div>
     <div class="clearfix"></div>
 </div>
@@ -77,11 +74,22 @@
 {% block js%}
 <script>
 
+function ajaxRepoRecache(){
+    
+    $('.repo-container .progress').show("slide", { direction: "up" }, 500)
+    $('.repo-container .inner').hide("slide", { direction: "up" }, 500)
+    ajaxRepo()
+    jQuery.get( '/plugins', {'recache': 1});
+    window.setTimeout(function(){ajaxRepo()}, 1000);
+}
+
+
 function ajaxRepo(){
+
     
     jQuery.get( '/ajax/repo', {}, function(res){
         if(!res){
-            console.log('rtrying')
+            console.log('retrying')
             window.setTimeout(function() {ajaxRepo()}, 1000);
             return
         }

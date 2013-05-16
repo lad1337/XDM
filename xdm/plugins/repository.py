@@ -37,6 +37,9 @@ class RepoManager(object):
                     if r.name != repo.name:
                         r.name = repo.name
                         r.save()
+                    if r.info_url != repo.info_url:
+                        r.info_url = repo.info_url
+                        r.save()
         self.last_cache = datetime.datetime.now()
         self.cached = True
         self.caching = False
@@ -238,6 +241,7 @@ class Repo(object):
     def __init__(self, name, url):
         self.name = name
         self.url = url
+        self.info_url = ''
         self.plugins = []
 
     def getPlugins(self):
@@ -256,8 +260,8 @@ class Repo(object):
             log.error("Error while retrieving repo information from %s" % self.url)
             return
         repo_info = r.json()
-        repo_name = repo_info['name']
-        self.name = repo_name
+        self.name = repo_info['name']
+        self.info_url = repo_info['info_url']
         for identifier, plugin_versions in repo_info['plugins'].items():
             for version_info in plugin_versions:
                 self.plugins.append(ExternalPlugin(identifier, version_info))
@@ -272,7 +276,6 @@ class RepoPlugin(object):
         self.desc = info['desc']
         self.update_url = info['update_url']
         self.download_url = info['download_url']
-        print 'download_url', self.download_url
         self.type = info['type']
         self.identifier = identifier
 

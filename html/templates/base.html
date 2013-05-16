@@ -43,9 +43,11 @@
                                     ('/', 'index', 'Home', [('/completed/', 'completed', 'Completed'),
                                                             ('/deleted/', 'deleted', 'Deleted')]),
                                     ('/results/', 'search', 'Search', []),
-                                    ('/settings/', 'settings', 'Settings', [])
+                                    ('/settings/', 'settings', 'Settings', [('/settings/', 'main', 'Core and Plugin Settings'),
+                                                                            ('/plugins/', 'plugins', 'De/Install Plugins')])
                                     ] -%}
             {% set active_page = active_page|default('index') -%}
+            {% set active_sub_page = active_sub_page|default('index') -%}
             <div class="navbar">
                 <div class="navbar-inner">
                     <a class="brand" href="/"><img src="/img/xdm-logo.svg" width="100"></a>
@@ -56,11 +58,11 @@
                                 <a href="{{ href|e }}">{{ caption }}</a>
                             </li>
                         {%else%}
-                            <li class="dropdown{% if id == active_page %} active{% endif%}">
+                            <li class="dropdown{% if id == active_page %} active{% endif%}" >
                                 <a href="{{ href|e }}" class="dropdown-toggle"  data-target="#" data-toggle="dopdown">{{ caption }}<b class="caret"></b></a>
                                 <ul class="dropdown-menu">
                                     {% for href2, id2, caption2 in subMenu %}
-                                    <li class="{% if id2 == active_page %}active{% endif%}">
+                                    <li class="{% if id2 == active_sub_page %}btn-striped{% endif%}">
                                         <a href="{{ href2|e }}">{{ caption2 }}</a>
                                     </li>
                                     {% endfor %}
@@ -91,8 +93,7 @@
             <a href="/updateAll" title="It works but the new page is bugging out, just refresh the page again">Refresh all</a> -
             <a href="/shutdown">Shutdown</a> -
             <a href="/reboot" title="does a hard reboot. this will rescan plugins">Reboot</a> - 
-            <a href="/about">About</a> - 
-            <a href="/plugins">Plugins</a>
+            <a href="/about">About</a>
             {%endblock%}
             </footer>
         </div>    

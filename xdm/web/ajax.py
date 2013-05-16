@@ -1,7 +1,7 @@
 
 import cherrypy
 import json
-from xdm import common, tasks
+from xdm import common, tasks, actionManager
 from xdm.logger import *
 from xdm.classes import *
 import traceback
@@ -184,7 +184,7 @@ class AjaxCalls:
                     cur_c.save()
                 else: # normal settings page
                     setattr(plugin.c, config_name, convertV(v)) # saving value
-                
+
                 if plugin.config_meta[config_name] and element is None: # this returns none
                     if 'on_change_actions' in plugin.config_meta[config_name] and old_value != new_value:
                         actions[plugin] = plugin.config_meta[config_name]['on_change_actions'] # this is a list of actions
@@ -194,8 +194,20 @@ class AjaxCalls:
                         actions[plugin] = plugin.config_meta[config_name]['on_enable'] # this is a list of actions
                 elif plugin.elementConfig_meta[config_name] and element is not None:
                     pass
-                    
                 continue
             else: # no plugin with that class_name or instance found
                 log("We don't have a plugin: %s (%s)" % (class_name, instance_name))
                 continue
+
+        common.PM.cache()
+        final_actions = {}
+        for cur_class_name, cur_actions in actions.items():
+            for cur_action in cur_actions:
+                if not cur_action in final_actions:
+                    final_actions[cur_action] = []
+                final_actions[cur_action].append(cur_class_name)
+        for action, plugins_that_called_it  in final_actions.items():
+            actionManager.executeAction(action, plugins_that_called_it)
+        common.SYSTEM = common.PM.getSystems('Default')[0] # yeah SYSTEM is a plugin
+        return json.dumps({'result': True, 'data': {}, 'msg': 'Configuration saved.'})
+

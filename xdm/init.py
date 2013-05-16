@@ -122,7 +122,9 @@ def _checkDefaults(resave=False):
                         {'setter': 'TEMP',        'name': 'Temp',                 'hidden': True}
                       ]
 
-    default_repos = [{'name': 'XDM demo', 'url': 'https://raw.github.com/lad1337/XDM-plugin-de.lad1337.demopackage/master/meta.json'}]
+    default_repos = [{'name': 'XDM demo',
+                      'url': 'https://raw.github.com/lad1337/XDM-main-plugin-repo/master/meta.json',
+                      'info_url': 'https://github.com/lad1337/XDM-main-plugin-repo/'}]
 
     #create default Status
     for cur_s in default_statuss:
@@ -152,6 +154,7 @@ def _checkDefaults(resave=False):
             r = Repo()
             r.name = repo['name']
             r.url = repo['url']
+            r.info_url = repo['info_url']
             new = True
             if new:
                 r.save(True) # the save function is overwritten to do nothing but when we create it we send a overwrite

@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% set title = 'Settings' -%}
 {% set active_page = active_page|default('settings') -%}
+{% set active_sub_page = active_sub_page|default('main') -%}
 {% block content %}
 
 <form id="theSettingsForm" class="container-fluid" action="/saveSettings" method="POST">
