@@ -3,7 +3,7 @@ XDM
 
 XDM: Xtentable Download Manager. Plugin based media collection manager.
 
-XDM is at BETA STAGE
+XDM is at BETA stage
 Current offical site [http://xdm.lad1337.de](http://xdm.lad1337.de)<br/>
 Official main plugin repository at [https://github.com/lad1337/XDM-main-plugin-repo/](https://github.com/lad1337/XDM-main-plugin-repo/)
 
@@ -60,6 +60,34 @@ Plugin and reposetory managment
 ![Music plugin](http://xdm.lad1337.de/img/repo.png "Plugin and reposetory managment")
 
 
+Usage
+-----
+<pre>
+lad1337@hannah:XDM(branch:master)$ python XDM.py --help
+usage: XDM [-h] [-d] [-v] [-D] [-p PIDFILE] [-P PORT] [-n] [-b DATADIR]
+           [-c CONFIG] [--pluginImportDebug]
+           [--profile [PROFILE [PROFILE ...]]]
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -d, --daemonize       Run the server as a daemon.
+  -v, --version         Print Version and exit.
+  -D, --debug           Print debug log to screen.
+  -p PIDFILE, --pidfile PIDFILE
+                        Store the process id in the given file.
+  -P PORT, --port PORT  Force webinterface to listen on this port.
+  -n, --nolaunch        Don't start the browser.
+  -b DATADIR, --datadir DATADIR
+                        Set the directory for the database.
+  -c CONFIG, --config CONFIG
+                        Path to config file
+  --pluginImportDebug   Extra verbosy debug during plugin import is printed.
+  --profile [PROFILE [PROFILE ...]]
+                        Wrap a decorated(!) function in a profiler. By default
+                        all decorated functions are profiled. Decorate your
+                        function with @profileMeMaybe
+</pre>
+Note some options might not take affect right now e.g. PIDFILE DATADIR CONFIG
 
 Notes on the plugin development api (not final nor complete)
 --
