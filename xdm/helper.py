@@ -34,6 +34,17 @@ import xdm
 import shutil
 
 
+def getSystemDataDir(progdir):
+    if sys.platform == 'darwin':
+        home = os.environ.get('HOME')
+        if home:
+            return '%s/Library/Application Support/XDM' % home
+        else:
+            return progdir
+    elif sys.platform == "win32":
+        #TODO: implement
+        return progdir
+
 def replace_some(text):
     dic = {' ': '_', '(': '', ')': '', '.': '_'}
     return replace_x(text, dic)

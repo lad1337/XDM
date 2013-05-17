@@ -24,11 +24,14 @@ import sys
 import os
 # Fix for correct path
 if hasattr(sys, 'frozen'):
-    app_path = os.path.dirname(os.path.abspath(sys.executable))
+    app_path = os.path.abspath(os.path.join(os.path.abspath(sys.executable), '..', '..', 'Resources'))
+    sys.path.insert(1, os.path.join(app_path, 'rootLibs'))
+    sys.path.insert(1, app_path)
 else:
     app_path = os.path.dirname(os.path.abspath(__file__))
 os.chdir(app_path)
 sys.path.append(os.path.join(app_path, 'rootLibs'))
+
 
 import argparse
 import cherrypy
@@ -39,7 +42,7 @@ from cherrypy import server
 import cherrypy.lib.auth_basic
 import logging # get the debug log level
 import xdm
-from xdm import init
+from xdm import init, helper
 from xdm import common
 from xdm import logger # need this to set the log level
 from xdm import tasks
@@ -78,12 +81,21 @@ class RunApp():
             datadir = options.datadir
             if not os.path.isdir(datadir):
                 os.makedirs(datadir)
+        elif hasattr(sys, 'frozen'):
+            datadir = helper.getSystemDataDir(app_path)
+            if not os.path.isdir(datadir):
+                os.makedirs(datadir)
         else:
             datadir = app_path
         datadir = os.path.abspath(datadir)
 
         if not os.access(datadir, os.W_OK):
             raise SystemExit("Data dir must be writeable '" + datadir + "'")
+
+        # setup file logger with datadir
+        hdlr = logging.handlers.RotatingFileHandler(os.path.join(datadir, 'xdm.log'), maxBytes=10 * 1024 * 1024, backupCount=5)
+        xdm.logger.fLogger.addHandler(hdlr)
+
 
         #TODO: rewrite for the config.db
         """if options.config:

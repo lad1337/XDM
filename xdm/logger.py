@@ -42,13 +42,16 @@ fLogger = logging.getLogger('XDM.File')
 cLogger.setLevel(logging.INFO)
 fLogger.setLevel(logging.DEBUG)
 # create file handler which logs even debug messages
-fh = logging.handlers.RotatingFileHandler('xdm.log', maxBytes=10 * 1024 * 1024, backupCount=5)
+#this is now done in XDM.py to use the data dir
+#fh = logging.handlers.RotatingFileHandler('xdm.log', maxBytes=10 * 1024 * 1024, backupCount=5)
 # create console handler with a higher log level
 ch = logging.StreamHandler()
 
 # add the handlers to logger
+
+
 cLogger.addHandler(ch)
-fLogger.addHandler(fh)
+#fLogger.addHandler(fh)
 """ at some point i want the cherrypy stuff logged
 cpLogger = logging.getLogger('cherrypy')
 cph = logging.StreamHandler()
