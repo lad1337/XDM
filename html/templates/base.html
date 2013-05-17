@@ -53,7 +53,8 @@
     <body>
         <div id="container" class="{{ active_page }} page-container">
             {% set navigation_bar = [
-                                    ('/', 'index', 'Home', [('/completed/', 'completed', 'Completed'),
+                                    ('/', 'index', 'Home', [('/', 'index', 'Wanted'),
+                                                            ('/completed/', 'completed', 'Completed'),
                                                             ('/deleted/', 'deleted', 'Deleted')]),
                                     ('/results/', 'search', 'Search', []),
                                     ('/settings/', 'settings', 'Settings', [('/settings/', 'main', 'Core and Plugin Settings'),

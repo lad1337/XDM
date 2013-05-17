@@ -35,6 +35,7 @@ from xdm import common, tasks, helper
 from xdm.logger import *
 from xdm import actionManager
 import datetime
+import xdm
 
 
 class WebRoot:
@@ -66,7 +67,7 @@ class WebRoot:
     @cherrypy.expose
     def about(self):
         template = self.env.get_template('about.html')
-        return template.render(platform=platform, originalArgs=sys.argv, **self._globals())
+        return template.render(platform=platform, originalArgs=sys.argv, xdm=xdm, **self._globals())
 
     @cherrypy.expose
     def plugins(self, recache=''):

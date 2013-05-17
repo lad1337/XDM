@@ -46,9 +46,10 @@ body{
 }
 
 #container {
-    width: 80%;
+    width: 90%;
     margin: 30px auto;
     padding: 0;
+    max-width: 1124px;
 }
 
 
@@ -221,8 +222,8 @@ footer a:hover{
 }
 
 .modal-wide{
-    width: 800px;
-    margin-left: -400px;
+    width: 766px;
+    margin-left: -383px;
 }
 
 .modal-wide .modal-body{
@@ -306,6 +307,7 @@ td.download-size,
     
     .navbar-search .input-append{
         left: 0;
+        width: 80%;
     }
     /*
     .navbar-search .search-query{
@@ -327,9 +329,11 @@ td.download-size,
     #container.settings .form-horizontal .path .controls input.fileBrowser{
         width: 37%;
     }
-    
+    body {
+        padding-left: 0;
+        padding-right: 0;
+    }    
 }
-
 
 /* ==========================================================================
    Helper classes

@@ -41,5 +41,70 @@
             Python_implementation: {{platform.python_implementation()}}
         </div>
     </div>
+    
+    <div class="row-fluid">
+    
+        <div class="span9">
+            <h4>XDM paths:</h4>
+            <table class="table table-bordered table-condensed">
+                <tr>
+                    <td>HOME_PATH</td>
+                    <td>{{xdm.HOME_PATH}}</td>
+                </tr>
+                <tr>
+                    <td>APP_PATH</td>
+                    <td>{{xdm.APP_PATH}}</td>
+                </tr>
+                <tr>
+                    <td>DATADIR</td>
+                    <td>{{xdm.DATADIR}}</td>
+                </tr>
+                <tr>
+                    <td>CONFIG_PATH</td>
+                    <td>{{xdm.CONFIG_PATH}}</td>
+                </tr>
+                <tr>
+                    <td>PROGDIR</td>
+                    <td>{{xdm.PROGDIR}}</td>
+                </tr>
+                
+                <tr>
+                    <td>IMAGEPATH</td>
+                    <td>{{xdm.IMAGEPATH}}</td>
+                </tr>
+                <tr>
+                    <td>IMAGEPATH_RELATIVE</td>
+                    <td> {{xdm.IMAGEPATH_RELATIVE}}</td>
+                </tr>
+                
+                <tr>
+                    <td>TEMPDIR</td>
+                    <td>{{xdm.TEMPDIR}}</td>
+                </tr>
+                <tr>
+                    <td>TEMPPATH</td>
+                    <td>{{xdm.TEMPPATH}}</td>
+                </tr>
+                <tr>
+                    <td>TEMPPATH_RELATIVE</td>
+                    <td>{{xdm.TEMPPATH_RELATIVE}}</td>
+                </tr>
+                
+                <tr>
+                    <td>PLUGININSTALLDIR</td>
+                    <td>{{xdm.PLUGININSTALLDIR}}</td>
+                </tr>
+                <tr>
+                    <td>PLUGININSTALLPATH</td>
+                    <td>{{xdm.PLUGININSTALLPATH}}</td>
+                </tr>
+                <tr>
+                    <td>PLUGININSTALLPATH_RELATIVE</td>
+                    <td>{{xdm.PLUGININSTALLPATH_RELATIVE}}</td>
+                </tr>
+                
+            </table>
+        </div>
+    </div>
 </div>
 {% endblock %}

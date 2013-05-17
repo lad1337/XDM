@@ -22,7 +22,7 @@
                 <td>
                     {{plugin.screenName}}<br/>
                     <span class="muted">
-                        {{plugin.identifier}}
+                        {{plugin.identifier.replace('.','.&shy;')}}
                     </span>
                 </td>
                 <td>{{plugin._type}}</td>
@@ -32,7 +32,7 @@
                 <td>
                     <p>{{plugin.config_meta['plugin_desc']|striptags|urlize}}</p>
                     <span class="muted" style="font-size:90%;">
-                        {{plugin.get_plugin_isntall_path()}}
+                        {{plugin.get_plugin_isntall_path().replace('/','/&shy;')}}
                     </span>
                 </td>
                 <td>{{plugin.getMyScore()|round(2)}}</td>

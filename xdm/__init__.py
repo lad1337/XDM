@@ -118,8 +118,8 @@ class Common(object):
 
     def getVersionHuman(self):
         if version.build:
-            return "'%s' %s.%s.%s.%s" % (major_names[version.major], version.major, version.minor, version.revision, version.build)
-        return "'%s' %s.%s.%s" % (major_names[version.major], version.major, version.minor, version.revision)
+            return "%s %s.%s.%s.%s" % (major_names[version.major], version.major, version.minor, version.revision, version.build)
+        return "%s %s.%s.%s" % (major_names[version.major], version.major, version.minor, version.revision)
 
 common = Common()
 
