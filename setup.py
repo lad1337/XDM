@@ -24,6 +24,8 @@ import urllib, ConfigParser
 from distutils.core import setup
 import zipfile, fnmatch
 import git
+from xdm import common
+
 ######################
 # helper functions
 # ascii art done here http://www.network-science.de/ascii/
@@ -46,12 +48,12 @@ __   _______  __  __  __          _______ _   _
 /_/ \_\_____/|_|  |_|     \/  \/   |_____|_| \_|
 """
 
-def writeSickbeardVersionFile(major, minor, revision, build):
+def writeXDMVersionFile(major, minor, revision, build):
     content = 'major = %s\nminor = %s\nrevision = %s\nbuild = %s\n' % (major, minor, revision, build)
     # write
-    writeSickbeardVersionFileRaw(content)
+    writeXDMVersionFileRaw(content)
     
-    return (content == readSickbeardVersionFile())
+    return (content == readXDMVersionFile())
     #TODO: this does not work any more ... i dont know why the contens is correct but the import is always the wrong version
     # re starting this script works ... so the version.py does not seam updated in a python way
     # but i also tried compiling it gain befor importing it no success ... so we only check the contens for now :(
@@ -63,18 +65,22 @@ def writeSickbeardVersionFile(major, minor, revision, build):
         print "imported SICKBEARD_VERSION: '"+SICKBEARD_VERSION+"' ...",
         return False
 
-def writeSickbeardVersionFileRaw(content):
+def writeXDMVersionFileRaw(content):
     # Create a file object:
     # in "write" mode
     versionFile = open(os.path.join("xdm", "version.py"), "w")
     versionFile.writelines(content)
     versionFile.close()
 
-def readSickbeardVersionFile():
+def readXDMVersionFile():
     versionFile = open(os.path.join("xdm", "version.py"), "r+")
     content = versionFile.read()
     versionFile.close()
     return content
+
+def readVersion():
+    from xdm import version
+    return (version.major, version.minor, version.revision, version.build)
 
 def getNiceOSString(buildParams):
     if (sys.platform == 'darwin' and buildParams['target'] == 'auto') or buildParams['target'] in ('osx', 'OSX', 'MAC'):
@@ -247,7 +253,7 @@ def buildWIN(buildParams):
     # compile sickbeard.exe
     setup(**options)
 
-    # compile sabToSickbeard.exe using the existing setup.py script
+    # compile sabToXDM.exe using the existing setup.py script
 
     auto_process_dir = 'autoProcessTV'
     p = subprocess.Popen([ sys.executable, 'setup.py' ], cwd=auto_process_dir)
@@ -305,7 +311,6 @@ def buildOSX(buildParams):
     osxSpraseImage = "build/template.xdm.sparseimage"
     osxAppIcon = "Meta-Resources/xdm-icon.icns" # the app icon location
     osVersion = platform.mac_ver()[0]
-    osVersionMayor, osVersionMinor, osVersionMicro = osVersion.split(".")
     osxDmg = "dist/%s.dmg" % buildParams['packageName'] # dmg file name/path
 
     try:
@@ -572,33 +577,17 @@ def main():
         buildParams['currentBranch'] = getBranch(buildParams)
 
     # this is the 'branch yy.mm(.dd)' string
-    buildParams['build'] = "%s %s" % (buildParams['branch'], buildParams['dateVersion'])
+    buildParams['build'] = "%s %s" % (buildParams['branch'], common.getVersionHuman().replace("'", ''))
     # or for nightlys yy.mm.commit
     if buildParams['nightly']:
         buildParams['build'] = "%s.%s" % (buildParams['dateVersion'], buildParams['gitNewestCommitShort'])
 
     # the new SICKBEARD_VERSION string visible to the user and used in the binary package file name
-    buildParams['newSBVersion'] = "%s %s" % (buildParams['osName'], buildParams['build'])
+    buildParams['newSBVersion'] = common.getVersionHuman()
 
-    print "backup SickbeardVersionFile ...",
-    oldSickbeardVersionFile = readSickbeardVersionFile()
-    if not oldSickbeardVersionFile:
-        print "ERROR"
-        print "seams like reading the version.py file failed. permissions ?"
-        exit(1)
-    else:
-        print "ok"
-    buildParams['newSBVersion'] = (0,4,7,1)
-    print "setting XDM to %s.%s.%s.%s ..." % buildParams['newSBVersion'],
-    if not writeSickbeardVersionFile(*buildParams['newSBVersion']):
-        print "ERROR"
-        print "seams like writing the verision.py file failed. permissions ?"
-        exit(1)
-    else:
-        print "ok"
 
     buildParams['packageName'] = "%s-%s-%s" % (buildParams['name'] , buildParams['osName'] , buildParams['build']) # volume name
-    buildParams['packageName'] = buildParams['packageName'].replace(" ","-")
+    buildParams['packageName'] = buildParams['packageName'].replace(" ", "-")
     #####################
     # clean the build dirs
     scriptBuild = None
@@ -638,12 +627,10 @@ def main():
         result = buildWIN(buildParams)
         curFancyLogo = fancyLogoWin()
     else:
-        print "unknown os/target valid: mac, win"
+        print "unknown os/target valid: OSX, Win"
         result = False
 
     if result:
-        # lets do some clean up
-        writeSickbeardVersionFileRaw(oldSickbeardVersionFile) # rewrite the version.py
         # remove the temp build dirs
         if os.path.exists('build'):
             shutil.rmtree('build')
