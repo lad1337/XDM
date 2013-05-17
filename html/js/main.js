@@ -51,7 +51,7 @@ $(document).ready(function() {
 function ajaxDeleteElement(id, deleteNode){
     data = {};
     data['id'] = id;
-    $.getJSON('/ajax/deleteElementt', data, function(res){
+    $.getJSON('/ajax/deleteElement', data, function(res){
         if(res['result']){
             deleteNode.hide('slow')
             noty({text: res['msg'], type: 'success', timeout:2000})

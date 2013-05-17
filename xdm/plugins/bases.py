@@ -28,7 +28,6 @@ from xdm.classes import *
 from xdm.logger import *
 from meta import *
 from xdm.helper import replace_all
-from lib.profilehooks import profile
 
 
 """plugins should not set the status of an element !!! it will be done in the loops that call / use the plugins"""
@@ -275,10 +274,11 @@ class Plugin(object):
     def _get_minor_version(self):
         return int(self.version.split('.')[1])
     minor_version = property(_get_minor_version)
-    
+
     def _get_major_version(self):
         return int(self.version.split('.')[0])
     major_version = property(_get_major_version)
+
 
 class DownloadType(Plugin):
     """Simple skeleton for a "DownloadType"."""

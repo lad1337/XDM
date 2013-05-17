@@ -48,9 +48,6 @@ from xdm.plugins import PluginManager
 from xdm.web import WebRoot
 from xdm.helper import launchBrowser, daemonize
 
-from optparse import OptionParser
-
-
 
 class RunApp():
 
@@ -114,6 +111,7 @@ class RunApp():
             print "------------------- XDM Profiling ON -------------------"
             log.info('XDM profiling mode ON')
             common.RUNPROFILER = True
+            print common.RUNPROFILER
 
         init.preDB(app_path, datadir)
         init.db()

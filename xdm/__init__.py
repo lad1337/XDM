@@ -2,7 +2,7 @@ import version
 from lib.peewee import *
 from os.path import join
 from lib.profilehooks import profile as profileHookFunction
-from functools import wraps
+from functools import partial, update_wrapper, wraps
 
 HOME_PATH = ""
 APP_PATH = ""
@@ -125,17 +125,33 @@ common = Common()
 
 
 #maybe move this some place else
-def profileMeMaybe(target):
-    @wraps(target)
-    def wrapper(*args, **kwargs):
-        if not common.STARTOPTIONS.profile: # empty list profile all
-            print 'Profiling function "%s" with arguments %s and keyword arguments %s' % (target.__name__, args, kwargs)
-            return profileHookFunction(target, immediate=True)(*args, **kwargs)
-        elif target.__name__ in common.STARTOPTIONS.profile: # a list with function names
-            print 'Profiling function "%s" with arguments %s and keyword arguments %s' % (target.__name__, args, kwargs)
-            return profileHookFunction(target, immediate=True)(*args, **kwargs)
+class profileMeMaybe(object):
 
-    if common.RUNPROFILER:
-        return wrapper
-    return target
+    def __init__(self, target):
+        self.target = target
+        # dynamically name __call__ after the target
+        wrapped = partial(self.__call__)
+        self.__call__ = update_wrapper(wrapped, self.target)
+        # dont ask me why or how but at some point of that name redirecting the __name__ of this instance is asked for
+        # and we expect it to be the wrapped function name
+        self.__name__ = self.target.__name__
+
+    #http://stackoverflow.com/questions/8856164/class-decorator-decorating-method-in-python
+    def __get__(self, obj, type=None):
+        self.obj = obj
+        return self
+
+    def __call__(self, *args, **kwargs):
+
+        @wraps(self.target)
+        def wrapper(*args, **kwargs):
+            if not common.STARTOPTIONS.profile or self.target.__name__ in common.STARTOPTIONS.profile:
+                print 'Profiling function "%s" with arguments %s and keyword arguments %s' % (self.target.__name__, args, kwargs)
+                return profileHookFunction(self.target, immediate=True)(*args, **kwargs)
+            else:
+                return self.target(*args, **kwargs)
+
+        if common.RUNPROFILER:
+            return wrapper(self.obj, *args, **kwargs)
+        return self.target(self.obj, *args, **kwargs)
 

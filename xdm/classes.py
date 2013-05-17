@@ -26,7 +26,7 @@ import os
 import xdm
 from lib import requests
 from logger import *
-from xdm import common, helper
+from xdm import common, helper, profileMeMaybe
 import datetime
 import json
 from jsonHelper import MyEncoder
@@ -857,7 +857,7 @@ class Image(BaseModel):
                     f.write(chunk)
 
     def getPath(self):
-        directory = os.path.join(xdm.CACHEPATH, str(self.element.mediaType))
+        directory = os.path.join(xdm.IMAGEPATH, str(self.element.mediaType))
         if not os.path.exists(directory):
             os.makedirs(directory)
 
