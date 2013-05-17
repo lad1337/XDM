@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset='utf-8' />
+    <meta http-equiv="X-UA-Compatible" content="chrome=1" />
+    <meta name="description" content="XDM : XDM: Xtentable Download Manager. Plugin based media collection manager." />
+
+    <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
+
+    <title>XDM</title>
+  </head>
+
+  <body>
+
+    <!-- HEADER -->
+    <div id="header_wrap" class="outer">
+        <header class="inner">
+          <a id="forkme_banner" href="https://github.com/lad1337/XDM">View on GitHub</a>
+
+          <h1 id="project_title">XDM</h1>
+          <h2 id="project_tagline">XDM: Xtentable Download Manager. Plugin based media collection manager.</h2>
+
+            <section id="downloads">
+              <a class="zip_download_link" href="https://github.com/lad1337/XDM/zipball/master">Download this project as a .zip file</a>
+              <a class="tar_download_link" href="https://github.com/lad1337/XDM/tarball/master">Download this project as a tar.gz file</a>
+            </section>
+        </header>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div id="main_content_wrap" class="outer">
+      <section id="main_content" class="inner">
+        <h1>XDM</h1>
+
+<p>XDM: Xtentable Download Manager. Plugin based media collection manager.</p>
+
+<p>XDM is at BETA stage
+Current offical site <a href="http://xdm.lad1337.de">http://xdm.lad1337.de</a><br>
+Official main plugin repository at <a href="https://github.com/lad1337/XDM-main-plugin-repo/">https://github.com/lad1337/XDM-main-plugin-repo/</a></p>
+
+<h1>Libraries in use</h1>
+
+<h2>Backend</h2>
+
+<ul>
+<li>
+<a href="http://www.cherrypy.org/">CherryPy</a>: A Minimalist Python Web Framework</li>
+<li>
+<a href="http://docs.python-requests.org/en/latest/">Requests</a>: HTTP for Humans</li>
+<li>
+<a href="http://twhiteman.netfirms.com/des.html">pyDes</a>: This is a pure python implementation of the DES encryption algorithm.</li>
+<li>
+<a href="http://mg.pov.lt/blog/profilehooks-1.0.html">profilehooks</a>: Profiling/tracing wrapper</li>
+<li>
+<a href="http://peewee.readthedocs.org/en/latest/">peewee</a>: a small, expressive orm</li>
+<li>
+<a href="http://jinja.pocoo.org/docs/">Jinja2</a>: Jinja2 is a full featured template engine for Python.</li>
+<li>
+<a href="http://www.logilab.org/project/pylint">pylint</a>: analyzes Python source code looking for bugs and signs of poor quality</li>
+<li>
+<a href="https://pypi.python.org/pypi/logilab-astng">astng</a>: common base representation of python source code for projects such as pychecker, pyreverse, pylint</li>
+<li>
+<a href="https://pypi.python.org/pypi/guessit">guessit</a>: a library for guessing information from video files.</li>
+<li>
+<a href="http://gitorious.org/git-python">GitPython</a>: a python library used to interact with Git repositories.</li>
+<li>
+<a href="https://pypi.python.org/pypi/gitdb">gitdb</a>: Git Object Database</li>
+<li>
+<a href="https://github.com/gitpython-developers/async">async</a>: Distribute interdependent tasks to 0 or more threads</li>
+<li>
+<a href="https://pypi.python.org/pypi/smmap">smmap</a>: A pure git implementation of a sliding window memory map manager</li>
+<li>
+<a href="http://github.com/doganaydin/themoviedb">tmdb</a>: themoviedb.org wrapper for api v3</li>
+</ul><h2>Frontend</h2>
+
+<ul>
+<li>
+<a href="http://twitter.github.io/bootstrap/index.html">bootstrap</a>: Sleek, intuitive, and powerful front-end framework for faster and easier web development.</li>
+<li>
+<a href="http://fortawesome.github.io/Font-Awesome/">Font Awesome</a>: The iconic font designed for Bootstrap.</li>
+<li>
+<a href="http://jquery.com/">jQuery</a>: is a fast, small, and feature-rich JavaScript library.</li>
+<li>
+<a href="http://jqueryui.com/">jQuery UI</a>: is a curated set of user interface interactions, effects, widgets, and themes built on top of the jQuery JavaScript Library.</li>
+<li>
+<a href="http://modernizr.com/">modernizr</a>: is a JavaScript library that detects HTML5 and CSS3 features in the user’s browser.</li>
+<li>
+<a href="fancyapps.com">fancyBox</a>: fancyBox is a tool that offers a nice and elegant way to add zooming functionality for images, html content and multi-media on your webpages.</li>
+<li>
+<a href="http://raphaeljs.com/">Raphaël</a>: JavaScript Vector Library</li>
+<li>
+<a href="http://needim.github.io/noty/">noty</a>: jquery notification plugin</li>
+<li>
+<a href="http://benalman.com/projects/jquery-resize-plugin/">jQuery resize event</a>: With jQuery resize event, you can now bind resize event handlers to elements other than window.</li>
+<li>
+<a href="http://jaspreetchahal.org/a-simple-jquery-countdown-timer-with-callback/">JQuery Countdown Timer</a>: A simple jQuery Countdown Timer with callback</li>
+</ul><p>(Plugins may use more libraries)</p>
+
+<h1>Screenshots</h1>
+
+<p><a href="http://xdm.lad1337.de">More screenshots</a></p>
+
+<p>Music plugin with some albums
+<img src="http://xdm.lad1337.de/img/home.png" alt="Music plugin" title="Music plugin"></p>
+
+<p>Movie plugin with some movies
+<img src="http://xdm.lad1337.de/img/movies.png" alt="Movie plugin" title="Movie plugin"></p>
+
+<p>Plugin and reposetory managment
+<img src="http://xdm.lad1337.de/img/repo.png" alt="Music plugin" title="Plugin and reposetory managment"></p>
+
+<h2>Usage</h2>
+
+<pre>
+lad1337@hannah:XDM(branch:master)$ python XDM.py --help
+usage: XDM [-h] [-d] [-v] [-D] [-p PIDFILE] [-P PORT] [-n] [-b DATADIR]
+           [-c CONFIG] [--pluginImportDebug]
+           [--profile [PROFILE [PROFILE ...]]]
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -d, --daemonize       Run the server as a daemon.
+  -v, --version         Print Version and exit.
+  -D, --debug           Print debug log to screen.
+  -p PIDFILE, --pidfile PIDFILE
+                        Store the process id in the given file.
+  -P PORT, --port PORT  Force webinterface to listen on this port.
+  -n, --nolaunch        Don't start the browser.
+  -b DATADIR, --datadir DATADIR
+                        Set the directory for the database.
+  -c CONFIG, --config CONFIG
+                        Path to config file
+  --pluginImportDebug   Extra verbosy debug during plugin import is printed.
+  --profile [PROFILE [PROFILE ...]]
+                        Wrap a decorated(!) function in a profiler. By default
+                        all decorated functions are profiled. Decorate your
+                        function with @profileMeMaybe
+</pre>
+
+<p>Note some options might not take affect right now e.g. PIDFILE DATADIR CONFIG</p>
+
+<h1>License</h1>
+
+<p>XDM: Xtentable Download Manager. Plugin based media collection manager.<br>
+Copyright (C) 2013  Dennis Lutter</p>
+
+<p>This program is free software: you can redistribute it and/or modify<br>
+it under the terms of the GNU General Public License as published by<br>
+the Free Software Foundation, either version 3 of the License, or<br>
+(at your option) any later version.</p>
+
+<p>This program is distributed in the hope that it will be useful,<br>
+but WITHOUT ANY WARRANTY; without even the implied warranty of<br>
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the<br>
+GNU General Public License for more details.<br></p>
+
+<p>You should have received a copy of the GNU General Public License<br>
+along with this program.  If not, see <a href="http://www.gnu.org/licenses/">http://www.gnu.org/licenses/</a>.</p>
+      </section>
+    </div>
+
+    <!-- FOOTER  -->
+    <div id="footer_wrap" class="outer">
+      <footer class="inner">
+        <p class="copyright">XDM maintained by <a href="https://github.com/lad1337">lad1337</a></p>
+        <p>Published with <a href="http://pages.github.com">GitHub Pages</a></p>
+      </footer>
+    </div>
+
+    
+
+  </body>
+</html>
