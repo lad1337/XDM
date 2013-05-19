@@ -308,6 +308,7 @@ def runMediaAdder():
                     log.info('we found %s. now lets gets real' % ele)
                     if ele.manager.makeReal(ele):
                         createGenericEvent(ele, 'autoAdd', 'I was added by %s' % adder)
+                        common.MM.createInfo('%s added %s' % (adder, ele.getName()))
                         if media not in successfulAdd:
                             successfulAdd.append(media)
                 else:

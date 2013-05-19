@@ -257,23 +257,6 @@ function makeSafeForCSS(name) {
 }
 
 
-var countdownCount;
-var countDownInterval;
-//countdownCount= 30;
-//countDownInterval = setInterval(timer, 1000); //1000 will  run it every 1 second
-
-function timer(){
-    countdownCount=countdownCount-1;
-  if (countdownSeconds <= 0)
-  {
-     clearInterval(countDownInterval);
-     //counter ended, do something here
-     return;
-  }
-
-  $('#countdownContainer').text(countdownCount)
-}
-
 function pluginAjaxCall(self, p_type, p_instance, id, action){
     if($(self).hasClass('animate'))
         return
