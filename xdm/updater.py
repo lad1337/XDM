@@ -171,6 +171,7 @@ class GitUpdateManager(UpdateManager):
         behind = 0
         if local_commit.hexsha == remote_commit.hexsha: # local is updated; end
             self.response.message = 'No update needed'
+            self.response.needUpdate = False
             return self.response
 
         self.response.needUpdate = True
