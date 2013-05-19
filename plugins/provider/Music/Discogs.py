@@ -85,7 +85,7 @@ class Discogs(Provider):
     def _createAlbum(self, fakeRoot, mediaType, release):
 
         artist = release.artists[0]
-        artistName = re.sub(r'\(\d{1,2}\)$', '', artist.name)
+        artistName = re.sub(r' \(\d{1,2}\)$', '', artist.name)
         try:
             artistElement = Element.getWhereField(mediaType, 'Artist', {'id': artistName}, self.tag, fakeRoot)
         except Element.DoesNotExist:

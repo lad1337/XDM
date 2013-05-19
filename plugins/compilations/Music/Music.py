@@ -48,7 +48,7 @@ class Album(object):
                       <div class="indi">&#x25B2;</div>
                       <div class="songs">
                           <div class="info">
-                              <strong class="bORw">{{name}}</strong>{{actionButtons}}{{infoButtons}}{{statusSelect}}
+                              <strong class="bORw name">{{name}}</strong>{{actionButtons}}{{infoButtons}}{{statusSelect}}
                               <p class="bORw">{{this.parent.name}} ({{this.year}})</p>
                           </div>
                           <ol class="bORw"></ol>

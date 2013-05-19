@@ -106,6 +106,10 @@
     overflow: hidden;
     box-sizing: border-box;
 }
+.de-lad1337-music .Album .songs strong.name{
+    margin-right: 5px;
+}
+
 
 .de-lad1337-music .Album .songs ol{
     -moz-column-count: 2;
