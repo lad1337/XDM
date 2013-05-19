@@ -155,7 +155,7 @@ def create_https_certificates(ssl_cert, ssl_key):
 
 
 #https://gist.github.com/deontologician/3503910
-def reltime(date, compare_to=None, at='@'):
+def reltime(date, compare_to=None, at=':'):
     r'''Takes a datetime and returns a relative representation of the
     time.
     :param date: The date to render relatively

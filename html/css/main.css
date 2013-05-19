@@ -218,12 +218,40 @@ footer a:hover{
 .navbar-search .input-append{
     width: 100%;
     position: relative;
-    left: -27px;
+    left: -36px;
 }
 
+.navbar .notifications{
+    left: 13px;
+}
+
+.notifications .dropdown-menu{
+    max-width: 256px;
+    width: 256px;
+}
+.notifications .dropdown-menu td{
+    position: relative;
+}
+.notifications .dropdown-menu td.actions{
+    width: 27px;
+    vertical-align: bottom;
+}
+.notifications .dropdown-menu td.actions .close{
+    top: 3px;
+    position: absolute;
+    right: 8px;
+    display: none;
+}
+.notifications .dropdown-menu tr:hover td.actions .close{
+    display: block;
+}
 .modal-wide{
     width: 766px;
     margin-left: -383px;
+}
+
+.notifications .dropdown-menu .actions .btn.btn-mini.btn-success.btn-block {
+    margin-top: 23px;
 }
 
 .modal-wide .modal-body{

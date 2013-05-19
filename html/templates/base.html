@@ -31,13 +31,9 @@
         <link href="/bootstrap/css/bootstrap.min.css" rel="stylesheet" media="screen">
          -->
         <link href="/bootstrap/css/bootstrap-combined.no-icons.min.css" rel="stylesheet" media="screen">
-
         <link href="/css/fontawesome/css/font-awesome.min.css" rel="stylesheet" media="screen">
-
-
-
         <link rel="stylesheet" href="/css/main.css">
-        <link rel="stylesheet" href="/css/smoothness/jquery-ui-1.10.1.custom.css">        
+        <link rel="stylesheet" href="/css/li-scroller.css">        
         
         <script src="/js/vendor/jquery-1.9.0.min.js"></script>
         <script src="/js/vendor/jquery-ui-1.10.1.custom.min.js"></script>
@@ -85,13 +81,47 @@
                         {%endif%}
                         {% endfor %}
                     </ul>
-                    <form class="navbar-search pull-right" action="/results" method="post" accept-charset="UTF-8">
                     
+                    <ul class="nav pull-right notifications">
+                        <li class="dropdown">
+                        
+                        {%if messages|length%}
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+                            <span class="badge badge-info count">{{messages|length}}</span>
+                        </a>
+                        <table class="table dropdown-menu table-hover table-condensed">
+                            {%for message in messages%}
+                            <tr class="message {{message.getClass()}}" data-uuid={{message.uuid}}>
+                                <td style="width:100%;">
+                                    <span class="time muted">{{message.createTime|relativeTime}}</span><br/>
+                                    <span class="text">{{message.text}}</span>
+                                </td>
+                                <td class="actions">
+                                    <button class="close" onClick="messageClose('{{message.uuid}}')"><i class="icon-remove-sign"></i></button>
+                                    {%if message.confirm%}
+                                    <input type="button" class="btn btn-mini btn-success btn-block" onClick="messageConfirm('{{message.uuid}}')" value="OK"/>
+                                    {%endif%}
+                                    {%if message.deny%}
+                                    <input type="button" class="btn btn-mini btn-danger btn-block" value="No"/>
+                                    {%endif%}
+                                </td>
+                            </tr>
+                            {%endfor%}
+                        </table>
+                        {%else%}
+                        <a>
+                            <span class="badge">{{messages|length}}</span>
+                        </a>
+                        {%endif%}
+                        </li>
+                    </ul>
+                    <form class="navbar-search pull-right" action="/results" method="post" accept-charset="UTF-8">
                         <div class="input-append">
                             <input type="text" class="search-querdy" placeholder="Search" name="search_query" autocomplete="off" style="width: 100%;"/>
                             <span class="add-on"><i class="icon-remove"></i></span>
                         </div>
                     </form>
+         
                 </div>
             </div>
         
@@ -103,12 +133,12 @@
             {% endblock %}
         
             <footer>
-            {% block footer%}  
-            <a href="/updateAll" title="It works but the new page is bugging out, just refresh the page again">Refresh all</a> -
-            <a href="/shutdown">Shutdown</a> -
-            <a href="/reboot" title="does a hard reboot. this will rescan plugins">Reboot</a> - 
-            <a href="/about">About</a>
-            {%endblock%}
+                {% block footer%}  
+                <a href="/updateAll" title="It works but the new page is bugging out, just refresh the page again">Refresh all</a> -
+                <a href="/shutdown">Shutdown</a> -
+                <a href="/reboot" title="does a hard reboot. this will rescan plugins">Reboot</a> - 
+                <a href="/about">About</a>
+                {%endblock%}
             </footer>
         </div>    
         {% block js%}

@@ -241,11 +241,11 @@ class ZipPluginInstaller():
                 break
         else:
             manager.setNewMessage('error', 'Could not find the extracted plugin')
-            manager.setNewMessage('error', '"name" must match folder name!')
+            manager.setNewMessage('error', '"name" field must match folder name!')
             return False
 
         manager.setNewMessage('info', 'Copying files to:')
-        plugin_des = '%s %s' % (repo_plugin.name, repo_plugin.versionHuman())
+        plugin_des = '%s %s %s' % (repo_plugin.name, repo_plugin.identifier, repo_plugin.versionHuman())
         plugin_des = plugin_des.replace(' ', '-').replace('.', '_')
         plugin_root = os.path.join(install_path, repo_plugin.type)
         manager.setFolderUpAsModule(plugin_root)
@@ -300,7 +300,7 @@ class RepoPlugin(object):
         self.identifier = identifier
 
     def checkType(self):
-        return self.type in allClasses
+        return self.type in allClasses + ['Compilations']
 
     def versionHuman(self):
         return '%s.%s' % (self.major_version, self.minor_version)

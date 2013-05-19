@@ -42,6 +42,7 @@ class CoreUpdater(object):
         self.install_type = self._find_install_type()
         self.info = None
 
+        log('Install type: %s' % install_type_names[self.install_type])
         if self.install_type == install_type_exe:
             self.updater = WindowsUpdateManager()
         if self.install_type == install_type_mac:
@@ -56,7 +57,7 @@ class CoreUpdater(object):
     def _find_install_type(self):
         """Determines how this copy of XDM was installed."""
         if getattr(sys, 'frozen', None) == 'macosx_app': # check if we're a mac build
-            install_type = 'osx'
+            install_type = install_type_mac
         elif sys.platform == 'win32': # check if we're a windows build
             install_type = install_type_exe
         elif os.path.isdir(os.path.join(xdm.APP_PATH, '.git')):
@@ -77,13 +78,17 @@ class CoreUpdater(object):
 
         return self.info
 
+    def update(self):
+        self.updater.update()
+        return True
+
 
 class UpdateResponse(object):
     def __init__(self):
         self._reset()
 
     def _reset(self):
-        self.needUpdate = False
+        self.needUpdate = None
         self.localVersion = 0
         self.externalVersion = 0
         self.message = 'No update needed'
@@ -111,7 +116,8 @@ class UpdateManager(object):
         return self.response
 
     def update(self):
-        return False
+        log.warning('sorry update not implemented')
+        return self.response
 
 
 class BinaryUpdateManager(UpdateManager):
@@ -123,11 +129,23 @@ class WindowsUpdateManager(BinaryUpdateManager):
 
 
 class MacUpdateManager(BinaryUpdateManager):
-    pass
+
+    def need_update(self):
+        self.response.needUpdate = None
+        msg = 'sorry update not implemented for Mac App'
+        log.warning(msg)
+        self.response.message = msg
+        return self.response
 
 
 class SourceUpdateManager(object):
-    pass
+
+    def need_update(self):
+        self.response.needUpdate = None
+        msg = 'sorry update not implemented for Source install'
+        log.warning(msg)
+        self.response.message = msg
+        return self.response
 
 
 class GitUpdateManager(UpdateManager):
@@ -145,7 +163,7 @@ class GitUpdateManager(UpdateManager):
 
         if repo.is_dirty():
             self.response.extraData['dirty_git'] = True
-            msg = "Running on a dirty git installation! No real update check was done."
+            msg = "Running on a dirty git installation! No real check was done."
             log.warning(msg)
             self.response.message = msg
             return self.response

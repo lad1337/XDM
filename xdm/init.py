@@ -48,21 +48,6 @@ def preDB(app_path, datadir):
         setattr(xdm, relativepathname, os.path.relpath(getattr(xdm, pathname), xdm.DATADIR))
         log('Set %s to %s' % (pathname, getattr(xdm, pathname)))
         log('Set %s to %s' % (relativepathname, getattr(xdm, relativepathname)))
-    """
-    xdm.IMAGEPATH = os.path.join(xdm.DATADIR, xdm.IMAGEDIR)
-    if not os.path.exists(xdm.IMAGEPATH):
-        os.mkdir(xdm.IMAGEPATH)
-    xdm.IMAGEPATH_RELATIVE = os.path.relpath(xdm.IMAGEPATH, xdm.APP_PATH)
-
-    xdm.TEMPPATH = os.path.join(xdm.DATADIR, xdm.TEMPDIR)
-    if not os.path.exists(xdm.TEMPPATH):
-        os.mkdir(xdm.TEMPPATH)
-    xdm.TEMPPATH_RELATIVE = os.path.relpath(xdm.TEMPPATH, xdm.APP_PATH)
-
-    xdm.TEMPPATH = os.path.join(xdm.DATADIR, xdm.TEMPDIR)
-    if not os.path.exists(xdm.TEMPPATH):
-        os.mkdir(xdm.TEMPPATH)
-    xdm.TEMPPATH_RELATIVE = os.path.relpath(xdm.TEMPPATH, xdm.APP_PATH)"""
 
     xdm.DATABASE_PATH = os.path.join(xdm.DATADIR, xdm.DATABASE_NAME)
     xdm.CONFIG_DATABASE_PATH = os.path.join(xdm.DATADIR, xdm.CONFIG_DATABASE_NAME)
@@ -125,6 +110,8 @@ def postDB():
 def runTasks():
     """tasks to run on boot"""
     t = tasks.TaskThread(tasks.removeTempElements)
+    t.start()
+    t = tasks.TaskThread(tasks.coreUpdateCheck)
     t.start()
 
 

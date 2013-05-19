@@ -45,12 +45,18 @@ class WebRoot:
     env.filters['idSafe'] = helper.replace_some
     env.filters['statusLabelClass'] = helper.statusLabelClass
     env.filters['vars'] = helper.webVars
+    env.filters['relativeTime'] = helper.reltime
 
     def __init__(self, app_path):
         WebRoot.appPath = app_path
 
     def _globals(self):
-        return {'mtms': common.PM.MTM, 's': Status.select(), 'system': common.SYSTEM, 'PM': common.PM, 'common': common}
+        return {'mtms': common.PM.MTM,
+                's': Status.select(),
+                'system': common.SYSTEM,
+                'PM': common.PM,
+                'common': common,
+                'messages': common.MM.getMessages()}
 
     browser = WebFileBrowser()
     ajax = AjaxCalls(env)

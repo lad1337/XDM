@@ -2,13 +2,13 @@
 
 <table style="width:100%;" class="table table-condensed">
 <tbody>
-{% for event in events %}
+    {% for event in events %}
     <tr title="{{event.id}}">
-        <td class="nice-time">{{event.getNiceTime()}}</td>
+        <td class="nice-time">{{event.time|relativeTime}}</td>
         <td class="event-type">{{event.event}}</td>
         <td>{{event.human()}}</td>
     </tr>
-{%else%}
+    {%else%}
     <tr class="notice">
         <td>
             <h4>No events yet.</h4>

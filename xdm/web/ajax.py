@@ -152,6 +152,16 @@ class AjaxCalls:
         return json.dumps({'result': True, 'data': common.REPOMANAGER.getLastInstallMessages(), 'msg':''})
 
     @cherrypy.expose
+    def messageClose(self, uuid):
+        result = common.MM.closeMessage(uuid)
+        return json.dumps({'result': result, 'data':[], 'msg':''})
+
+    @cherrypy.expose
+    def messageConfirm(self, uuid):
+        result = common.MM.confirmMessage(uuid)
+        return json.dumps({'result': result, 'data':[], 'msg':''})
+
+    @cherrypy.expose
     def save(self, **kwargs):
         actions = {}
         if 'saveOn' in kwargs:

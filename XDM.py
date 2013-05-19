@@ -191,7 +191,7 @@ class RunApp():
                 '/bootstrap': {'tools.staticdir.on': True, 'tools.staticdir.dir': bootstrap_path},
                 '/images': {'tools.staticdir.on': True, 'tools.staticdir.dir': images},
                 '/img': {'tools.staticdir.on': True, 'tools.staticdir.dir': images_path},
-                '/favicon.ico': {'tools.staticfile.on': True, 'tools.staticfile.filename': os.path.join(images_path, 'favicon.ico')},
+                '/favicon.ico': {'tools.staticfile.on': True, 'tools.staticfile.filename': os.path.join(images_path, 'favicon.ico')}
                }
         conf.update(self.pluginResPaths)
 

@@ -1,5 +1,4 @@
-XDM
-===
+![XDM](http://xdm.lad1337.de/img/xdm-logo.svg "XDM")
 
 XDM: Xtentable Download Manager. Plugin based media collection manager.
 
@@ -9,10 +8,9 @@ Official main plugin repository at [https://github.com/lad1337/XDM-main-plugin-r
 
 
 Libraries in use
-===============
+----------------
 
-Backend
--------
+### Backend
 
 - [CherryPy](http://www.cherrypy.org/): A Minimalist Python Web Framework
 - [Requests](http://docs.python-requests.org/en/latest/): HTTP for Humans
@@ -29,10 +27,9 @@ Backend
 - [smmap](https://pypi.python.org/pypi/smmap): A pure git implementation of a sliding window memory map manager
 - [tmdb](http://github.com/doganaydin/themoviedb): themoviedb.org wrapper for api v3
 
-Frontend
----------
+### Frontend
 
-- [bootstrap](http://twitter.github.io/bootstrap/index.html): Sleek, intuitive, and powerful front-end framework for faster and easier web development.
+- [Bootstrap](http://twitter.github.io/bootstrap/index.html): Sleek, intuitive, and powerful front-end framework for faster and easier web development.
 - [Font Awesome](http://fortawesome.github.io/Font-Awesome/): The iconic font designed for Bootstrap.
 - [jQuery](http://jquery.com/): is a fast, small, and feature-rich JavaScript library.
 - [jQuery UI](http://jqueryui.com/): is a curated set of user interface interactions, effects, widgets, and themes built on top of the jQuery JavaScript Library.
@@ -46,7 +43,7 @@ Frontend
 (Plugins may use more libraries)
 
 Screenshots
-===========
+-----------
 
 [More screenshots](http://xdm.lad1337.de)
 

@@ -16,7 +16,7 @@
 <tbody>
 {% for e in events %}
     <tr>
-        <td>{{e.getNiceTime()}}</td>
+        <td>{{e.time|relativeTime}}</td>
         <td>{{e.game}}</td>
         <td>{{e.event}} {{e.obj_class}}</td>
         {% if e.obj_class == 'Generic' %}

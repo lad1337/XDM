@@ -46,7 +46,55 @@ $(document).ready(function() {
     $('.navbar .dropdown-toggle').dropdown()
 
     
+    $('.notifications .dropdown-menu').click(function (e) {
+        e.stopPropagation();
+      });
 });
+
+
+function messageClose(uuid){
+    var messageTr = $('tr.message[data-uuid="'+uuid+'"]')
+    data = {}
+    data['uuid'] = uuid;
+    $.getJSON('/ajax/messageClose', data, function(res){
+        if(res['result']){
+            messageTr.hide('slow')
+            newCount = parseInt($('.notifications .count').text()) - 1;
+            $('.notifications .count').text(newCount)
+            if(!newCount){
+                $('.notifications .count').removeClass('badge-info')
+                $('.notifications .table').remove()
+                $('.notifications .open').removeClass('open')
+            }
+        }
+    })
+}
+
+function messageConfirm(uuid){
+    var messageTr = $('tr.message[data-uuid="'+uuid+'"]')
+    $('.confirm', messageTr).addClass('btn-striped animate');
+    
+    data = {}
+    data['uuid'] = uuid;
+    $.getJSON('/ajax/messageConfirm', data, function(res){
+        if(res['result']){
+            messageTr.hide('slow')
+            newCount = parseInt($('.notifications .count').text()) - 1;
+            $('.notifications .count').text(newCount)
+            if(!newCount){
+                $('.notifications .count').removeClass('badge-info')
+                $('.notifications .table').remove()
+                $('.notifications .open').removeClass('open')
+            }
+        }else{
+
+            $('.confirm', messageTr).removeClass('animate').addClass('btn-danger');
+            
+            
+        }
+    })
+}
+
 
 function ajaxDeleteElement(id, deleteNode){
     data = {};

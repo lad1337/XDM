@@ -62,7 +62,7 @@ class Sabnzbd(Downloader):
         except:
             log.error("Unable to connect to Sanzbd. Most likely a timout. is Sab running")
             return False
-        log("final sab url %s" % r.url)
+        log("final sab url %s" % r.url, censor={self.c.apikey: 'apikey'})
         log("sab response code: %s" % r.status_code)
         log("sab response: %s" % r.text)
         log.info("NZB added to Sabnzbd")
@@ -74,7 +74,7 @@ class Sabnzbd(Downloader):
                    'mode': 'history',
                    'output': 'json'}
         r = requests.get(self._baseUrl(), params=payload)
-        log("Sab hitory url %s" % r.url)
+        log("Sab hitory url %s" % r.url, censor={self.c.apikey: 'apikey'})
         response = r.json()
         self._history = response['history']['slots']
         return self._history
@@ -134,6 +134,7 @@ class Sabnzbd(Downloader):
         payload['apikey'] = apikey
         r = requests.get(self._baseUrl(host, port), params=payload, timeout=20)
         response = r.json()
+        log("Sab test url %s" % r.url, censor={self.c.apikey: 'apikey'})
         if 'status' in response and not response['status']:
             return (False, {}, 'Connetion failure: %s' % response['error'])
         elif 'queue' in response:

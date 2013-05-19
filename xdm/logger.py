@@ -25,7 +25,7 @@ import logging
 import logging.handlers
 import inspect
 from jsonHelper import MyEncoder
-from xdm import common
+import xdm
 import traceback
 
 
@@ -103,7 +103,16 @@ class StructuredMessage(object):
 
 class LogWrapper():
 
-    def _log(self, lvl, msg, **kwargs):
+    def _log(self, lvl, msg, censor=None, **kwargs):
+        if type(censor) == tuple:
+            for s in censor:
+                msg = msg.replace(s, '##censored##')
+        elif type(censor) == dict:
+            for value, name in censor.items():
+                msg = msg.replace(value, '##%s##' % name)
+        elif type(censor) == str:
+            msg = msg.replace(censor, '##censored##')
+
         curframe = inspect.currentframe()
         calframe = inspect.getouterframes(curframe, 0)
         sm = StructuredMessage(lvl, msg, calframe, **kwargs)
@@ -118,29 +127,29 @@ class LogWrapper():
                 fLogger.log(lvl, sm)
             else:
                 self.debug('sending %s with notifiers' % lvlNames[lvl]['p'])
-                for n in common.PM.N:
+                for n in xdm.common.PM.N:
                     if (n.c.on_warning and lvl == logging.WARNING) or (n.c.on_error and lvl == logging.ERROR):
                         n.sendMessage('%s: %s' % (lvlNames[lvl]['p'], msg))
 
-    def error(self, msg, **kwargs):
+    def error(self, msg, censor=None, **kwargs):
         tb = traceback.format_exc()
         msg = '%s\nTraceback:\n%s' % (msg, tb)
-        self._log(logging.ERROR, msg, **kwargs)
+        self._log(logging.ERROR, msg, censor=censor, **kwargs)
 
-    def info(self, msg, **kwargs):
-        self._log(logging.INFO, msg, **kwargs)
+    def info(self, msg, censor=None, **kwargs):
+        self._log(logging.INFO, msg, censor=censor, **kwargs)
 
-    def warning(self, msg, **kwargs):
-        self._log(logging.WARNING, msg, **kwargs)
+    def warning(self, msg, censor=None, **kwargs):
+        self._log(logging.WARNING, msg, censor=censor, **kwargs)
 
-    def debug(self, msg, **kwargs):
-        self._log(logging.DEBUG, msg, **kwargs)
+    def debug(self, msg, censor=None, **kwargs):
+        self._log(logging.DEBUG, msg, censor=censor, **kwargs)
 
-    def critical(self, msg, **kwargs):
-        self._log(logging.CRITICAL, msg, **kwargs)
+    def critical(self, msg, censor=None, **kwargs):
+        self._log(logging.CRITICAL, msg, censor=censor, **kwargs)
 
-    def __call__(self, msg, **kwargs):
-        self._log(logging.DEBUG, msg, **kwargs)
+    def __call__(self, msg, censor=None, **kwargs):
+        self._log(logging.DEBUG, msg, censor=censor, **kwargs)
 
 log = LogWrapper()
 

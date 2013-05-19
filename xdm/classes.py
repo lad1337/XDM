@@ -761,9 +761,6 @@ class History(BaseModel):
             return self._humanConfig()
         return "not implemented for %s" % self.obj_class
 
-    def getNiceTime(self):
-        return helper.reltime(self.time, at=":")
-
     def _humanConfig(self):
         data_o = self._old()
         data_n = self._new()

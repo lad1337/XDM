@@ -22,8 +22,6 @@
 from xdm.logger import *
 from xdm import common
 from xdm.classes import *
-from xdm.plugins import Indexer
-import datetime
 import json
 from xdm.jsonHelper import MyEncoder
 import threading
@@ -40,9 +38,13 @@ class TaskThread(threading.Thread):
         self._target(*self._args)
 
 
-def coreUpdate():
-    res = common.UPDATER.check()
-    log.info('%s' % res)
+def coreUpdateCheck():
+    updateResponse = common.UPDATER.check()
+    log.info('%s' % updateResponse)
+    if updateResponse.needUpdate == True:
+        common.MM.createInfo(updateResponse.message)
+    elif updateResponse.needUpdate is None:
+        common.MM.createWarning(updateResponse.message)
 
 
 def runSearcher():
@@ -61,6 +63,16 @@ def runSearcher():
 
 
 def notify(element):
+
+    if element.status == common.SNATCHED:
+        common.MM.createInfo("%s was snatched" % element.getName())
+    elif element.status == common.COMPLETED:
+        common.MM.createInfo("%s is Completed" % element.getName())
+    elif element.status == common.DOWNLOADED:
+        common.MM.createInfo("%s was downloaded" % element.getName())
+    elif element.status == common.PP_FAIL:
+        common.MM.createWarning("%s had an error during post processing" % element.getName())
+
     for notifier in common.PM.N:
         createGenericEvent(element, 'notifier', 'Sending notification with %s on status %s' % (notifier, element.status))
         if notifier.c.on_snatch and element.status == common.SNATCHED:
