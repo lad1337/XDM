@@ -24,7 +24,7 @@ import urllib, ConfigParser
 from distutils.core import setup
 import zipfile, fnmatch
 import git
-from xdm import common
+
 
 ######################
 # helper functions
@@ -48,23 +48,30 @@ __   _______  __  __  __          _______ _   _
 /_/ \_\_____/|_|  |_|     \/  \/   |_____|_| \_|
 """
 
-def writeXDMVersionFile(major, minor, revision, build):
-    content = 'major = %s\nminor = %s\nrevision = %s\nbuild = %s\n' % (major, minor, revision, build)
+def writeXDMVersionFile(build):
+    from xdm import version
+
+    old_major = version.major
+    old_minor = version.minor
+    old_revision = version.revision
+    
+    content = 'major = %s\nminor = %s\nrevision = %s\nbuild = %s\n' % (version.major, version.minor, version.revision, build)
     # write
     writeXDMVersionFileRaw(content)
+    reload(version)
     
-    return (content == readXDMVersionFile())
-    #TODO: this does not work any more ... i dont know why the contens is correct but the import is always the wrong version
-    # re starting this script works ... so the version.py does not seam updated in a python way
-    # but i also tried compiling it gain befor importing it no success ... so we only check the contens for now :(
-    # now lets try to import the written file
-    from sickbeard.version import SICKBEARD_VERSION
-    if SICKBEARD_VERSION == version:
+    if version.major == old_major and\
+        version.minor == old_minor and\
+        version.revision == old_revision and\
+        version.build == build:
         return True
     else:
-        print "imported SICKBEARD_VERSION: '"+SICKBEARD_VERSION+"' ...",
+        print "written and importent versions dont match!!!"
         return False
-
+    
+    
+    return (content == readXDMVersionFile())
+    
 def writeXDMVersionFileRaw(content):
     # Create a file object:
     # in "write" mode
@@ -77,10 +84,6 @@ def readXDMVersionFile():
     content = versionFile.read()
     versionFile.close()
     return content
-
-def readVersion():
-    from xdm import version
-    return (version.major, version.minor, version.revision, version.build)
 
 def getNiceOSString(buildParams):
     if (sys.platform == 'darwin' and buildParams['target'] == 'auto') or buildParams['target'] in ('osx', 'OSX', 'MAC'):
@@ -495,12 +498,13 @@ def main():
     buildParams['onlyApp'] = False
     buildParams['py2AppArgs'] = ['py2app']
     buildParams['osxDmgImage'] = ""
+    buildParams['buildNumber'] = 0
 
 
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "", [ 'test', 'onlyApp', 'nightly', 'dmgbg=', 'py2appArgs=', 'target=', 'year=', 'month=', 'day=', 'branch=']) #@UnusedVariable
+        opts, args = getopt.getopt(sys.argv[1:], "", [ 'test', 'onlyApp', 'nightly', 'dmgbg=', 'py2appArgs=', 'target=', 'year=', 'month=', 'day=', 'branch=', 'buildNumber=']) #@UnusedVariable
     except getopt.GetoptError:
-        print "Available options: --test, --dmgbg, --onlyApp, --nightly, --py2appArgs, --target, --year, --month, --day, --branch"
+        print "Available options: --test, --dmgbg, --onlyApp, --nightly, --py2appArgs, --target, --year, --month, --day, --branch, --buildNumber"
         exit(1)
 
     for o, a in opts:
@@ -536,6 +540,9 @@ def main():
 
         if o in ('--branch'):
             buildParams['branch'] = a
+
+        if o in ('--buildNumber'):
+            buildParams['buildNumber'] = int(a)
 
     ######################
     # constants
@@ -576,14 +583,26 @@ def main():
     else:
         buildParams['currentBranch'] = getBranch(buildParams)
 
+
+
+    OLD_VERSION_CONTENT = None
+    if buildParams['buildNumber']:
+        print "we got a build number", buildParams['buildNumber']
+        # save old version.py
+        OLD_VERSION_CONTENT = readXDMVersionFile()
+        # write new version.py
+        if not writeXDMVersionFile(buildParams['buildNumber']):
+            print 'error while writing the new version file'
+            exit(1)
+        print readXDMVersionFile()
+
+    from xdm import common
     # this is the 'branch yy.mm(.dd)' string
-    buildParams['build'] = "%s %s" % (buildParams['branch'], common.getVersionHuman().replace("'", ''))
+    buildParams['build'] = "%s %s" % (buildParams['branch'], common.getVersionHuman())
     # or for nightlys yy.mm.commit
     if buildParams['nightly']:
         buildParams['build'] = "%s.%s" % (buildParams['dateVersion'], buildParams['gitNewestCommitShort'])
 
-    # the new SICKBEARD_VERSION string visible to the user and used in the binary package file name
-    buildParams['newSBVersion'] = common.getVersionHuman()
 
 
     buildParams['packageName'] = "%s-%s-%s" % (buildParams['name'] , buildParams['osName'] , buildParams['build']) # volume name
@@ -631,6 +650,11 @@ def main():
         result = False
 
     if result:
+        # reset version file
+        if OLD_VERSION_CONTENT is not None:
+            print "Rewriting the old version file"
+            writeXDMVersionFileRaw(OLD_VERSION_CONTENT)
+
         # remove the temp build dirs
         if os.path.exists('build'):
             shutil.rmtree('build')
