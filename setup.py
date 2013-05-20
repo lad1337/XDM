@@ -38,6 +38,8 @@ __   _______  __  __    ____   _______   __
  / . \| |__| | |  | | | |__| |____) |/ . \ 
 /_/ \_\_____/|_|  |_|  \____/|_____//_/ \_\
 """
+
+
 def fancyLogoWin():
     return r"""
 __   _______  __  __  __          _______ _   _ 
@@ -48,30 +50,25 @@ __   _______  __  __  __          _______ _   _
 /_/ \_\_____/|_|  |_|     \/  \/   |_____|_| \_|
 """
 
-def writeXDMVersionFile(build):
+
+def writeXDMVersionFile(major, minor, revision, build):
     from xdm import version
 
-    old_major = version.major
-    old_minor = version.minor
-    old_revision = version.revision
-    
-    content = 'major = %s\nminor = %s\nrevision = %s\nbuild = %s\n' % (version.major, version.minor, version.revision, build)
+    content = 'major = %s\nminor = %s\nrevision = %s\nbuild = %s\n' % (major, minor, revision, build)
     # write
     writeXDMVersionFileRaw(content)
     reload(version)
-    
-    if version.major == old_major and\
-        version.minor == old_minor and\
-        version.revision == old_revision and\
+
+    if version.major == major and\
+        version.minor == minor and\
+        version.revision == revision and\
         version.build == build:
         return True
     else:
         print "written and importent versions dont match!!!"
         return False
-    
-    
-    return (content == readXDMVersionFile())
-    
+
+
 def writeXDMVersionFileRaw(content):
     # Create a file object:
     # in "write" mode
@@ -79,11 +76,13 @@ def writeXDMVersionFileRaw(content):
     versionFile.writelines(content)
     versionFile.close()
 
+
 def readXDMVersionFile():
     versionFile = open(os.path.join("xdm", "version.py"), "r+")
     content = versionFile.read()
     versionFile.close()
     return content
+
 
 def getNiceOSString(buildParams):
     if (sys.platform == 'darwin' and buildParams['target'] == 'auto') or buildParams['target'] in ('osx', 'OSX', 'MAC'):
@@ -93,13 +92,15 @@ def getNiceOSString(buildParams):
     else:
         return "unknown"
 
+
 def getLatestCommitID(buildParams):
     repo = git.Repo('./')                   # get the local repo
     local_commit = repo.commit()                    # latest local commit
-    
+
     longID = local_commit.hexsha
     shortID = longID[:6]
     return (longID, shortID)
+
 
 def getBranch(buildParams):
     branchRaw = subprocess.Popen(["git", "branch"], stdout=subprocess.PIPE).communicate()[0]
@@ -110,6 +111,7 @@ def getBranch(buildParams):
         return match.group(2)
     else:
         return "unknown"
+
 
 def writeChangelog(buildParams):
     # start building the CHANGELOG.txt
@@ -134,6 +136,7 @@ def writeChangelog(buildParams):
         print "changelog writen"
     else:
         print "No changes found, keeping old changelog"
+
 
 def recursive_find_data_files(root_dir, allowed_extensions=('*')):
     to_return = {}
@@ -174,6 +177,7 @@ def allFiles(dir):
             files.append(fullFile)
 
     return files
+
 
 #####################
 #  build functions  #
@@ -307,6 +311,7 @@ def buildWIN(buildParams):
     print "########################################"
     return True
 
+
 def buildOSX(buildParams):
     # OSX constants
     bundleIdentifier = "de.lad1337.xdm" # unique program identifier
@@ -344,8 +349,7 @@ def buildOSX(buildParams):
                   'lib',
                   'rootLibs',
                   'plugins']
-    _NSHumanReadableCopyright = "(c) %s The %s-Team\nBuild on: %s %s\nBased on: %s\nPython used & incl: %s" % (buildParams['thisYearString'],
-                                                                                                                    buildParams['name'],
+    _NSHumanReadableCopyright = "(c) %s Dennis Lutter\nBuild on: %s %s\nBased on: %s\nPython used & incl: %s" % (buildParams['thisYearString'],
                                                                                                                     buildParams['osName'],
                                                                                                                     osVersion,
                                                                                                                     buildParams['gitNewestCommit'],
@@ -474,12 +478,12 @@ def buildOSX(buildParams):
     print "########################################"
     return True
 
+
 def main():
     print
     print "########################################"
     print "Starting build ..."
     print "########################################"
-
 
     buildParams = {}
     ######################
@@ -488,9 +492,9 @@ def main():
     buildParams['test'] = False
     buildParams['target'] = 'auto'
     buildParams['nightly'] = False
-    buildParams['year'] = ""
-    buildParams['month'] = ""
-    buildParams['day'] = ""
+    buildParams['major'] = ""
+    buildParams['minor'] = ""
+    buildParams['revision'] = ""
     buildParams['branch'] = ""
     # win
     buildParams['py2ExeArgs'] = [] # not used yet
@@ -500,11 +504,10 @@ def main():
     buildParams['osxDmgImage'] = ""
     buildParams['buildNumber'] = 0
 
-
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "", [ 'test', 'onlyApp', 'nightly', 'dmgbg=', 'py2appArgs=', 'target=', 'year=', 'month=', 'day=', 'branch=', 'buildNumber=']) #@UnusedVariable
+        opts, args = getopt.getopt(sys.argv[1:], "", [ 'test', 'onlyApp', 'nightly', 'dmgbg=', 'py2appArgs=', 'target=', 'major=', 'minor=', 'revision=', 'branch=', 'buildNumber=']) #@UnusedVariable
     except getopt.GetoptError:
-        print "Available options: --test, --dmgbg, --onlyApp, --nightly, --py2appArgs, --target, --year, --month, --day, --branch, --buildNumber"
+        print "Available options: --test, --dmgbg, --onlyApp, --nightly, --py2appArgs, --target, --major, --minor, --revision, --branch, --buildNumber"
         exit(1)
 
     for o, a in opts:
@@ -529,14 +532,14 @@ def main():
         if o in ('--target'):
             buildParams['target'] = a
 
-        if o in ('--year'):
-            buildParams['year'] = a
+        if o in ('--major'):
+            buildParams['major'] = int(a)
 
-        if o in ('--month'):
-            buildParams['month'] = a
+        if o in ('--minor'):
+            buildParams['minor'] = int(a)
 
-        if o in ('--day'):
-            buildParams['day'] = a
+        if o in ('--revision'):
+            buildParams['revision'] = int(a)
 
         if o in ('--branch'):
             buildParams['branch'] = a
@@ -550,7 +553,7 @@ def main():
     buildParams['name'] = "XDM" # this should never change
     buildParams['majorVersion'] = "BETA" # one day we will change that to BETA :P
 
-    buildParams['osName'] = getNiceOSString(buildParams); # look in getNiceOSString() for default os nice names
+    buildParams['osName'] = getNiceOSString(buildParams)# look in getNiceOSString() for default os nice names
 
     """
     # maybe some day the git tag is used this might be handy although it might be easier ti use the github lib
@@ -562,20 +565,6 @@ def main():
     # date stuff
     buildParams['thisYearString'] = date.today().strftime("%Y") # for the copyright notice
 
-    if not buildParams['year']:
-        buildParams['year'] = date.today().strftime("%y")
-    if not buildParams['month']:
-        buildParams['month'] = date.today().strftime("%m")
-    if buildParams['day'] == 'auto':
-        buildParams['day'] = date.today().strftime("%d")
-
-    if buildParams['day']:
-        buildParams['dateVersion'] = "%s.%s.%s" % (buildParams['year'], buildParams['month'], buildParams['day'])
-    else:
-        buildParams['dateVersion'] = "%s.%s" % (buildParams['year'], buildParams['month'])
-
-    # buildParams['gitLastCommit'] = subprocess.Popen(["git", "describe", "--tag"], stdout=subprocess.PIPE).communicate()[0].strip().split("-")[2] # bet there is a simpler way
-
     buildParams['gitNewestCommit'], buildParams['gitNewestCommitShort'] = getLatestCommitID(buildParams)
     if not buildParams['branch']:
         buildParams['branch'] = getBranch(buildParams)
@@ -583,7 +572,17 @@ def main():
     else:
         buildParams['currentBranch'] = getBranch(buildParams)
 
+    from xdm import common
+    current_major, current_minor, current_revision, current_build = common.getVersionTuple()
 
+    if not buildParams['major']:
+        buildParams['major'] = current_major
+    if not buildParams['minor']:
+        buildParams['minor'] = current_minor
+    if not buildParams['revision']:
+        buildParams['revision'] = current_revision
+    if not buildParams['buildNumber']:
+        buildParams['buildNumber'] = current_build
 
     OLD_VERSION_CONTENT = None
     if buildParams['buildNumber']:
@@ -591,19 +590,16 @@ def main():
         # save old version.py
         OLD_VERSION_CONTENT = readXDMVersionFile()
         # write new version.py
-        if not writeXDMVersionFile(buildParams['buildNumber']):
+        if not writeXDMVersionFile(buildParams['major'], buildParams['minor'], buildParams['revision'], buildParams['buildNumber']):
             print 'error while writing the new version file'
             exit(1)
         print readXDMVersionFile()
 
-    from xdm import common
     # this is the 'branch yy.mm(.dd)' string
     buildParams['build'] = "%s %s" % (buildParams['branch'], common.getVersionHuman())
     # or for nightlys yy.mm.commit
     if buildParams['nightly']:
         buildParams['build'] = "%s.%s" % (buildParams['dateVersion'], buildParams['gitNewestCommitShort'])
-
-
 
     buildParams['packageName'] = "%s-%s-%s" % (buildParams['name'] , buildParams['osName'] , buildParams['build']) # volume name
     buildParams['packageName'] = buildParams['packageName'].replace(" ", "-")
@@ -634,9 +630,7 @@ def main():
     # write changelog
     #writeChangelog(buildParams)
 
-
     curFancyLogo = ""
-
 
     # os switch
     if buildParams['osName'] == 'OSX':
@@ -652,7 +646,10 @@ def main():
     if result:
         # reset version file
         if OLD_VERSION_CONTENT is not None:
+            print
+            print "########################################"
             print "Rewriting the old version file"
+            print "########################################"
             writeXDMVersionFileRaw(OLD_VERSION_CONTENT)
 
         # remove the temp build dirs

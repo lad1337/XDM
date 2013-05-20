@@ -42,9 +42,13 @@ def coreUpdateCheck():
     updateResponse = common.UPDATER.check()
     log.info('%s' % updateResponse)
     if updateResponse.needUpdate == True:
-        common.MM.createInfo(updateResponse.message)
+        common.MM.createInfo('%s Update now?' % updateResponse.message, confirm=coreUpdateDo)
     elif updateResponse.needUpdate is None:
         common.MM.createWarning(updateResponse.message)
+
+
+def coreUpdateDo():
+    updateResponse = common.UPDATER.update()
 
 
 def runSearcher():

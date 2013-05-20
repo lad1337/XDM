@@ -25,6 +25,11 @@ import xdm
 import git
 from xdm.logger import *
 from lib import requests
+from xdm import version, common, actionManager
+import re
+from subprocess import call
+import urllib
+import subprocess
 
 install_type_exe = 0# any compiled windows build
 install_type_mac = 1# any compiled mac osx build
@@ -42,7 +47,7 @@ class CoreUpdater(object):
         self.install_type = self._find_install_type()
         self.info = None
 
-        log('Install type: %s' % install_type_names[self.install_type])
+        log.info('CoreUpdate is working with version %s on %s' % (xdm.common.getVersionFloat(), install_type_names[self.install_type]))
         if self.install_type == install_type_exe:
             self.updater = WindowsUpdateManager()
         if self.install_type == install_type_mac:
@@ -79,7 +84,8 @@ class CoreUpdater(object):
         return self.info
 
     def update(self):
-        self.updater.update()
+        if self.updater.update():
+            actionManager.executeAction('hardReboot', 'Updater')
         return True
 
 
@@ -121,7 +127,15 @@ class UpdateManager(object):
 
 
 class BinaryUpdateManager(UpdateManager):
-    pass
+
+    def __init__(self):
+        super(BinaryUpdateManager, self).__init__()
+        self.base_url = 'http://xdm.lad1337.de/latest.php'
+        self.branch = 'master'
+        if version.build:
+            self.branch = 'nightly'
+
+        self.response.localVersion = common.getVersionHuman()
 
 
 class WindowsUpdateManager(BinaryUpdateManager):
@@ -131,13 +145,66 @@ class WindowsUpdateManager(BinaryUpdateManager):
 class MacUpdateManager(BinaryUpdateManager):
 
     def need_update(self):
-        self.response.needUpdate = None
-        msg = 'sorry update not implemented for Mac App'
-        log.warning(msg)
-        self.response.message = msg
+        payload = {'os': 'osx',
+                   'branch': self.branch}
+
+        r = requests.get(self.base_url, params=payload)
+        json = r.json()
+        float_version_external = common.convertVersionToFloat(json['major'], json['minor'], json['revision'], json['build'])
+        self.response.externalVersion = common.makeVersionHuman(json['major'], json['minor'], json['revision'], json['build'])
+
+        if common.getVersionFloat() < float_version_external:
+            self.response.needUpdate = True
+            msg = 'Update available %s' % self.response.externalVersion
+            log.info(msg)
+            self.response.message = msg
+        else:
+            self.response.needUpdate = False
+            self.response.message = 'No update available'
         return self.response
 
+    def update(self):
 
+        payload = {'os': 'osx',
+                   'branch': self.branch}
+        r = requests.get(self.base_url, params=payload)
+        json = r.json()
+        new_link = json['link']
+
+        if not new_link:
+            log(u"Unable to find a new version link on , not updating")
+            return False
+
+        # download the dmg
+        try:
+            m = re.search(r'(^.+?)/[\w_\-\. ]+?\.app', xdm.APP_PATH)
+            installPath = m.group(1)
+
+            log(u"Downloading update file from " + str(new_link))
+            (filename, headers) = urllib.urlretrieve(new_link) #@UnusedVariable
+            
+            log(u"New dmg at " + filename)
+            os.system("hdiutil mount %s | grep /Volumes/XDM >update_mount.log" % (filename))
+            fp = open('update_mount.log', 'r')
+            data = fp.read()
+            fp.close()
+            m = re.search(r'/Volumes/(.+)', data)
+            updateVolume = m.group(1)
+            log(u"Copying app from /Volumes/%s/XDM.app to %s" % (updateVolume, installPath))
+            call(["cp", "-rf", "/Volumes/%s/XDM.app" % updateVolume, installPath])
+            
+            log(u"Eject imgae /Volumes/%s/" % updateVolume)
+            call(["hdiutil", "eject", "/Volumes/%s/" % updateVolume], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            
+            # delete the dmg
+            log(u"Deleting dmg file from " + str(filename))
+            os.remove(filename)
+
+        except:
+            log.error(u"Error while trying to update: ")
+            return False
+
+        return True
 class SourceUpdateManager(object):
 
     def need_update(self):

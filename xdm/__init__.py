@@ -109,7 +109,10 @@ class Common(object):
             return 'txt'
 
     def getVersionFloat(self):
-        return float('%s.%s' % (str(version.major * 1000 + version.minor * 100 + version.revision), version.build))
+        return self.convertVersionToFloat(version.major, version.minor, version.revision, version.build)
+
+    def convertVersionToFloat(self, major, minor, revision, build):
+        return float('%s.%s' % (str(major * 1000 + minor * 100 + revision), build))
 
     def getVersionTuple(self):
         return (version.major, version.minor, version.revision, version.build)
@@ -120,9 +123,12 @@ class Common(object):
         return '%s.%s.%s' % (version.major, version.minor, version.revision)
 
     def getVersionHuman(self):
+        return self.makeVersionHuman(version.major, version.minor, version.revision, version.build)
+
+    def makeVersionHuman(self, major, minor, revision, build):
         if version.build:
-            return "%s %s.%s.%s.%s" % (major_names[version.major], version.major, version.minor, version.revision, version.build)
-        return "%s %s.%s.%s" % (major_names[version.major], version.major, version.minor, version.revision)
+            return "%s %s.%s.%s.%s" % (major_names[major], major, minor, revision, build)
+        return "%s %s.%s.%s" % (major_names[major], major, minor, revision)
 
 common = Common()
 

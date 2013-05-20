@@ -25,6 +25,9 @@ import cherrypy
 import traceback
 from xdm.logger import *
 from xdm import common
+import xdm
+import re
+import subprocess
 
 ACTIONS = ['reboot', 'hardReboot', 'recachePlugins']
 
@@ -55,7 +58,7 @@ def _callMethod(o, function):
         log.error("Error during action call %s of %s \nError: %s\n\n%s" % (o.name, function.__name__, ex, tb))
 
 
-def hardReboot():
+def oldhardReboot():
     # this should not be here ... because its very strong and should not be in the plugin manager
     # how will it react to a .exe ?
     # how will it to an .app ?
@@ -65,3 +68,34 @@ def hardReboot():
     log.info("Doing a hard REBOOT!!")
     python = sys.executable
     os.execl(python, python, * sys.argv)
+    
+    
+def hardReboot():
+    log(u"Determining restart method...")
+    install_type = common.UPDATER.install_type
+
+    popen_list = []
+
+    if install_type in (xdm.updater.install_type_git, xdm.updater.install_type_source):
+        popen_list = [sys.executable, os.path.normpath(os.path.abspath(sys.argv[0]))]
+    elif install_type == xdm.updater.install_type_exe:
+        if hasattr(sys, 'frozen'):
+            # c:\dir\to\updater.exe 12345 c:\dir\to\sickbeard.exe
+            popen_list = [os.path.join(xdm.APP_PATH, 'updater.exe'), str(os.getpid()), sys.executable]
+        else:
+            log(u"Unknown XDM launch method, please file a bug report about this")
+    elif install_type == xdm.updater.install_type_mac:
+        m = re.search(r'(^.+?)/Contents', xdm.APP_PATH)
+        executablePath = os.path.join(m.group(0), "MacOS", "XDM")
+        popen_list = [executablePath]
+
+    if popen_list:
+        popen_list += sys.argv[1:]
+        if '--nolaunch' not in popen_list:
+            popen_list += ['--nolaunch']
+        log(u"Restarting XDM with " + str(popen_list))
+        subprocess.Popen(popen_list, cwd=os.getcwd())
+    else:
+        log(u"not able to restart")
+    os._exit(0)
+    

@@ -47,7 +47,7 @@ class MessageManager(object):
         if confirm is not None:
             m.addConfirmAction(MessageAction(confirm))
         if deny is not None:
-            m.addDenyAction(MessageAction(confirm))
+            m.addDenyAction(MessageAction(deny))
 
         self.messages[uuid] = m
         return m
