@@ -1,6 +1,6 @@
 ![XDM](http://xdm.lad1337.de/img/xdm-logo.svg "XDM")
 
-XDM: Xtentable Download Manager. Plugin based media collection manager.
+XDM: eXtendable Download Manager. Plugin based media collection manager.
 
 XDM is at BETA stage
 Current offical site [http://xdm.lad1337.de](http://xdm.lad1337.de)<br/>
