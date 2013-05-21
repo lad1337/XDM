@@ -4,7 +4,7 @@ from xdm.plugins import *
 
 # this class is special because it will be set to SYSTEM in the whole app
 class SystemConfig(System):
-    version = "0.17"
+    version = "0.18"
     _config = {'login_user': '',
                'login_password': '',
                'port': 8085,
@@ -18,7 +18,8 @@ class SystemConfig(System):
                'enabled': True,
                'again_on_fail': False,
                'resnatch_same': False,
-               'defaut_mt_select': ''
+               'defaut_mt_select': '',
+               'dont_open_browser': False
                }
 
     def _clearAllUnsedConfgs(self):
@@ -38,7 +39,8 @@ class SystemConfig(System):
                     'resnatch_same': {'human': 'Resnatch Same', 'desc': 'If on XDM will resnatch the same download after a failure (if Retry is on at all)'},
                     'extra_plugin_path': {'human': 'Extra Plugin Path', 'on_change_actions': ['reboot']},
                     'plugin_desc': 'System wide configurations',
-                    'defaut_mt_select': {'human': 'Default MediaType'}
+                    'defaut_mt_select': {'human': 'Default MediaType'},
+                    'dont_open_browser': {'human': 'Dont open the browser on start'}
                     }
     single = True
 

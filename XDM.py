@@ -152,7 +152,7 @@ class RunApp():
         host = common.SYSTEM.c.socket_host
         https = False
         try:
-            if not options.nolaunch:
+            if not (options.nolaunch or common.SYSTEM.c.dont_open_browser):
                 print "------------------- launch Browser ( " + str(host) + ":" + str(port) + ") -------------------"
                 timer = threading.Timer(2, launchBrowser, [host, port, https])
                 timer.start()
