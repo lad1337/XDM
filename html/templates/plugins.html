@@ -23,6 +23,24 @@
                     {{plugin.screenName}}<br/>
                     <span class="muted">
                         {{plugin.identifier.replace('.','.&shy;')}}
+                        {%if plugin.identifier%}
+                        <a href="#json_{{plugin.identifier|idSafe}}" data-toggle="modal"><i class="icon-code"></i></a>
+                        <div class="modal modal-wide hide fade" id="json_{{plugin.identifier|idSafe}}" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                                <h3>JSON for {{plugin.screenName}}</h3>
+                            </div>
+                            <div class="modal-body">
+                                <pre>{{plugin.createRepoJSON()}}</pre>
+                            </div>
+                            <div class="modal-footer">
+                                <p class="muted pull-left">
+                                    Use this in your repo JSON 
+                                </p>
+                                <button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
+                            </div>
+                        </div>
+                        {%endif%}
                     </span>
                 </td>
                 <td>{{plugin._type}}</td>

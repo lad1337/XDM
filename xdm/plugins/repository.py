@@ -294,7 +294,6 @@ class RepoPlugin(object):
         self.format = info['format']
         self.name = info['name']
         self.desc = info['desc']
-        self.update_url = info['update_url']
         self.download_url = info['download_url']
         self.type = info['type']
         self.identifier = identifier

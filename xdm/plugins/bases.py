@@ -28,6 +28,8 @@ from xdm.classes import *
 from xdm.logger import *
 from meta import *
 from xdm.helper import replace_all
+import json
+import collections
 
 
 """plugins should not set the status of an element !!! it will be done in the loops that call / use the plugins"""
@@ -279,6 +281,21 @@ class Plugin(object):
         return int(self.version.split('.')[0])
     major_version = property(_get_major_version)
 
+    def createRepoJSON(self):
+        major_version, minor_version = self.version.split('.')
+        desc = "Please write a description for me in config_meta['plugin_desc']"
+        if 'plugin_desc' in self.config_meta:
+            desc = self.config_meta['plugin_desc']
+        #http://stackoverflow.com/a/4402799/729059
+        data = collections.OrderedDict([("major_version", major_version),
+                                        ("minor_version", minor_version),
+                                        ("name", self.screenName),
+                                        ("type", self._type),
+                                        ("desc", desc),
+                                        ("download_url", "##enter the url to the zip file here !##")])
+
+        out = {self.identifier: [data]}
+        return json.dumps(out, indent=4, sort_keys=False)
 
 class DownloadType(Plugin):
     """Simple skeleton for a "DownloadType"."""
