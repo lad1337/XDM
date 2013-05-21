@@ -153,7 +153,10 @@ class MacUpdateManager(BinaryUpdateManager):
         float_version_external = common.convertVersionToFloat(json['major'], json['minor'], json['revision'], json['build'])
         self.response.externalVersion = common.makeVersionHuman(json['major'], json['minor'], json['revision'], json['build'])
 
-        if common.getVersionFloat() < float_version_external:
+        _local_float = common.getVersionFloat()
+        log('Local float: %s vs External float %s' % (_local_float, float_version_external))
+
+        if _local_float < float_version_external:
             self.response.needUpdate = True
             msg = 'Update available %s' % self.response.externalVersion
             log.info(msg)

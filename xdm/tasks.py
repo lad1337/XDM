@@ -315,6 +315,9 @@ def runMediaAdder():
                         common.MM.createInfo('%s added %s' % (adder, ele.getName()))
                         if media not in successfulAdd:
                             successfulAdd.append(media)
+                            if ele.status == common.WANTED:
+                                t = TaskThread(searchElement, ele)
+                                t.start()
                 else:
                     log.info('%s did not find %s(%s)' % (provider, media.name, media.externalID))
         adder.successfulAdd(successfulAdd)
