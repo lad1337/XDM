@@ -3,7 +3,7 @@ from lib.peewee import *
 from os.path import join
 from lib.profilehooks import profile as profileHookFunction
 from functools import partial, update_wrapper, wraps
-from xdm.message import MessageManager
+from xdm.message import MessageManager, SystemMessageManager
 
 HOME_PATH = ""
 APP_PATH = ""
@@ -76,6 +76,7 @@ class Common(object):
     RUNPROFILER = False
     
     MM = MessageManager()
+    SM = SystemMessageManager()
 
     def getAllStatus(self):
         return [self.UNKNOWN, self.WANTED, self.SNATCHED, self.DOWNLOADED,

@@ -141,5 +141,24 @@ class MessageAction(object):
         return self.fn(*self.args, **self.kwargs)
 
 
+class SystemMessageManager(object):
 
+    def __init__(self):
+        self.system_messages = []
+        self._read_messages = []
+
+    def reset(self):
+        self.system_messages = []
+        self._read_messages = []
+
+    def setNewMessage(self, msg, lvl='info'):
+        self.system_messages.append((lvl, msg))
+
+    def getLastMessages(self):
+        out = []
+        for index, message in enumerate(self.system_messages):
+            if not index in self._read_messages:
+                out.append(message)
+                self._read_messages.append(index)
+        return out
  

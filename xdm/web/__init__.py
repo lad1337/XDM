@@ -215,11 +215,6 @@ class WebRoot:
         raise cherrypy.HTTPRedirect('/')
 
     @cherrypy.expose
-    def reboot(self):
-        actionManager.executeAction('hardReboot', 'Webgui')
-        raise cherrypy.HTTPRedirect("/")
-
-    @cherrypy.expose
     def startDownloadChecker(self):
         tasks.runChecker()
         raise cherrypy.HTTPRedirect("/")

@@ -28,6 +28,7 @@ from xdm import common
 import xdm
 import re
 import subprocess
+import time
 
 ACTIONS = ['reboot', 'hardReboot', 'recachePlugins']
 
@@ -68,10 +69,11 @@ def oldhardReboot():
     log.info("Doing a hard REBOOT!!")
     python = sys.executable
     os.execl(python, python, * sys.argv)
-    
-    
+
+
 def hardReboot():
-    log(u"Determining restart method...")
+    log("Determining restart method...")
+    common.SM.setNewMessage("Determining restart method...")
     install_type = common.UPDATER.install_type
 
     popen_list = []
@@ -89,13 +91,18 @@ def hardReboot():
         executablePath = os.path.join(m.group(0), "MacOS", "XDM")
         popen_list = [executablePath]
 
+    time.sleep(1)
     if popen_list:
         popen_list += sys.argv[1:]
         if '--nolaunch' not in popen_list:
             popen_list += ['--nolaunch']
         log(u"Restarting XDM with " + str(popen_list))
+        common.SM.setNewMessage("Restarting XDM with %s" % popen_list)
         subprocess.Popen(popen_list, cwd=os.getcwd())
     else:
         log(u"not able to restart")
+    common.SM.setNewMessage("Exiting out of this one. Bye bye and good luck!")
+    common.SM.setNewMessage("Please wait...")
+    time.sleep(2)
     os._exit(0)
-    
+

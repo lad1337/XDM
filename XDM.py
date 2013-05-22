@@ -224,6 +224,8 @@ class RunApp():
             cherrypy.log.screen = False
             cherrypy.engine.start()
             log.info("XDM web server running")
+            common.SM.setNewMessage("Up and running.")
+            common.SM.setNewMessage("Done!")
             cherrypy.engine.block()
         except KeyboardInterrupt:
             log.info("Shutting down XDM")

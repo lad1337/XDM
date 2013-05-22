@@ -87,10 +87,7 @@ function messageConfirm(uuid){
                 $('.notifications .open').removeClass('open')
             }
         }else{
-
             $('.confirm', messageTr).removeClass('animate').addClass('btn-danger');
-            
-            
         }
     })
 }
@@ -280,5 +277,64 @@ function pluginAjaxCall(self, p_type, p_instance, id, action){
             noty({text: p_type+'('+p_instance+') - '+$(self).val()+': '+res['msg'], type: 'error'})    
         $(self).removeClass('btn-striped animate')
     });
+}
+
+
+
+var firstMessage = true;
+function rebootModal(button){
+    id = $(button).data('identifier');
+    data = {}
+    name = 'Rebooting'
+    var frame = ajaxModal(button, name, '/ajax/reboot', data)
+    
+    firstMessage = true;        
+    window.setInterval(function(){messageScrobbler('getRebootMessage', true)}, 500);
+    $('.modal-body', frame).css('padding', 0)
+    $('.modal-header .close').remove()
+    $('.modal-footer button').hide()
+    $('.modal-backdrop').click(function(e){
+        e.preventDefautl()
+        return false;
+    })
+    return false;
+}
+
+function messageScrobbler(functionUrl, interval){
+    if (typeof interval == 'undefined')
+        interval = false;
+    
+    $.getJSON('/ajax/'+functionUrl, {}, function(res){
+        console.log(res)
+        var lastMessage = ''
+        $.each(res['data'],function(index, messageTuple){
+            if(firstMessage){
+                $('#install-shell').append('<li>XDM: ~$ <span class="'+messageTuple[0]+'">'+messageTuple[1]+'</span></li>')
+            }else{
+                $('#install-shell').append('<li><span class="'+messageTuple[0]+'">'+messageTuple[1]+'</span></li>')
+            }
+            $('#install-shell').parent().scrollTop(900000)
+            firstMessage = false;
+            lastMessage = messageTuple[1]
+
+        })
+        if(lastMessage != 'Done!' && !interval){
+            window.setTimeout(function(){messageScrobbler(functionUrl)}, 500);
+        }else if(lastMessage == 'Done!'){
+            $('#install-shell').append('<li><span class="info">XDM: ~$</span></li>')
+            $('#install-shell').parent().scrollTop(900000)
+            var modal = $('#install-shell').parent().parent();
+            $('.modal-footer button' ,modal).addClass('btn-success').text('Refresh page').click(function(e){
+                window.location.reload() 
+            }).show()
+            $(".modal-footer", modal).append('<span class="label label-info pull-left">Refreshing page in <span id="countdown"></span></span>');
+            $("#countdown").simpleCountDown({interval:1000,startFrom:30,
+                              callBack:function(){
+                                    window.location.reload();
+                              }
+            });
+           
+        }
+    })
 }
 

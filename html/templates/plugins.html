@@ -101,10 +101,7 @@ function ajaxRepoRecache(){
     window.setTimeout(function(){ajaxRepo()}, 1000);
 }
 
-
 function ajaxRepo(){
-
-    
     jQuery.get( '/ajax/repo', {}, function(res){
         if(!res){
             console.log('retrying')
@@ -160,7 +157,7 @@ function installModal(button){
     var frame = ajaxModal(button, name, '/ajax/installPlugin', data)
     
     firstMessage = true;        
-    window.setTimeout(repoScrobbler, 500);
+    window.setTimeout(function(){messageScrobbler('getRepoMessage')}, 500);
     $('.modal-body', frame).css('padding', 0)
     $('.modal-header .close').remove()
     return false;
@@ -174,47 +171,11 @@ function deinstallModal(button){
     var frame = ajaxModal(button, name, '/ajax/deinstallPlugin', data)
     
     firstMessage = true;        
-    window.setTimeout(repoScrobbler, 500);
+    window.setTimeout(function(){messageScrobbler('getRepoMessage')}, 500);
     $('.modal-body', frame).css('padding', 0)
     $('.modal-header .close').remove()
     return false;
 }
-
-function repoScrobbler(){
-    $.getJSON('/ajax/getRepoMessage', {}, function(res){
-        console.log(res)
-        var lastMessage = ''
-        $.each(res['data'],function(index, messageTuple){
-            if(firstMessage){
-                $('#install-shell').append('<li>XDM: ~$ <span class="'+messageTuple[0]+'">'+messageTuple[1]+'</span></li>')
-            }else{
-                $('#install-shell').append('<li><span class="'+messageTuple[0]+'">'+messageTuple[1]+'</span></li>')
-            }
-            firstMessage = false;
-            lastMessage = messageTuple[1]
-
-        })
-        if(lastMessage != 'Done!'){
-            window.setTimeout(repoScrobbler, 500);
-        }else{
-            $('#install-shell').append('<li><span class="info">XDM: ~$</span></li>')
-            var modal = $('#install-shell').parent().parent();
-            var closeButton = $('.modal-footer button' ,modal).addClass('btn-success').text('Refresh page').click(function(e){
-                window.location.reload() 
-            });
-            $(".modal-footer", modal).append('<span class="label label-info pull-left">Refreshing page in <span id="countdown"></span></span>')
-            $("#countdown").simpleCountDown({interval:1000,startFrom:30,
-                              callBack:function(){
-                                       closeButton.click();
-                              }
-            });
-            
-            
-        }
-    })
-}
-
-
 
 $(document).ready(function() {
     $('.progress .bar').resize(function(event){

@@ -106,6 +106,12 @@ class RepoManager(object):
     def deinstall(self, identifier):
         self._read_messages = []
         self.install_messages = [('info', 'deinstall.py -i %s' % identifier)]
+        if not identifier:
+            self.setNewMessage('error', 'The identifier is empty this should not happen !!')
+            self.setNewMessage('error', 'Deinstallation unsuccessful')
+            self.setNewMessage('info', 'Done!')
+            return
+
         old_instalation = None
         for plugin in common.PM.getAll(returnAll=True, instance='Default'):
             if plugin.identifier == identifier:

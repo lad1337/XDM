@@ -298,6 +298,7 @@ class Plugin(object):
         out = {self.identifier: [data]}
         return json.dumps(out, indent=4, sort_keys=False)
 
+
 class DownloadType(Plugin):
     """Simple skeleton for a "DownloadType"."""
     _type = 'DownloadType'

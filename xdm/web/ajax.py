@@ -162,6 +162,18 @@ class AjaxCalls:
         return json.dumps({'result': result, 'data':[], 'msg':''})
 
     @cherrypy.expose
+    def reboot(self):
+        common.SM.reset();
+        common.SM.setNewMessage('reboot.py -t NOW')
+        t = tasks.TaskThread(actionManager.executeAction, 'hardReboot', 'Webgui')
+        t.start()
+        return '<ul id="install-shell" class="shell"></ul>'
+
+    @cherrypy.expose
+    def getRebootMessage(self):
+        return json.dumps({'result': True, 'data': common.SM.getLastMessages(), 'msg':''})
+
+    @cherrypy.expose
     def save(self, **kwargs):
         actions = {}
         if 'saveOn' in kwargs:
