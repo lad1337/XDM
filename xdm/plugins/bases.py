@@ -291,6 +291,7 @@ class Plugin(object):
                                         ("minor_version", minor_version),
                                         ("name", self.screenName),
                                         ("type", self._type),
+                                        ("format", 'zip'),
                                         ("desc", desc),
                                         ("download_url", "##enter the url to the zip file here !##")])
 
