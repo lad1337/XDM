@@ -15,7 +15,12 @@
         <p>
         Thank you for using XDM: eXtendable Download Manager!
         </p>
-        Version: {{common.getVersionHuman()}} 
+        <h4>Version: {{common.getVersionHuman()}}</h4>
+        {% if common.UPDATER.info.needUpdate %}
+        <p>Update available to version {{common.UPDATER.info.externalVersion}}</p>
+        {%else%}
+        <p class="muted">No update available. Checked just now!</p>
+        {%endif%}
     </div>
     <div class="row-fluid">
         <div class="span6">

@@ -72,6 +72,7 @@ class WebRoot:
 
     @cherrypy.expose
     def about(self):
+        tasks.coreUpdateCheck()
         template = self.env.get_template('about.html')
         return template.render(platform=platform, originalArgs=sys.argv, xdm=xdm, **self._globals())
 
