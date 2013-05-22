@@ -30,6 +30,8 @@ import shutil
 class GameMover(PostProcessor):
     _config = {"replace_space_with": "_",
                }
+    version = "0.2"
+    identifier = 'de.lad1337.games.mover'
     screenName = 'Game Mover'
     addMediaTypeOptions = ['de.lad1337.games']
     config_meta = {'plugin_desc': 'This will move all the iso, img, wbfs from the path that is given to the path of the games platform.',
@@ -40,8 +42,9 @@ class GameMover(PostProcessor):
     def postProcessPath(self, element, filePath):
         destPath = self._getPath(element)
         if not destPath:
-            log.warning("Destination path for %s is not set. Stopping PP." % element)
-            return False
+            msg = "Destination path for %s is not set. Stopping PP." % element
+            log.warning(msg)
+            return (False, msg)
         # log of the whole process routine from here on except debug
         # this looks hacky: http://stackoverflow.com/questions/7935966/python-overwriting-variables-in-nested-functions
         processLog = [""]
@@ -85,7 +88,7 @@ class GameMover(PostProcessor):
 
         processLogger("File processing done")
         # write process log
-        logFileName = fixName(game.name + ".log", self.c.replace_space_with)
+        logFileName = fixName(element.name + ".log", self.c.replace_space_with)
         logFilePath = os.path.join(filePath, logFileName)
         try:
             # This tries to open an existing file but creates a new file if necessary.
@@ -97,4 +100,4 @@ class GameMover(PostProcessor):
         except IOError:
             pass
 
-        return success
+        return (success, processLog[0])

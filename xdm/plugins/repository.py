@@ -44,6 +44,7 @@ class RepoManager(object):
         self.caching = False
         self.last_cache = None
         self.updateable_plugins = {}
+        self.install_messages = []
 
     def cache(self):
         self.caching = True
@@ -63,7 +64,6 @@ class RepoManager(object):
         self.last_cache = datetime.datetime.now()
         self.cached = True
         self.caching = False
-        self.install_messages = []
 
     def getRepos(self):
         return self.repos
@@ -184,7 +184,7 @@ class RepoManager(object):
         self.setNewMessage('info', 'Starting download. please wait...')
         install_result = False
         try:
-            install_result =  downloader.install(self, plugin_to_update, install_path)
+            install_result = downloader.install(self, plugin_to_update, install_path)
         except Exception as ex:
             log.error('Something went wrong during download')
             self.setNewMessage('error', 'Error during download')
@@ -192,9 +192,12 @@ class RepoManager(object):
 
         if install_result:
             self.setNewMessage('info', 'Installation successful')
-            self.setNewMessage('info', 'Recaching plugins')
+            self.setNewMessage('info', 'Recaching plugins...')
             actionManager.executeAction('recachePlugins', ['RepoManager'])
-            self.setNewMessage('info', 'Recaching done (refresh page to see).')
+            self.setNewMessage('info', 'Recaching pugins done.')
+            self.setNewMessage('info', 'Recaching repos...')
+            self.cache()
+            self.setNewMessage('info', 'Recaching repos done. (please refresh page)')
         else:
             self.setNewMessage('error', 'Installation unsuccessful')
 
