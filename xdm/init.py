@@ -113,6 +113,8 @@ def runTasks():
     t.start()
     t = tasks.TaskThread(tasks.coreUpdateCheck)
     t.start()
+    t = tasks.TaskThread(common.REPOMANAGER.cache)
+    t.start()
 
 
 def _checkDefaults(resave=False):

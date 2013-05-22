@@ -64,11 +64,13 @@ class RepoManager(object):
         self.last_cache = datetime.datetime.now()
         self.cached = True
         self.caching = False
+        self.checkForUpdate()
 
     def getRepos(self):
         return self.repos
 
-    def checkForUpdate(self, plugins):
+    def checkForUpdate(self):
+        plugins = common.PM.getAll(True, 'Default')
         updateable_plugins = {}
         for plugin in plugins:
             if plugin.identifier:
@@ -125,9 +127,12 @@ class RepoManager(object):
             self.setNewMessage('error', 'Error during deletion')
             self.setNewMessage('error', '%s' % ex)
         else:
-            self.setNewMessage('info', 'Recaching plugins')
+            self.setNewMessage('info', 'Recaching plugins...')
             actionManager.executeAction('recachePlugins', ['RepoManager'])
-            self.setNewMessage('info', 'Recaching done (refresh page to see).')
+            self.setNewMessage('info', 'Recaching pugins done.')
+            self.setNewMessage('info', 'Recaching repos...')
+            self.cache()
+            self.setNewMessage('info', 'Recaching repos done. (please refresh page)')
         self.setNewMessage('info', 'Done!')
 
     def install(self, identifier):

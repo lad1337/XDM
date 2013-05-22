@@ -332,7 +332,7 @@ def removeTempElements():
 
 def cacheRepos():
     common.REPOMANAGER.cache()
-    common.REPOMANAGER.checkForUpdate(common.PM.getAll(True, 'Default'))
+    common.REPOMANAGER.checkForUpdate()
 
 
 # these might not belong in here
