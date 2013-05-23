@@ -17,7 +17,7 @@
         </p>
         <h4>Version: {{common.getVersionHuman()}}</h4>
         {% if common.UPDATER.info.needUpdate %}
-        <p>Update available to version {{common.UPDATER.info.externalVersion}}</p>
+        <p>Update available to version {{common.UPDATER.info.externalVersion}} <a href="#" onClick="modalCoreUpdate(this); return false;" class="btn btn-success">Update Now</a></p>
         {%else%}
         <p class="muted">No update available. Checked just now!</p>
         {%endif%}

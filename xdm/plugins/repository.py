@@ -79,7 +79,7 @@ class RepoManager(object):
                         if repo_plugin.identifier == plugin.identifier and self._updateable(repo_plugin, plugin):
                             updateable_plugins[plugin.identifier] = (repo_plugin, plugin)
                             common.MM.createInfo('%s as an update. Update now?' % (plugin.screenName), confirmJavascript="installModalFromMessage(this, '%s')" % plugin.identifier)
-    
+
         log.info('%s Plugins have an update' % len(updateable_plugins))
         self.updateable_plugins = updateable_plugins
 
@@ -89,8 +89,8 @@ class RepoManager(object):
         return ''
 
     def _updateable(self, repo_plugin, plugin):
-        print 'local', plugin.major_version, plugin.minor_version
-        print 'repo', repo_plugin.major_version, repo_plugin.minor_version
+        #print 'local', plugin.major_version, plugin.minor_version
+        #print 'repo', repo_plugin.major_version, repo_plugin.minor_version
         if repo_plugin.major_version > plugin.major_version:
             return True
         elif repo_plugin.major_version == plugin.major_version and repo_plugin.minor_version > plugin.minor_version:

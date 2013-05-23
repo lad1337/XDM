@@ -109,11 +109,8 @@ class Common(object):
             #log.warning("Download type with identifier %s was not found" % downloadTypeIdentifier)
             return 'txt'
 
-    def getVersionFloat(self):
-        return self.convertVersionToFloat(version.major, version.minor, version.revision, version.build)
-
-    def convertVersionToFloat(self, major, minor, revision, build):
-        return float('%s.%s' % (str(major * 1000 + minor * 100 + revision), build))
+    def isThisVersionNewer(self, major, minor, revision, build):
+        return (major, minor, revision, build) > self.getVersionTuple()
 
     def getVersionTuple(self):
         return (version.major, version.minor, version.revision, version.build)

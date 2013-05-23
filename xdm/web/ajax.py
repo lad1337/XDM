@@ -175,14 +175,21 @@ class AjaxCalls:
 
     @cherrypy.expose
     def shutdown(self):
-        common.SM.reset();
+        common.SM.reset()
         common.SM.setNewMessage('shutdown.py -t NOW')
         t = tasks.TaskThread(actionManager.executeAction, 'shutdown', 'Webgui')
         t.start()
         return '<ul id="install-shell" class="shell"></ul>'
 
+    @cherrypy.expose
+    def coreUpdate(self):
+        t = tasks.TaskThread(common.UPDATER.update)
+        t.start()
+        common.SM.reset()
+        common.SM.setNewMessage('update.py -t NOW')
+        return '<ul id="install-shell" class="shell"></ul>'
 
-
+    @cherrypy.expose
     @cherrypy.expose
     def save(self, **kwargs):
         actions = {}

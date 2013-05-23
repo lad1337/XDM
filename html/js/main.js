@@ -1,4 +1,6 @@
 
+var globalMessageInterval;
+var firstMessage = true;
     
 $(document).ready(function() {
     $(".youtube").youtube();
@@ -103,25 +105,6 @@ function ajaxDeleteElement(id, deleteNode){
         }
     })
 };
-
-function installModalFromMessage(button, identifier){
-    $(button).attr('data-identifier', identifier)
-    installModal(button)
-    $('.close', $(button).parent()).click()
-}
-
-function installModal(button){
-    var id = $(button).data('identifier');
-    data = {'identifier': id}
-    name = 'Installing '+id
-    var frame = ajaxModal(button, name, '/ajax/installPlugin', data)
-    
-    firstMessage = true;        
-    window.setTimeout(function(){messageScrobbler('getRepoMessage')}, 500);
-    $('.modal-body', frame).css('padding', 0)
-    $('.modal-header .close').remove()
-    return false;
-}
 
 
 function createModal(name){
@@ -300,9 +283,6 @@ function pluginAjaxCall(self, p_type, p_instance, id, action){
 }
 
 
-
-var firstMessage = true;
-
 function rebootModal(button){
     bootbox.confirm("Are you sure you want to reboot XDM?", function(result) {
         if(result)
@@ -316,7 +296,7 @@ function rebootModalExecute(button){
     var frame = ajaxModal(button, name, '/ajax/reboot', data)
     
     firstMessage = true;        
-    window.setInterval(function(){messageScrobbler('getSystemMessage', true)}, 500);
+    globalMessageInterval = window.setInterval(function(){messageScrobbler('getSystemMessage', true)}, 500);
     $('.modal-body', frame).css('padding', 0)
     $('.modal-header .close').remove()
     $('.modal-footer button').hide()
@@ -328,7 +308,6 @@ function rebootModalExecute(button){
 }
 
 
-var globalMessageInterval;
 function shutdownModal(button){
     bootbox.confirm("Are you sure you want to shutdown XDM?", function(result) {
         if(result)
@@ -354,6 +333,35 @@ function shutdownModalExecute(button){
     return false;
 }
 
+function installModalFromMessage(button, identifier){
+    $(button).attr('data-identifier', identifier)
+    installModal(button)
+    $('.close', $(button).parent()).click()
+}
+
+function installModal(button){
+    var id = $(button).data('identifier');
+    data = {'identifier': id}
+    name = 'Installing '+id
+    var frame = ajaxModal(button, name, '/ajax/installPlugin', data)
+    
+    firstMessage = true;        
+    window.setTimeout(function(){messageScrobbler('getRepoMessage')}, 500);
+    $('.modal-body', frame).css('padding', 0)
+    $('.modal-header .close').remove()
+    return false;
+}
+
+function modalCoreUpdate(button){
+    name = "Updateing XDM"
+    var frame = ajaxModal(button, name, '/ajax/coreUpdate', {})
+    
+    firstMessage = true;        
+    window.setInterval(function(){messageScrobbler('getSystemMessage', true)}, 500);
+    $('.modal-body', frame).css('padding', 0)
+    $('.modal-header .close').remove()
+    return false;
+}
 function messageScrobbler(functionUrl, interval, onErrorClass, onErrorMessage){
     if (typeof interval == 'undefined')
         interval = false;

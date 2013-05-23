@@ -47,7 +47,7 @@ class CoreUpdater(object):
         self.install_type = self._find_install_type()
         self.info = None
 
-        log.info('CoreUpdate is working with version %s on %s' % (xdm.common.getVersionFloat(), install_type_names[self.install_type]))
+        log.info('CoreUpdate is working with version %s on %s' % (xdm.common.getVersionString(), install_type_names[self.install_type]))
         if self.install_type == install_type_exe:
             self.updater = WindowsUpdateManager()
         if self.install_type == install_type_mac:
@@ -84,6 +84,7 @@ class CoreUpdater(object):
         return self.info
 
     def update(self):
+        common.SM.setNewMessage("Initialising core update")
         if self.updater.update():
             actionManager.executeAction('hardReboot', 'Updater')
         return True
@@ -150,13 +151,9 @@ class MacUpdateManager(BinaryUpdateManager):
 
         r = requests.get(self.base_url, params=payload)
         json = r.json()
-        float_version_external = common.convertVersionToFloat(json['major'], json['minor'], json['revision'], json['build'])
         self.response.externalVersion = common.makeVersionHuman(json['major'], json['minor'], json['revision'], json['build'])
 
-        _local_float = common.getVersionFloat()
-        log('Local float: %s vs External float %s' % (_local_float, float_version_external))
-
-        if _local_float < float_version_external:
+        if common.isThisVersionNewer(json['major'], json['minor'], json['revision'], json['build']):
             self.response.needUpdate = True
             msg = 'Update available %s' % self.response.externalVersion
             log.info(msg)
@@ -175,39 +172,55 @@ class MacUpdateManager(BinaryUpdateManager):
         new_link = json['link']
 
         if not new_link:
-            log(u"Unable to find a new version link on , not updating")
+            msg = "Unable to find a new version link on , not updating"
+            common.SM.setNewMessage(msg, 'error')
+            common.SM.setNewMessage('Done!')
+            log(msg)
             return False
+
+        common.SM.setNewMessage("Download url %s" % new_link)
 
         # download the dmg
         try:
             m = re.search(r'(^.+?)/[\w_\-\. ]+?\.app', xdm.APP_PATH)
             installPath = m.group(1)
-
-            log(u"Downloading update file from " + str(new_link))
+            msg = "Downloading update file..."
+            log(msg)
+            common.SM.setNewMessage(msg)
             (filename, headers) = urllib.urlretrieve(new_link) #@UnusedVariable
-            
-            log(u"New dmg at " + filename)
+            msg = "New dmg at %s" % filename
+            log(msg)
+            common.SM.setNewMessage(msg)
             os.system("hdiutil mount %s | grep /Volumes/XDM >update_mount.log" % (filename))
             fp = open('update_mount.log', 'r')
             data = fp.read()
             fp.close()
             m = re.search(r'/Volumes/(.+)', data)
             updateVolume = m.group(1)
-            log(u"Copying app from /Volumes/%s/XDM.app to %s" % (updateVolume, installPath))
+            msg = "Copying app from /Volumes/%s/XDM.app to %s" % (updateVolume, installPath)
+            log(msg)
+            common.SM.setNewMessage(msg)
             call(["cp", "-rf", "/Volumes/%s/XDM.app" % updateVolume, installPath])
-            
-            log(u"Eject imgae /Volumes/%s/" % updateVolume)
+
+            msg = "Eject imgae /Volumes/%s/" % updateVolume
+            log(msg)
+            common.SM.setNewMessage(msg)
             call(["hdiutil", "eject", "/Volumes/%s/" % updateVolume], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            
+
             # delete the dmg
-            log(u"Deleting dmg file from " + str(filename))
+            msg = "Deleting dmg file from %s" % filename
+            log(msg)
+            common.SM.setNewMessage(msg)
             os.remove(filename)
 
         except:
-            log.error(u"Error while trying to update: ")
+            msg = "Error while trying to updateing. Please see log"
+            log.error(msg)
+            common.SM.setNewMessage(msg, lvl='error')
             return False
-
         return True
+    
+
 class SourceUpdateManager(object):
 
     def need_update(self):
