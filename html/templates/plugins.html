@@ -150,19 +150,6 @@ function installModalFromUrl(button){
 }
 
 var firstMessage = true;
-function installModal(button){
-    id = $(button).data('identifier');
-    data = {'identifier': id}
-    name = 'Installing '+id
-    var frame = ajaxModal(button, name, '/ajax/installPlugin', data)
-    
-    firstMessage = true;        
-    window.setTimeout(function(){messageScrobbler('getRepoMessage')}, 500);
-    $('.modal-body', frame).css('padding', 0)
-    $('.modal-header .close').remove()
-    return false;
-}
-
 
 function deinstallModal(button){
     id = $(button).data('identifier');

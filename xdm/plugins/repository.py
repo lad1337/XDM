@@ -78,6 +78,8 @@ class RepoManager(object):
                     for repo_plugin in repo.getPlugins():
                         if repo_plugin.identifier == plugin.identifier and self._updateable(repo_plugin, plugin):
                             updateable_plugins[plugin.identifier] = (repo_plugin, plugin)
+                            common.MM.createInfo('%s as an update. Update now?' % (plugin.screenName), confirmJavascript="installModalFromMessage(this, '%s')" % plugin.identifier)
+    
         log.info('%s Plugins have an update' % len(updateable_plugins))
         self.updateable_plugins = updateable_plugins
 
@@ -87,6 +89,8 @@ class RepoManager(object):
         return ''
 
     def _updateable(self, repo_plugin, plugin):
+        print 'local', plugin.major_version, plugin.minor_version
+        print 'repo', repo_plugin.major_version, repo_plugin.minor_version
         if repo_plugin.major_version > plugin.major_version:
             return True
         elif repo_plugin.major_version == plugin.major_version and repo_plugin.minor_version > plugin.minor_version:
@@ -151,6 +155,7 @@ class RepoManager(object):
             for repo_plugin in repo.getPlugins():
                 if repo_plugin.identifier == identifier:
                     plugin_to_update = repo_plugin
+                    break
 
         if plugin_to_update is None:
             self.setNewMessage('error', 'Could not find a plugin with identifier %s' % identifier)
@@ -161,7 +166,7 @@ class RepoManager(object):
         old_instalation = None
         for plugin in common.PM.getAll(returnAll=True, instance='Default'):
             if plugin.identifier == plugin_to_update.identifier:
-                if self._updateable(repo_plugin, plugin_to_update):
+                if not self._updateable(plugin_to_update, plugin):
                     self.setNewMessage('error', '%s is already installed and does not need an update' % plugin_to_update.name)
                     self.setNewMessage('info', 'Done!')
                     return

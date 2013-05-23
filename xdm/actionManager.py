@@ -30,7 +30,7 @@ import re
 import subprocess
 import time
 
-ACTIONS = ['reboot', 'hardReboot', 'recachePlugins']
+ACTIONS = ['reboot', 'hardReboot', 'recachePlugins', 'shutdown']
 
 
 def executeAction(action, callers):
@@ -44,6 +44,8 @@ def executeAction(action, callers):
         cherrypy.engine.restart()
     elif action == 'hardReboot':
         hardReboot()
+    elif action == 'shutdown':
+        shutdown()
     elif action == 'recachePlugins':
         common.PM.cache()
     else:
@@ -52,6 +54,10 @@ def executeAction(action, callers):
 
 
 def _callMethod(o, function):
+    if type(o) == str:
+        log.error("Error during action call %s by %s" % (function, o))
+        return False
+
     try:
         getattr(o, function.__name__)()
     except Exception as ex:
@@ -59,16 +65,10 @@ def _callMethod(o, function):
         log.error("Error during action call %s of %s \nError: %s\n\n%s" % (o.name, function.__name__, ex, tb))
 
 
-def oldhardReboot():
-    # this should not be here ... because its very strong and should not be in the plugin manager
-    # how will it react to a .exe ?
-    # how will it to an .app ?
-    """Restarts the current program.
-    Note: this function does not return. Any cleanup action (like
-    saving data) must be done before calling this function."""
-    log.info("Doing a hard REBOOT!!")
-    python = sys.executable
-    os.execl(python, python, * sys.argv)
+def shutdown():
+    common.SM.setNewMessage("Shutting down. Bye bye and good luck!")
+    time.sleep(2)
+    os._exit(0)
 
 
 def hardReboot():
@@ -101,8 +101,5 @@ def hardReboot():
         subprocess.Popen(popen_list, cwd=os.getcwd())
     else:
         log(u"not able to restart")
-    common.SM.setNewMessage("Exiting out of this one. Bye bye and good luck!")
     common.SM.setNewMessage("Please wait...")
-    time.sleep(2)
-    os._exit(0)
-
+    executeAction('shutdown', 'RebootAction')

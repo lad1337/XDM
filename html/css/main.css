@@ -296,6 +296,12 @@ td.download-size,
     color: red;
     text-shadow: 0px 0px 10px red, -1px -1px #000;
 }
+
+.shell pre{
+    background: none;
+    color: inherit;        
+}
+
 .progress{
     position: relative;
 }

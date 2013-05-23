@@ -58,7 +58,7 @@ function messageClose(uuid){
     data['uuid'] = uuid;
     $.getJSON('/ajax/messageClose', data, function(res){
         if(res['result']){
-            messageTr.hide('slow')
+            messageTr.hide('fast')
             newCount = parseInt($('.notifications .count').text()) - 1;
             $('.notifications .count').text(newCount)
             if(!newCount){
@@ -78,7 +78,7 @@ function messageConfirm(uuid){
     data['uuid'] = uuid;
     $.getJSON('/ajax/messageConfirm', data, function(res){
         if(res['result']){
-            messageTr.hide('slow')
+            messageTr.hide('fast')
             newCount = parseInt($('.notifications .count').text()) - 1;
             $('.notifications .count').text(newCount)
             if(!newCount){
@@ -104,12 +104,32 @@ function ajaxDeleteElement(id, deleteNode){
     })
 };
 
+function installModalFromMessage(button, identifier){
+    $(button).attr('data-identifier', identifier)
+    installModal(button)
+    $('.close', $(button).parent()).click()
+}
+
+function installModal(button){
+    var id = $(button).data('identifier');
+    data = {'identifier': id}
+    name = 'Installing '+id
+    var frame = ajaxModal(button, name, '/ajax/installPlugin', data)
+    
+    firstMessage = true;        
+    window.setTimeout(function(){messageScrobbler('getRepoMessage')}, 500);
+    $('.modal-body', frame).css('padding', 0)
+    $('.modal-header .close').remove()
+    return false;
+}
+
 
 function createModal(name){
     var id = makeSafeForCSS(name+'Frame');
     var modalFrame = $('#'+id);
     
     modalFrame.remove()
+    $('body>.modal').remove()
     // set up the bootstrap dialog
     modalFrame = $('<div id="'+id+'" class="modal hide fade modal-wide"><div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button><h3>'+name+'</h3></div><div class="modal-body"></div></div>').appendTo('body')
     modalFrame.append('<div class="modal-footer"><button class="btn" data-dismiss="modal">Close</button></div>')
@@ -282,14 +302,21 @@ function pluginAjaxCall(self, p_type, p_instance, id, action){
 
 
 var firstMessage = true;
+
 function rebootModal(button){
-    id = $(button).data('identifier');
+    bootbox.confirm("Are you sure you want to reboot XDM?", function(result) {
+        if(result)
+            rebootModalExecute(button)
+      }); 
+}
+
+function rebootModalExecute(button){
     data = {}
     name = 'Rebooting'
     var frame = ajaxModal(button, name, '/ajax/reboot', data)
     
     firstMessage = true;        
-    window.setInterval(function(){messageScrobbler('getRebootMessage', true)}, 500);
+    window.setInterval(function(){messageScrobbler('getSystemMessage', true)}, 500);
     $('.modal-body', frame).css('padding', 0)
     $('.modal-header .close').remove()
     $('.modal-footer button').hide()
@@ -300,9 +327,40 @@ function rebootModal(button){
     return false;
 }
 
-function messageScrobbler(functionUrl, interval){
+
+var globalMessageInterval;
+function shutdownModal(button){
+    bootbox.confirm("Are you sure you want to shutdown XDM?", function(result) {
+        if(result)
+            shutdownModalExecute(button)
+      }); 
+}
+function shutdownModalExecute(button){
+    data = {}
+    name = 'Shutdown'
+    var frame = ajaxModal(button, name, '/ajax/shutdown', data)
+    
+    firstMessage = true;
+    var finalMessageString = "Connection lost. Looks like it's Done!<br/>Thank you for using <pre>"+getAsciiArtLogo()+"</pre>"
+    
+    globalMessageInterval = window.setInterval(function(){messageScrobbler('getSystemMessage', true, 'info', finalMessageString)}, 500);
+    $('.modal-body', frame).css('padding', 0)
+    $('.modal-header .close').remove()
+    $('.modal-footer button').hide()
+    $('.modal-backdrop').click(function(e){
+        e.preventDefautl()
+        return false;
+    })
+    return false;
+}
+
+function messageScrobbler(functionUrl, interval, onErrorClass, onErrorMessage){
     if (typeof interval == 'undefined')
         interval = false;
+    if (typeof onErrorClass == 'undefined')
+        onErrorClass = 'error'
+    if (typeof onErrorMessage == 'undefined')
+        onErrorMessage = 'Connection to Server Lost';
     
     $.getJSON('/ajax/'+functionUrl, {}, function(res){
         console.log(res)
@@ -319,7 +377,7 @@ function messageScrobbler(functionUrl, interval){
 
         })
         if(lastMessage != 'Done!' && !interval){
-            window.setTimeout(function(){messageScrobbler(functionUrl)}, 500);
+            window.setTimeout(function(){messageScrobbler(functionUrl, interval, onErrorClass, onErrorMessage)}, 500);
         }else if(lastMessage == 'Done!'){
             $('#install-shell').append('<li><span class="info">XDM: ~$</span></li>')
             $('#install-shell').parent().scrollTop(900000)
@@ -335,6 +393,24 @@ function messageScrobbler(functionUrl, interval){
             });
            
         }
-    })
+    }).error(function() {
+        $('#install-shell').append('<li><span class="'+onErrorClass+'">'+onErrorMessage+'</span></li>')
+        $('#install-shell').parent().scrollTop(900000)
+        if(interval)
+            clearInterval(globalMessageInterval)
+            
+    });
 }
 
+function getAsciiArtLogo(){
+    return [
+'__   _______  __  __',
+'\\ \\ / /  __ \\|  \\/  |',
+' \\ V /| |  | | \\  / |',
+'  > < | |  | | |\\/| |',
+' / . \\| |__| | |  | |',
+'/_/ \\_\\_____/|_|  |_|'
+    ].join('\n');
+    
+    
+}

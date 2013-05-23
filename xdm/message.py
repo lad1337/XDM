@@ -33,13 +33,13 @@ class MessageManager(object):
     def __init__(self):
         self.messages = {}
 
-    def createInfo(self, message, confirm=None, deny=None):
-        return self._createMessage(INFO, message, confirm=confirm, deny=deny)
+    def createInfo(self, message, confirm=None, deny=None, confirmJavascript=None, denyJavascript=None):
+        return self._createMessage(INFO, message, confirm=confirm, deny=deny, confirmJavascript=confirmJavascript, denyJavascript=denyJavascript)
 
-    def createWarning(self, message, confirm=None, deny=None):
-        return self._createMessage(WARNING, message, confirm=confirm, deny=deny)
+    def createWarning(self, message, confirm=None, deny=None, confirmJavascript=None, denyJavascript=None):
+        return self._createMessage(WARNING, message, confirm=confirm, deny=deny, confirmJavascript=confirmJavascript, denyJavascript=denyJavascript)
 
-    def _createMessage(self, messageType, message, confirm=None, deny=None):
+    def _createMessage(self, messageType, message, confirm=None, deny=None, confirmJavascript=None, denyJavascript=None):
 
         uuid = str(uuidModule.uuid4())
         m = Message(messageType, message, uuid)
@@ -48,6 +48,10 @@ class MessageManager(object):
             m.addConfirmAction(MessageAction(confirm))
         if deny is not None:
             m.addDenyAction(MessageAction(deny))
+        if confirmJavascript is not None:
+            m.addConfirmJavascriptAction(MessageJavascriptAction(confirmJavascript))
+        if denyJavascript is not None:
+            m.addDenyJavascriptAction(MessageJavascriptAction(denyJavascript))
 
         self.messages[uuid] = m
         return m
@@ -109,6 +113,8 @@ class Message(object):
         self.uuid = uuid
         self.confirm = None
         self.deny = None
+        self.confirmJavascript = None
+        self.denyJavascript = None
 
     def addConfirmAction(self, action):
         self.confirm = action
@@ -116,9 +122,14 @@ class Message(object):
     def addDenyAction(self, action):
         self.deny = action
 
+    def addConfirmJavascriptAction(self, action):
+        self.confirmJavascript = action
+
+    def addDenyJavascriptAction(self, action):
+        self.denyJavascript = action
+
     def suspendFor(self, minutes):
         self.showAfterTime = datetime.datetime.now() + datetime.timedelta(minutes=60)
-        print 'showaftertime', self.showAfterTime
 
     def getClass(self):
         if self.messageType == INFO:
@@ -139,6 +150,12 @@ class MessageAction(object):
 
     def __call__(self):
         return self.fn(*self.args, **self.kwargs)
+
+
+class MessageJavascriptAction(object):
+
+    def __init__(self, callString):
+        self.callString = callString
 
 
 class SystemMessageManager(object):

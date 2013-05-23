@@ -28,21 +28,22 @@ import threading
 
 
 class TaskThread(threading.Thread):
-    def __init__(self, target, *args):
+    def __init__(self, target, *args, **kwargs):
         self._target = target
         self._args = args
+        self._kwargs = kwargs
         threading.Thread.__init__(self)
 
     def run(self):
-        log.debug('Running %s' % self._target.__name__)
-        self._target(*self._args)
+        log.debug('Running %s with args: %s and kwargs: %s' % (self._target.__name__, self._args, self._kwargs))
+        self._target(*self._args, **self._kwargs)
 
 
 def coreUpdateCheck():
     updateResponse = common.UPDATER.check()
     log.info('%s' % updateResponse)
     if updateResponse.needUpdate == True:
-        common.MM.createInfo('%s Update now?' % updateResponse.message, confirm=coreUpdateDo)
+        common.MM.createInfo('%s Update now?' % updateResponse.message, confirmJavascript='modalDoUpdate')
     elif updateResponse.needUpdate is None:
         common.MM.createWarning(updateResponse.message)
 

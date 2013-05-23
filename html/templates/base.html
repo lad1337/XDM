@@ -97,12 +97,22 @@
                                 </td>
                                 <td class="actions">
                                     <button class="close" onClick="messageClose('{{message.uuid}}')"><i class="icon-remove-sign"></i></button>
-                                    {%if message.confirm%}
+                                    {%if message.confirmJavascript%}
+                                    {# this will add the javascript method action#}
+                                    <input type="button" class="btn btn-mini btn-success btn-block" onClick="{{message.confirmJavascript.callString}}; return false;" value="OK"/>
+                                    {%elif message.confirm%}
+                                    {# this will add the call to the python function action#}
                                     <input type="button" class="btn btn-mini btn-success btn-block" onClick="messageConfirm('{{message.uuid}}')" value="OK"/>
                                     {%endif%}
-                                    {%if message.deny%}
-                                    <input type="button" class="btn btn-mini btn-danger btn-block" value="No"/>
+                                    
+                                    {%if message.denyJavascript%}
+                                    {# this will add the javascript method action#}
+                                    <input type="button" class="btn btn-mini btn-danger btn-block" onClick="{{message.denyJavascript.callString}}; return false;" value="No"/>
+                                    {%elif message.deny%}
+                                    {# this will add the call to the python function action#}
+                                    <input type="button" class="btn btn-mini btn-danger btn-block" onClick="messageDeny('{{message.uuid}}')" value="No"/>
                                     {%endif%}
+
                                 </td>
                             </tr>
                             {%endfor%}
@@ -134,7 +144,7 @@
             <footer>
                 {% block footer%}  
                 <a href="/updateAll" title="It works but the new page is bugging out, just refresh the page again">Refresh all</a> -
-                <a href="/shutdown">Shutdown</a> -
+                <a href="#" onClick="shutdownModal();return false;" >Shutdown</a> -
                 <a href="#" onClick="rebootModal();return false;">Reboot</a> - 
                 <a href="/about">About</a>
                 {%endblock%}

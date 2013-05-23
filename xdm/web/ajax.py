@@ -170,8 +170,18 @@ class AjaxCalls:
         return '<ul id="install-shell" class="shell"></ul>'
 
     @cherrypy.expose
-    def getRebootMessage(self):
+    def getSystemMessage(self):
         return json.dumps({'result': True, 'data': common.SM.getLastMessages(), 'msg':''})
+
+    @cherrypy.expose
+    def shutdown(self):
+        common.SM.reset();
+        common.SM.setNewMessage('shutdown.py -t NOW')
+        t = tasks.TaskThread(actionManager.executeAction, 'shutdown', 'Webgui')
+        t.start()
+        return '<ul id="install-shell" class="shell"></ul>'
+
+
 
     @cherrypy.expose
     def save(self, **kwargs):

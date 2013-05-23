@@ -67,10 +67,6 @@ class WebRoot:
         return template.render(**self._globals())
 
     @cherrypy.expose
-    def shutdown(self):
-        cherrypy.engine.exit()
-
-    @cherrypy.expose
     def about(self):
         tasks.coreUpdateCheck()
         template = self.env.get_template('about.html')
