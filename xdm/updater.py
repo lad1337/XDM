@@ -264,7 +264,7 @@ class GitUpdateManager(UpdateManager):
                 return self.response
             behind += 1
         else:
-            msg = 'Looks like you are ahead. no update for YOU'
+            msg = 'Looks like you are ahead. No update for YOU!'
             log(msg)
             self.response.message = msg
             self.response.needUpdate = None
