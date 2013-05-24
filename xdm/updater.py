@@ -262,10 +262,7 @@ class GitUpdateManager(UpdateManager):
             if commit.hexsha == local_commit.hexsha:
                 self.response.message = '%s commits behind.' % behind
                 return self.response
-            """behind += 1
-            if behind >= 10:
-                self.response.message = 'Over 10 commits behind!'
-                return self.response"""
+            behind += 1
         else:
             msg = 'Looks like you are ahead. no update for YOU'
             log(msg)
