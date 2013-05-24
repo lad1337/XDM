@@ -4,6 +4,7 @@ from os.path import join
 from lib.profilehooks import profile as profileHookFunction
 from functools import partial, update_wrapper, wraps
 from xdm.message import MessageManager, SystemMessageManager
+from xdm.news import NewsManager
 
 HOME_PATH = ""
 APP_PATH = ""
@@ -74,9 +75,10 @@ class Common(object):
     DONTSTOPPP = 4
 
     RUNPROFILER = False
-    
+
     MM = MessageManager()
     SM = SystemMessageManager()
+    NM = NewsManager()
 
     def getAllStatus(self):
         return [self.UNKNOWN, self.WANTED, self.SNATCHED, self.DOWNLOADED,

@@ -146,7 +146,30 @@
                 <a href="/updateAll" title="It works but the new page is bugging out, just refresh the page again">Refresh all</a> -
                 <a href="#" onClick="shutdownModal();return false;" >Shutdown</a> -
                 <a href="#" onClick="rebootModal();return false;">Reboot</a> - 
-                <a href="/about">About</a>
+                <a href="/about">About</a> - 
+                <a href="https://twitter.com/XDM_APP"><i class="icon-twitter-sign"></i></a>
+                {% if system.c.show_feed%}
+                
+                 - <i class="icon-rss-sign"></i>
+                <div id="newsFeed">
+                    {%for news in common.NM.news %}
+                        <div class="news {{news.tags|join(' ')}}"><a href="{{news.link}}">{{news.message}}</a></div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+                <form action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_top" style="display:inline-block;">
+                <input type="hidden" name="cmd" value="_donations">
+                <input type="hidden" name="business" value="lad1337@gmail.com">
+                <input type="hidden" name="lc" value="US">
+                <input type="hidden" name="item_name" value="XDM: eXtendable Download Manager">
+                <input type="hidden" name="item_number" value="XDM">
+                <input type="hidden" name="no_note" value="0">
+                <input type="hidden" name="currency_code" value="USD">
+                <input type="hidden" name="bn" value="PP-DonationsBF:btn_donate_SM.gif:NonHostedGuest">
+                <input type="image" src="https://www.paypalobjects.com/en_US/i/btn/btn_donate_SM.gif" border="0" name="submit" alt="PayPal - The safer, easier way to pay online!">
+                <img alt="" border="0" src="https://www.paypalobjects.com/en_US/i/scr/pixel.gif" width="1" height="1">
+                </form>
+                
                 {%endblock%}
             </footer>
         </div>    

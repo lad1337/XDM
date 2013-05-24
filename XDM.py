@@ -47,7 +47,6 @@ from xdm import common
 from xdm import logger # need this to set the log level
 from xdm import tasks
 from xdm.logger import *
-from xdm.plugins import PluginManager
 from xdm.web import WebRoot
 from xdm.helper import launchBrowser, daemonize
 
@@ -200,6 +199,11 @@ class RunApp():
         if sys.platform.startswith('darwin') or sys.platform.startswith('win'):
             cherrypy.config.update({'engine.autoreload.on': False})
 
+        rate = common.SYSTEM.c.interval_core_update * 60
+        log.info("Setting up core update scheduler every %s seconds" % rate)
+        if rate:
+            gameTasksScheduler = cherrypy.process.plugins.Monitor(cherrypy.engine, runCoreUpdater, rate, 'Core Updater Searcher')
+            gameTasksScheduler.subscribe()
         rate = common.SYSTEM.c.interval_search * 60
         log.info("Setting up download scheduler every %s seconds" % rate)
         gameTasksScheduler = cherrypy.process.plugins.Monitor(cherrypy.engine, runSearcher, rate, 'Element Searcher')
@@ -234,6 +238,10 @@ class RunApp():
 
 def runUpdater():
     tasks.updateGames()
+
+
+def runCoreUpdater():
+    tasks.coreUpdateCheck()
 
 
 def runSearcher():

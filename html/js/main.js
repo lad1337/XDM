@@ -51,6 +51,21 @@ $(document).ready(function() {
     $('.notifications .dropdown-menu').click(function (e) {
         e.stopPropagation();
       });
+    
+    
+    // TODO: make it stop on hover
+    var news = $("#newsFeed .news");
+    var newsIndex = -1;
+    function showNextNews() {
+        ++newsIndex;
+        news.eq(newsIndex % news.length)
+            .fadeIn(1000)
+            .delay(5000)
+            .fadeOut(1000, showNextNews);
+    }
+    if(news.length){
+        showNextNews();
+    }
 });
 
 

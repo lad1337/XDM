@@ -47,6 +47,9 @@ def coreUpdateCheck():
     elif updateResponse.needUpdate is None:
         common.MM.createWarning(updateResponse.message)
 
+    if common.SYSTEM.c.show_feed:
+        common.NM.cache()
+
 
 def coreUpdateDo():
     updateResponse = common.UPDATER.update()
@@ -333,7 +336,6 @@ def removeTempElements():
 
 def cacheRepos():
     common.REPOMANAGER.cache()
-    common.REPOMANAGER.checkForUpdate()
 
 
 # these might not belong in here

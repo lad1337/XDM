@@ -96,9 +96,9 @@ class Music(MediaTypeManager):
 
     def makeReal(self, album):
         oldArtist = album.parent
-        for artist in Element.select().where(Element.type == oldArtist.type,
+        for artist in list(Element.select().where(Element.type == oldArtist.type,
                                              Element.mediaType == self.mt,
-                                             Element.parent == self.root):
+                                             Element.parent == self.root)):
             if artist.getField('id') == oldArtist.getField('id'):
                 album.parent = artist
                 album.status = common.getStatusByID(self.c.default_new_status_select)
@@ -113,7 +113,7 @@ class Music(MediaTypeManager):
             album.parent = newArtist
             album.status = common.getStatusByID(self.c.default_new_status_select)
             album.save()
-            for song in album.children:
+            for song in list(album.children):
                 song.save()
             album.downloadImages()
             return True
