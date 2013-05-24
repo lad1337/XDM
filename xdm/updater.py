@@ -267,8 +267,10 @@ class GitUpdateManager(UpdateManager):
                 self.response.message = 'Over 10 commits behind!'
                 return self.response"""
         else:
-            self.response.message = 'Looks like you are ahead. no update for YOU'
-            self.response.needUpdate = False
+            msg = 'Looks like you are ahead. no update for YOU'
+            log(msg)
+            self.response.message = msg
+            self.response.needUpdate = None
             return self.response
 
     def _repo_changes(self, commit):
