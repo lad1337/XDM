@@ -219,7 +219,7 @@ class MacUpdateManager(BinaryUpdateManager):
             common.SM.setNewMessage(msg, lvl='error')
             return False
         return True
-    
+
 
 class SourceUpdateManager(object):
 
@@ -262,10 +262,14 @@ class GitUpdateManager(UpdateManager):
             if commit.hexsha == local_commit.hexsha:
                 self.response.message = '%s commits behind.' % behind
                 return self.response
-            behind += 1
+            """behind += 1
             if behind >= 10:
                 self.response.message = 'Over 10 commits behind!'
-                return self.response
+                return self.response"""
+        else:
+            self.response.message = 'Looks like you are ahead. no update for YOU'
+            self.response.needUpdate = False
+            return self.response
 
     def _repo_changes(self, commit):
         "Iterator over repository changes starting with the given commit."
