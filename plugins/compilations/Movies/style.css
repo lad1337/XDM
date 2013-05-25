@@ -96,6 +96,13 @@
 .de-lad1337-movies .movie.active .inner .buttons{
     height: 43px;
 }
+
+.de-lad1337-movies .movie.active .inner .buttons .progressbar-container{
+    width: 142px;
+    margin: 6px auto;
+}
+
+
 .de-lad1337-movies .movie .inner h4{
     color: #fff;
 }

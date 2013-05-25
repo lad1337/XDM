@@ -29,6 +29,7 @@ class Sabnzbd(Downloader):
                'host': 'http://localhost',
                'apikey': ''}
     _history = []
+    _queue = []
     types = ['de.lad1337.nzb']
 
     def _baseUrl(self, host='', port=0):
@@ -79,6 +80,34 @@ class Sabnzbd(Downloader):
         self._history = response['history']['slots']
         return self._history
 
+    def _getQueue(self):
+
+        payload = {'apikey': self.c.apikey,
+                   'mode': 'qstatus',
+                   'output': 'json'}
+        r = requests.get(self._baseUrl(), params=payload)
+        log("Sab hitory url %s" % r.url, censor={self.c.apikey: 'apikey'})
+        response = r.json()
+        self._queue = response['jobs']
+        return self._queue
+
+    def getDownloadPercentage(self, element):
+        if not self._queue:
+            self._getQueue()
+        for i in self._queue:
+            element_id = self._findGamezID(i['filename'])
+            if not element_id:
+                #log("Sab slot: " + i['name'] + " no Gamez ID found")
+                continue
+            try:
+                Element.get(Element.id == element_id)
+            except Element.DoesNotExist:
+                continue
+            percentage = 100 - ((i['mbleft'] / i['mb']) * 100)
+            return percentage
+        else:
+            0
+
     def getElementStaus(self, element):
         """returns a Status and path"""
         #log("Checking for status of %s in Sabnzbd" % element)
@@ -86,36 +115,40 @@ class Sabnzbd(Downloader):
         download.status = common.UNKNOWN
         if not self._history:
             self._getHistory()
-        for i in self._history:
-            #log("Sab slot: " + i['name'])
-            game_id = self._findGamezID(i['name'])
-            download_id = self._findDownloadID(i['name'])
-            #log("Game ID: %s Download ID: %s" % (game_id, download_id))
-            if not game_id:
-                #log("Sab slot: " + i['name'] + " no Gamez ID found")
-                continue
-            slot_game = None
-            try:
-                slot_game = Element.get(Element.id == game_id)
-            except Element.DoesNotExist:
-                continue
-            # i dont think this is needed
-            if slot_game is None:
-                continue
-            if slot_game.id != element.id:
-                continue #wrong slot
+        if not self._queue:
+            self._getQueue()
+        for curListIdentifier, curList in (('filename', self._queue), ('name', self._history)):
+            for i in curList:
+                game_id = self._findGamezID(i[curListIdentifier])
+                download_id = self._findDownloadID(i[curListIdentifier])
+                #log("Game ID: %s Download ID: %s" % (game_id, download_id))
+                if not game_id:
+                    #log("Sab slot: " + i['name'] + " no Gamez ID found")
+                    continue
+                slot_game = None
+                try:
+                    slot_game = Element.get(Element.id == game_id)
+                except Element.DoesNotExist:
+                    continue
+                # i dont think this is needed
+                if slot_game is None:
+                    continue
+                if slot_game.id != element.id:
+                    continue #wrong slot
 
-            try:
-                download = Download.get(Download.id == download_id)
-            except Download.DoesNotExist:
-                pass
+                try:
+                    download = Download.get(Download.id == download_id)
+                except Download.DoesNotExist:
+                    pass
+                if curListIdentifier == 'filename': # if we found it in the queue we are downloading it !
+                    return (common.DOWNLOADING, download, '')
 
-            if i['status'] == 'Completed':
-                return (common.DOWNLOADED, download, i['storage'])
-            elif i['status'] == 'Failed':
-                return (common.FAILED, download, '')
-            else:
-                return (common.SNATCHED, download, '')
+                if i['status'] == 'Completed':
+                    return (common.DOWNLOADED, download, i['storage'])
+                elif i['status'] == 'Failed':
+                    return (common.FAILED, download, '')
+                else:
+                    return (common.SNATCHED, download, '')
         else:
             return (common.UNKNOWN, download, '')
 

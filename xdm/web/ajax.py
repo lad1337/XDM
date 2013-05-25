@@ -171,7 +171,7 @@ class AjaxCalls:
 
     @cherrypy.expose
     def getSystemMessage(self):
-        return json.dumps({'result': True, 'data': common.SM.getLastMessages(), 'msg':''})
+        return json.dumps({'result': True, 'data': common.SM.getLastMessages(), 'msg': ''})
 
     @cherrypy.expose
     def shutdown(self):
@@ -190,6 +190,16 @@ class AjaxCalls:
         return '<ul id="install-shell" class="shell"></ul>'
 
     @cherrypy.expose
+    def getDownloadBars(self, **kwargs):
+        data = {}
+        elements = list(Element.select().where(Element.id << kwargs.values()))
+        for provider in common.PM.D:
+            for element in elements:
+                percentage = provider.getDownloadPercentage(element)
+                if percentage and element.id not in data: # only set percentage for the element.id if we get one and only when we didn't already set on, this way we respect the order of downloaders
+                    data[element.id] = percentage
+        return json.dumps({'result': True, 'data': data, 'msg': ''})
+
     @cherrypy.expose
     def save(self, **kwargs):
         actions = {}

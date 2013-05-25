@@ -53,6 +53,7 @@ class Common(object):
     UNKNOWN = None
     WANTED = None  # default status
     SNATCHED = None # well snatched and the downloader is getting it ... so we hope
+    DOWNLOADING = None # its currently downloading woohhooo
     DOWNLOADED = None # no status thingy
     COMPLETED = None # downloaded and pp_success
     FAILED = None # download failed
@@ -81,9 +82,9 @@ class Common(object):
     NM = NewsManager()
 
     def getAllStatus(self):
-        return [self.UNKNOWN, self.WANTED, self.SNATCHED, self.DOWNLOADED,
-                  self.COMPLETED, self.FAILED, self.PP_FAIL, self.DELETED,
-                  self.IGNORE, self.TEMP]
+        return [self.UNKNOWN, self.WANTED, self.SNATCHED, self.DOWNLOADING,
+                self.DOWNLOADED, self.COMPLETED, self.FAILED, self.PP_FAIL,
+                self.DELETED, self.IGNORE, self.TEMP]
 
     def getEveryStatusBut(self, notWantedStatuses):
         filtered = self.getAllStatus()

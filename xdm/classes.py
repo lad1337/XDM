@@ -39,7 +39,7 @@ from jinja2.loaders import FileSystemLoader, DictLoader
 
 #bcc = FileSystemBytecodeCache(pattern='%s.cache')
 #, bytecode_cache=bcc
-elementButtonEnvironment = Environment(loader=FileSystemLoader(os.path.join('html', 'templates', 'buttons')))
+elementWidgetEnvironment = Environment(loader=FileSystemLoader(os.path.join('html', 'templates', 'widget')))
 
 
 class BaseModel(Model):
@@ -333,25 +333,25 @@ class Element(BaseModel):
         else:
             tpl = self.getTemplate()
         env = Environment(loader=DictLoader({'this': tpl}))
-        elementButtonEnvironment
+        elementWidgetEnvironment
         elementTemplate = env.get_template('this')
         actionTemplate = None
         infoTemplate = None
         if not search:
             if '{{actionButtons}}' in tpl:
-                actionTemplate = elementButtonEnvironment.get_template('actions.html')
+                actionTemplate = elementWidgetEnvironment.get_template('actions.html')
             elif '{{iconActionButtons}}' in tpl:
-                actionTemplate = elementButtonEnvironment.get_template('actionsIcons.html')
+                actionTemplate = elementWidgetEnvironment.get_template('actionsIcons.html')
 
             if '{{infoButtons}}' in tpl:
-                infoTemplate = elementButtonEnvironment.get_template('info.html')
+                infoTemplate = elementWidgetEnvironment.get_template('info.html')
             elif '{{iconInfoButtons}}' in tpl:
-                infoTemplate = elementButtonEnvironment.get_template('infoIcons.html')
+                infoTemplate = elementWidgetEnvironment.get_template('infoIcons.html')
 
-            statusTemplate = elementButtonEnvironment.get_template('status.html')
+            statusTemplate = elementWidgetEnvironment.get_template('status.html')
             statusHtml = statusTemplate.render(this=self, globalStatus=Status.select())
         else:
-            actionTemplate = elementButtonEnvironment.get_template('actionsAdd.html')
+            actionTemplate = elementWidgetEnvironment.get_template('actionsAdd.html')
             statusHtml = ''
         # render action buttons
         if actionTemplate is not None:
@@ -364,7 +364,13 @@ class Element(BaseModel):
         else:
             infoHtml = ''
         # status class
-        statusCssClass = 'status-%s' % self.status.name.lower()
+        statusCssClass = 'status-any status-%s' % self.status.name.lower()
+        # downloadbar
+        downloadBarHtml = ''
+        if '{{downloadProgressBar}}' in tpl:
+            downloadBarTemplate = elementWidgetEnvironment.get_template('downloadBar.html')
+            downloadBarHtml = downloadBarTemplate.render(this=self)
+
         return elementTemplate.render(children='{{children}}',
                                       actionButtons=actionsHtml,
                                       iconActionButtons=actionsHtml,
@@ -374,6 +380,7 @@ class Element(BaseModel):
                                       this=self,
                                       statusCssClass=statusCssClass,
                                       loopIndex=curIndex,
+                                      downloadProgressBar=downloadBarHtml,
                                       **self.buildFieldDict())
 
     def buildFieldDict(self):

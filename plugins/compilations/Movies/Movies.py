@@ -22,6 +22,7 @@
 from xdm.plugins import *
 import tmdb
 
+
 class Movie(object):
     name = ''
     genres = ''
@@ -56,6 +57,9 @@ class Movie(object):
                 <div class="buttons">
                     {{iconActionButtons}}
                     {{iconInfoButtons}}
+                    <div class="progressbar-container">
+                        {{downloadProgressBar}}
+                    </div>
                 </div>
                 {%if this.getField('tailer_count')%}
                 <ul>
@@ -68,7 +72,7 @@ class Movie(object):
                 </ul>
                 {%endif%}
                 {{statusSelect}}
-                <a href="#" class="btn btn-mini btn-info overview" data-placement="bottom" data-toggle="popover" title="Overview for {{this.getName()}}" data-content="{{overview}}" data-container=".de-lad1337-movies">Overview</a>
+                <a href="#" class="btn btn-mini btn-info pull-right overview" data-placement="bottom" data-toggle="popover" title="Overview for {{this.getName()}}" data-content="{{overview}}" data-container=".de-lad1337-movies">Overview</a>
             </div>
         </div>
         """

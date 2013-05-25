@@ -311,18 +311,6 @@ def daemonize():
     os.dup2(dev_null.fileno(), sys.stdin.fileno())
 
 
-def getSystemDataDir(progdir):
-    if sys.platform == 'darwin':
-        home = os.environ.get('HOME')
-        if home:
-            return '%s/Library/Application Support/XDM' % home
-        else:
-            return progdir
-    elif sys.platform == "win32":
-        #TODO: implement
-        return progdir
-
-
 def cleanTempFolder():
     shutil.rmtree(xdm.TEMPPATH)
     os.mkdir(xdm.TEMPPATH)
@@ -334,6 +322,7 @@ def getContainerTpl():
 
 def getLeafTpl():
     return '{{this.getName()}}<br>'
+
 
 def webVars(obj):
     return vars(obj)

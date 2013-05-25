@@ -128,7 +128,8 @@ def _checkDefaults(resave=False):
                         {'setter': 'UNKNOWN',     'name': 'Unknown',              'hidden': True},
                         {'setter': 'DELETED',     'name': 'Deleted',              'hidden': True},
                         {'setter': 'IGNORE',      'name': 'Ignore',               'hidden': False},
-                        {'setter': 'TEMP',        'name': 'Temp',                 'hidden': True}
+                        {'setter': 'TEMP',        'name': 'Temp',                 'hidden': True},
+                        {'setter': 'DOWNLOADING', 'name': 'Downloading',          'hidden': True}
                       ]
 
     default_repos = [{'name': 'XDM demo',

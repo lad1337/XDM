@@ -26,4 +26,47 @@
 
 {{mt.headInject()}}
 {% endfor %}
+
+<script>
+var downloadStatusInterval;
+$(document).ready(function() {
+    var bars = $('.status-downloading .progress-download')
+    if(bars.length){
+        $('.progress.progress-download .bar').resize(function(event){
+            $('span', this).width($(this).parent().width())
+            $('span', $(this).parent()).css('line-height', $(this).parent().height()+'px')
+        });
+        $('.progress.progress-download .bar').resize()
+
+        var ids = {}
+        bars.each(function(barIndex, curBar){
+            ids[barIndex] = $(curBar).data('id')
+        });
+        poolDownloadStatus(ids)
+        window.setInterval(function(){ poolDownloadStatus(ids)}, 15000); // poll every 15seconds
+    
+    }
+});
+
+function poolDownloadStatus(ids){
+    console.log(ids)
+    $.getJSON('/ajax/getDownloadBars', ids, function(res){
+        if(res['result']){
+            $.each(res['data'],function(curID, percentage){
+                var parent = $('.progress-download[data-id="'+curID+'"]');
+                if(percentage){
+                    $('.bar' ,parent).css('width', percentage + '%');
+                    parent.removeClass('progress-striped active').addClass('progress-success')
+                }else{
+                    parent.addClass('progress-striped active').removeClass('progress-success')
+                }
+      
+            })
+        }
+    })
+
+}
+
+</script>
+
 {% endblock %}

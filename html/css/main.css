@@ -307,7 +307,11 @@ td.download-size,
 }
 #newsFeed {
     display: inline-block;
+    width: 400px;
     width: calc(100% - 380px);
+    width: -webkit-calc(100% - 380px);
+    width: -moz-calc(100% - 380px);
+    width: -o-calc(100% - 380px);
     position: relative;
 }
 
@@ -369,6 +373,19 @@ td.download-size,
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+}
+
+.progress.progress-download{
+    display: none;
+    margin-bottom: 0px;
+}
+
+.status-downloading .progress.progress-download{
+    display: block;
+}
+
+.progress.progress-download {
+    height: 6px;
 }
 
 @media only screen and (max-width: 767px) {

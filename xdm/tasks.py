@@ -227,6 +227,13 @@ def runChecker():
                 element.save()
                 download.status = common.SNATCHED
                 download.save()
+            elif status == common.DOWNLOADING:
+                element.status = common.DOWNLOADING
+                element.save()
+                if download.id:
+                    commentOnDownload(download)
+                download.status = common.DOWNLOADING
+                download.save()
             elif status == common.FAILED:
                 download.status = common.FAILED
                 download.save()

@@ -326,6 +326,10 @@ class DownloadTyped(Plugin):
             extensions[indentifer] = '.%s' % self._getDownloadTypeExtension(indentifer)
         return extensions
 
+    def getDownloadPercentage(self, element):
+        """"this should return a int betwen 0 and 100 as the percentage"""
+        return 0
+
 
 class Downloader(DownloadTyped):
     """Plugins of this class send Downloads to another Program or directly download stuff"""

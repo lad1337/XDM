@@ -82,13 +82,13 @@ window.setTimeout(function() {ajaxSearchProgress(parent_{{mt.instance}}, data_{{
 
 function ajaxSearchProgress(parent, data){
     jQuery.getJSON( '/ajax/searchProgress', data, function(res){
+        //FIXME: this does not look like the structure i wanted to have always since its not in data of res
         if(res['percent']){
             $('.bar' ,parent).css('width', (res['percent'])+'%')
             $('.progress span' ,parent).html(res['count'] + '/' + res['total'])
         }else if(res['count']){
             $('.progress span' ,parent).html(res['count'])
         }
-        console.log(data['mt'], res)
         if(!$('.searchTabPaneInner', parent).html())
             window.setTimeout(function() {ajaxSearchProgress(parent, data)}, 1000);
         });
