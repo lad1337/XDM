@@ -207,7 +207,7 @@ def runChecker():
     elements = list(Element.select().execute())
     for checker in common.PM.D:
         for element in elements:
-            if not element.status == common.SNATCHED:
+            if element.status not in (common.SNATCHED, common.DOWNLOADING):
                 continue
             log("Checking status for %s" % element)
             status, download, path = checker.getElementStaus(element)

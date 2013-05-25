@@ -45,6 +45,7 @@ class Movie(object):
         return """
         <div class="movie pull-left {{statusCssClass}}">
             <i class="icon-thumbs-up"></i>
+            <i class="icon-download-alt"></i>
             <div class="door door-left">
                 <img src="{{this.poster_image}}"/>
             </div>

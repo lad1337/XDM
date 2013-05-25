@@ -66,8 +66,9 @@ class Plugin(object):
         self.type = self.__class__.__name__
         self.instance = instance.replace('.', '_')
         # log message
-        if self._type != 'DownloadType':
-            log("Creating new plugin %s" % self.name)
+        #if self._type != 'DownloadType':
+        #    log("Creating new plugin %s" % self.name)
+
         #setup other config options from mediatypes
         if self.addMediaTypeOptions:
             self._create_media_type_configs() #this adds the configs for media types

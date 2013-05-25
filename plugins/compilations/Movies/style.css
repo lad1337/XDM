@@ -25,8 +25,15 @@
 .de-lad1337-movies .movie.status-snatched>.icon-thumbs-up{
     display: inline-block;
 }
+
+.de-lad1337-movies .movie.status-downloading>.icon-download-alt{
+    display: inline-block;
+}
+
 .de-lad1337-movies .movie.active>.icon-thumbs-up,
-.de-lad1337-movies .movie>.icon-thumbs-up{
+.de-lad1337-movies .movie>.icon-thumbs-up,
+.de-lad1337-movies .movie.active>.icon-download-alt,
+.de-lad1337-movies .movie>.icon-download-alt{
     display: none;
     color: #fff;
     position: absolute;
@@ -34,6 +41,8 @@
     top: 8px;
     z-index: 20;
     font-size: 30px;
+    text-shadow: 0px 0px 2px #000, 1px 1px 1px #000;
+    filter: dropshadow(color=#000000, offx=0, offy=-1);
 }
 
 
@@ -97,7 +106,7 @@
     height: 43px;
 }
 
-.de-lad1337-movies .movie.active .inner .buttons .progressbar-container{
+.de-lad1337-movies .movie .inner .buttons .progressbar-container{
     width: 142px;
     margin: 6px auto;
 }
