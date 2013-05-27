@@ -40,12 +40,13 @@ class TaskThread(threading.Thread):
 
 
 def coreUpdateCheck():
+    common.MM.clearRole("coreUpdate")
     updateResponse = common.UPDATER.check()
     log.info('%s' % updateResponse)
     if updateResponse.needUpdate == True:
-        common.MM.createInfo('%s Update now?' % updateResponse.message, confirmJavascript='modalCoreUpdate(this)')
+        common.MM.createInfo('%s Update now?' % updateResponse.message, confirmJavascript='modalCoreUpdate(this)', role="coreUpdate")
     elif updateResponse.needUpdate is None:
-        common.MM.createWarning(updateResponse.message)
+        common.MM.createWarning(updateResponse.message, role="coreUpdate")
 
     if common.SYSTEM.c.show_feed:
         common.NM.cache()

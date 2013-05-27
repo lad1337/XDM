@@ -45,6 +45,7 @@ def getSystemDataDir(progdir):
         #TODO: implement
         return progdir
 
+
 def replace_some(text):
     dic = {' ': '_', '(': '', ')': '', '.': '_'}
     return replace_x(text, dic)
@@ -63,7 +64,7 @@ def replace_x(text, dic):
 
 
 def fileNameClean(text):
-    dic = {'<': '', '>': '', ':': '', '"': '', '/':'', '\\':'', '|':'', '?':'', '*':''}
+    dic = {'<': '', '>': '', ':': '', '"': '', '/': '', '\\': '', '|': '', '?': '', '*': ''}
     return replace_x(text, dic)
 
 
@@ -78,7 +79,7 @@ def statusLabelClass(status):
         return 'label'
     elif status == common.SNATCHED:
         return 'label label-info'
-    elif status in (common.DOWNLOADED, common.COMPLETED):
+    elif status in (common.DOWNLOADED, common.COMPLETED, common.DOWNLOADING):
         return 'label label-success'
     elif status == common.FAILED:
         return 'label label-important'
