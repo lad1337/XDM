@@ -23,7 +23,7 @@
 import xdm
 from lib import feedparser
 
-XDM_FEED_URL = 'http://xdm.lad1337.de/?feed=rss2'
+XDM_FEED_URL = 'http://xdm.lad1337.de/?feed=rss2&cat=5' # cat=5 is the "inapp" category on xdm.lad1337.de
 
 
 class NewsManager(object):

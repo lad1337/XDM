@@ -23,8 +23,9 @@
 
 {% block headInject %}
 {% for mt in mtms%}
-
+<!-- headInject {{mt.identifier}} start -->
 {{mt.headInject()}}
+<!-- headInject {{mt.identifier}} end -->
 {% endfor %}
 
 <script>

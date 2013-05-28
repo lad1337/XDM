@@ -31,7 +31,6 @@ class SystemConfig(System):
                'socket_host': '0.0.0.0',
                'https': False,
                'extra_plugin_path': '',
-               'interval_search': 120, # minutes
                'interval_update': 1440, # minutes
                'interval_check': 3,
                'interval_mediaadder': 3,

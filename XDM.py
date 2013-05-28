@@ -42,7 +42,7 @@ from cherrypy import server
 import cherrypy.lib.auth_basic
 import logging # get the debug log level
 import xdm
-from xdm import init, helper
+from xdm import init, helper, actionManager
 from xdm import common
 from xdm import logger # need this to set the log level
 from xdm import tasks
@@ -202,12 +202,15 @@ class RunApp():
         rate = common.SYSTEM.c.interval_core_update * 60
         log.info("Setting up core update scheduler every %s seconds" % rate)
         if rate:
-            gameTasksScheduler = cherrypy.process.plugins.Monitor(cherrypy.engine, runCoreUpdater, rate, 'Core Updater Searcher')
-            gameTasksScheduler.subscribe()
-        rate = common.SYSTEM.c.interval_search * 60
-        log.info("Setting up download scheduler every %s seconds" % rate)
-        gameTasksScheduler = cherrypy.process.plugins.Monitor(cherrypy.engine, runSearcher, rate, 'Element Searcher')
-        gameTasksScheduler.subscribe()
+            coreUpdateScheduler = cherrypy.process.plugins.Monitor(cherrypy.engine, runCoreUpdater, rate, 'Core Updater Searcher')
+            coreUpdateScheduler.subscribe()
+
+        # fixed search rate because noobs will set it to something noobish
+        rate = 12 * 60 * 60 # this should be 12h
+        log.info("Setting up search scheduler every %s seconds" % rate)
+        singleSearchScheduler = cherrypy.process.plugins.Monitor(cherrypy.engine, runSearcher, rate, 'Element Searcher')
+        singleSearchScheduler.subscribe()
+
         rate = common.SYSTEM.c.interval_update * 60
         log.info("Setting up element list update scheduler every %s seconds" % rate)
         gameListUpdaterScheduler = cherrypy.process.plugins.Monitor(cherrypy.engine, runUpdater, rate, 'Element Updater')
@@ -232,8 +235,7 @@ class RunApp():
             common.SM.setNewMessage("Done!")
             cherrypy.engine.block()
         except KeyboardInterrupt:
-            log.info("Shutting down XDM")
-            sys.exit()
+            actionManager.executeAction('shutdown', 'KeyboardInterrupt')
 
 
 def runUpdater():

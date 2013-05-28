@@ -30,13 +30,13 @@
         <!-- Bootstrap -->
         <link href="/bootstrap/css/bootstrap-combined.no-icons.min.css" rel="stylesheet" media="screen">
         <link href="/css/fontawesome/css/font-awesome.min.css" rel="stylesheet" media="screen">
-        <link rel="stylesheet" href="/css/main.css">      
+        <link rel="stylesheet" href="/css/main.css?v={{common.getVersionString()}}">      
         
         <script src="/js/vendor/jquery-1.9.0.min.js"></script>
         <script src="/js/vendor/jquery-ui-1.10.1.custom.min.js"></script>
         <script src="/bootstrap/js/bootstrap.min.js"></script>
-        <script src="/js/plugins.js"></script>
-        <script src="/js/main.js"></script>
+        <script src="/js/plugins.js?v={{common.getVersionString()}}"></script>
+        <script src="/js/main.js?v={{common.getVersionString()}}"></script>
         <script>
         var mediaTypenames = [{% for mediaType in mtms%}'{{mediaType.type}}',{%endfor%}];
         </script>
