@@ -235,6 +235,7 @@ class Plugin(object):
         return object.__getattribute__(self, name)
 
     def _getUseConfigsForElementsAsWrapper(self, element):
+        possibleConfigs = []
         for curConfig in self.c.configs:
             """print '\n#####################'
             print '--', 'config:',curConfig
@@ -253,9 +254,29 @@ class Plugin(object):
             if curConfig.mediaType == element.mediaType and\
                 self.useConfigsForElementsAs.lower() == curConfig.type and\
                 curConfig.element.isAncestorOf(element): # is the config elemtn "above" the element in question
+                # we have to add this to a list
+                # because we can have multiple successful finds e.g. games: global games category but closer platform categories
+                possibleConfigs.append(curConfig)
 
-                return curConfig.value
-        return None
+        # if only one result cool we use that
+        if len(possibleConfigs) == 1:
+            return possibleConfigs[0].value
+        if not possibleConfigs: # no possibeConfigs okay just return None
+            return None
+
+        # lets find the closest related config for element
+        relationDegree = None
+        closestRelatedConfig = None
+        for curConfig in possibleConfigs:
+            cur_RelationDegree = curConfig.element.decendants.index(element) # the index resembles the relation degree
+            if relationDegree is None: # on first iteration
+                relationDegree = cur_RelationDegree
+                closestRelatedConfig = curConfig
+            elif cur_RelationDegree < relationDegree:
+                relationDegree = cur_RelationDegree
+                closestRelatedConfig = curConfig
+        # closestRelatedConfig can not be None after at least one iteration and we would only do this if we had two or more
+        return closestRelatedConfig.value
 
     def runFor(self, mtm):
         try:
@@ -508,10 +529,10 @@ class Provider(Plugin):
     def searchForElement(self, term=''):
         """Create a MediaType structure of the type of element.mediaType
         based on the results found
-    
+
         Arguments:
         element -- an Element object
-    
+
         return:
         tuple of Status, Download and a path (str)
         >>>> (common.UNKNOWN, Download(), '')
@@ -564,8 +585,9 @@ class System(Plugin):
         return []
 
 
-class Filter(Plugin):
-    _type = 'Filter'
+class DownloadFilter(Plugin):
+    _type = 'DownloadFilter'
+    addMediaTypeOptions = 'runFor'
     name = 'Does Nothing'
 
     class FilterResult(object):
@@ -573,32 +595,17 @@ class Filter(Plugin):
             self.result = result
             self.reason = reason
 
-    def __init__(self, instance='Default'):
-        self._config['run_on_hook_select'] = ''
-        self.config_meta['run_on_hook_select'] = {'human': 'Run on stage'}
-        #self._config['positive'] = True
-        #self.config_meta['positive'] = {'human': 'Keep the the matches'}
+    def compare(self, element, download):
+        return self.FilterResult()
 
-        Plugin.__init__(self, instance=instance)
 
-    def _run_on_hook_select(self):
-        return {common.SEARCHTERMS: 'Search Term',
-                common.FOUNDDOWNLOADS: 'Found Downloads'}
+class SearchTermFilter(Plugin):
+    _type = 'SearchTermFilter'
+    addMediaTypeOptions = 'runFor'
+    name = 'Does Nothing'
 
-    def compare(self, element=None, download=None, string=None):
-        # return a tuple if the string was accepted and the new string
-
-        # for downloads only the bool is used
-        # False -> reject download
-        # True -> accept download
-
-        #TODO implement
-        # for search terms
-        # False and '' -> reject
-        # False and 'something' -> replaced
-        # True and 'same as original' -> pass
-        # True and 'something new' -> add the new string
-        return (True, string)
+    def compare(self, element, terms):
+        return terms
 
 
 class MediaAdder(Plugin):
@@ -781,4 +788,4 @@ class MediaTypeManager(Plugin):
                 common.WANTED.id: common.WANTED.name,
                 common.IGNORE.id: common.IGNORE.name}
 
-__all__ = ['System', 'PostProcessor', 'Provider', 'Indexer', 'Notifier', 'Downloader', 'MediaTypeManager', 'Element', 'DownloadType', 'Filter', 'MediaAdder']
+__all__ = ['System', 'PostProcessor', 'Provider', 'Indexer', 'Notifier', 'Downloader', 'MediaTypeManager', 'Element', 'DownloadType', 'DownloadFilter', 'SearchTermFilter', 'MediaAdder']
