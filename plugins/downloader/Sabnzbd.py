@@ -114,7 +114,7 @@ class Sabnzbd(Downloader):
             self._getQueue()
         for curListIdentifier, curList in (('filename', self._queue), ('name', self._history)):
             for i in curList:
-                element_id = self._findGamezID(i[curListIdentifier])
+                element_id = self._findElementID(i[curListIdentifier])
                 download_id = self._findDownloadID(i[curListIdentifier])
                 #log("Game ID: %s Download ID: %s" % (game_id, download_id))
                 if element_id != element.id:

@@ -283,13 +283,12 @@ class Plugin(object):
     major_version = property(_get_major_version)
 
     def createRepoJSON(self):
-        major_version, minor_version = self.version.split('.')
         desc = "Please write a description for me in config_meta['plugin_desc']"
         if 'plugin_desc' in self.config_meta:
             desc = self.config_meta['plugin_desc']
         #http://stackoverflow.com/a/4402799/729059
-        data = collections.OrderedDict([("major_version", major_version),
-                                        ("minor_version", minor_version),
+        data = collections.OrderedDict([("major_version", self.major_version),
+                                        ("minor_version", self.minor_version),
                                         ("name", self.screenName),
                                         ("type", self._type),
                                         ("format", 'zip'),
