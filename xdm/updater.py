@@ -261,7 +261,11 @@ class GitUpdateManager(UpdateManager):
         self.response.needUpdate = True
         for commit in self._repo_changes(remote_commit):
             if commit.hexsha == local_commit.hexsha:
-                self.response.message = '%s commits behind.' % behind
+                if behind == 1:
+                    msg = '%s commit behind.' % behind
+                else:
+                    msg = '%s commits behind.' % behind
+                self.response.message = msg
                 return self.response
             behind += 1
         else:
