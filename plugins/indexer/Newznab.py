@@ -20,7 +20,6 @@
 #along with this program.  If not, see http://www.gnu.org/licenses/.
 
 from xdm.plugins import *
-from xdm.helper import replace_all
 from lib import requests
 from xdm import helper
 
@@ -41,8 +40,14 @@ class Newznab(Indexer):
         if not host.startswith('http'):
             host = 'http://%s' % host
         if port:
-            return "%s:%s/api" % (host, port)
-        return "%s/api" % host
+            return "%s:%s/" % (host, port)
+        return "%s/" % host
+
+    def _baseUrlApi(self, host, port=None):
+        return "%sapi" % self._baseUrl(host, port)
+
+    def _baseUrlRss(self, host, port=None):
+        return "%srss" % self._baseUrl(host, port)
 
     def searchForElement(self, element):
         payload = {'apikey': self.c.apikey,
@@ -56,7 +61,7 @@ class Newznab(Indexer):
         terms = element.getSearchTerms()
         for term in terms:
             payload['q'] = term
-            r = requests.get(self._baseUrl(self.c.host, self.c.port), params=payload)
+            r = requests.get(self._baseUrlApi(self.c.host, self.c.port), params=payload)
             log("Newsnab final search for term %s url %s" % (term, r.url))
             response = r.json()
             #log.info("jsonobj: " +jsonObject)
@@ -95,7 +100,7 @@ class Newznab(Indexer):
                    't': 'commentadd',
                    'id': download.external_id,
                    'text': msg}
-        r = requests.get(self._baseUrl(self.c.host, self.c.port), params=payload)
+        r = requests.get(self._baseUrlApi(self.c.host, self.c.port), params=payload)
         log("Newsnab final comment for %s is %s on url %s" % (download.name, msg, r.url))
         if 'error' in r.text:
             log("Error posting the comment: %s" % r.text)
@@ -110,7 +115,7 @@ class Newznab(Indexer):
            'q': 'testing_apikey'
            }
         try:
-            r = requests.get(self._baseUrl(host, port), params=payload)
+            r = requests.get(self._baseUrlApi(host, port), params=payload)
         except:
             return (False, {}, 'Please check host!')
         if 'Incorrect user credentials' in r.text:
@@ -125,7 +130,7 @@ class Newznab(Indexer):
         payload = {'t': 'caps',
                    'o': 'json'
                    }
-        r = requests.get(self._baseUrl(self.c.host, self.c.port), params=payload)
+        r = requests.get(self._baseUrlApi(self.c.host, self.c.port), params=payload)
 
         data = {}
         for cat in r.json()['categories']['category']:

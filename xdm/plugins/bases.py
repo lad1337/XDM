@@ -375,7 +375,7 @@ class Downloader(DownloadTyped):
             did = int(m.group('did'))
         return (gid, did)
 
-    def _findGamezID(self, s):
+    def _findElementID(self, s):
         return self._findIDs(s)[0]
 
     def _findDownloadID(self, s):
@@ -389,8 +389,9 @@ class Indexer(DownloadTyped):
     name = "Does Noting"
 
     def __init__(self, instance='Default'):
+        #TODO: dont repeat this function make it wor with one
         # wrap function
-        def searchForElement(*args, **kwargs):
+        def downloadWrapperSingle(*args, **kwargs):
             res = self._searchForElement(*args, **kwargs)
             for i, d in enumerate(res):
                 # default stuff
@@ -399,13 +400,27 @@ class Indexer(DownloadTyped):
                 d.status = common.UNKNOWN
                 res[i]
             return res
+
         self._searchForElement = self.searchForElement
-        self.searchForElement = searchForElement
+        self.searchForElement = downloadWrapperSingle
+
+        def downloadWrapperRSS(*args, **kwargs):
+            res = self._getLatestRss(*args, **kwargs)
+            for i, d in enumerate(res):
+                # default stuff
+                d.indexer = self.type
+                d.indexer_instance = self.instance
+                d.status = common.UNKNOWN
+                res[i]
+            return res
+
+        self._getLatestRss = self.getLatestRss
+        self.getLatestRss = downloadWrapperRSS
         DownloadTyped.__init__(self, instance=instance)
 
     #TODO: implement / define / use
     def getLatestRss(self):
-        """return list of ???"""
+        """return list of Dowloads"""
         return []
 
     def searchForElement(self, element):

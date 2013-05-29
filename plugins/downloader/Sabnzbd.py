@@ -94,7 +94,7 @@ class Sabnzbd(Downloader):
         if not self._queue:
             self._getQueue()
         for i in self._queue:
-            element_id = self._findGamezID(i['filename'])
+            element_id = self._findElementID(i['filename'])
             if element_id != element.id:
                 continue
 
