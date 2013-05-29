@@ -30,6 +30,7 @@ import re
 from subprocess import call
 import urllib
 import subprocess
+from git.util import RemoteProgress
 
 install_type_exe = 0# any compiled windows build
 install_type_mac = 1# any compiled mac osx build
@@ -280,67 +281,16 @@ class GitUpdateManager(UpdateManager):
                 next_parent = parent               # for the next iteration
             commit = next_parent                 # start again
 
+    def update(self):
+        repo = git.Repo(xdm.APP_PATH)                   # get the local repo
+        remote = git.remote.Remote(repo, 'origin')      # remote repo
+        rp = self.MyRemoteProgress()
 
-class PluginUpdater(object):
+        common.SM.setNewMessage('Init git pull on %s' % remote)
+        remote.pull(progress=rp)
+        return True
 
-    def __init__(self, pluginClass):
-        self.response = UpdateResponse()
-        self._plugin = pluginClass
-        self._local_info = self._plugin.getMetaInfo()
-        self.updater = None
-        if self._local_info['format'] == 'zip':
-            self.updater = ZipPluginDownloader()
-        elif self._local_info['format'] == 'py':
-            self.updater = PyPluginDownloader()
+    class MyRemoteProgress(RemoteProgress):
 
-    def check(self):
-        if self.updater is None:
-            return self.response.default()
-
-        """
-        {'<plugin.identifier>': {'major_verion': 0,
-                                 'minor_version': 2,
-                                 'format': 'zip'/'py',
-                                 'name': 'PlugiName',
-                                 'desc': 'one line of information to the plugin',
-                                 'update_url': '',
-                                 'download_url: 'https://github.com/lad1337/XDM-plugin-de.lad1337.demopackage/archive/master.zip'}
-        }
-        """
-        try:
-            r = requests.get(self._local_info.update_url, timeout=20)
-        except (requests.ConnectionError, requests.Timeout):
-            log.error("Error while retrieving the update for %s" % self._plugin.__class__.__name__)
-            return self.response.default()
-        json = r.json()
-        local_version = float(self._plugin.version)
-        external_version = float('%s.%s' % (json['major'], json['major']))
-        if local_version <= external_version:
-            return self.response
-        msg = '%s needs an update. local version: %s external version: %s' % (self._plugin, local_version, external_version)
-        log.info(msg)
-        self.response.message = msg
-        self.response.needUpdate = True
-        self.response.localVersion = local_version
-        self.response.externalVersion = external_version
-
-
-class ZipPluginDownloader(object):
-
-    def download(self, info):
-        try:
-            r = requests.get(info["download_url"], timeout=20)
-        except (requests.ConnectionError, requests.Timeout):
-            log.error("Error while downloading %s" % info['identifier'])
-        return False
-
-
-class PyPluginDownloader(object):
-
-    def download(self, info):
-        try:
-            r = requests.get(info["download_url"], timeout=20)
-        except (requests.ConnectionError, requests.Timeout):
-            log.error("Error while downloading %s" % info['identifier'])
-        return False
-
+        def update(self, op_code, cur_count, max_count=None, message=''):
+            common.SM.setNewMessage(self._cur_line)
