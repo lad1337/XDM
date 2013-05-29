@@ -94,8 +94,8 @@ def hardReboot():
     time.sleep(1)
     if popen_list:
         popen_list += sys.argv[1:]
-        if '--nolaunch' not in popen_list:
-            popen_list += ['--nolaunch']
+        if not ('-n' in popen_list or '--nolaunch' in popen_list):
+            popen_list += ['-n']
         log(u"Restarting XDM with " + str(popen_list))
         common.SM.setNewMessage("Restarting XDM with %s" % popen_list)
         subprocess.Popen(popen_list, cwd=os.getcwd())

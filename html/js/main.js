@@ -311,7 +311,7 @@ function rebootModalExecute(button){
     var frame = ajaxModal(button, name, '/ajax/reboot', data)
     
     firstMessage = true;        
-    globalMessageInterval = window.setInterval(function(){messageScrobbler('getSystemMessage', true)}, 500);
+    window.setInterval(function(){messageScrobbler('getSystemMessage', true)}, 500);
     $('.modal-body', frame).css('padding', 0)
     $('.modal-header .close').remove()
     $('.modal-footer button').hide()
@@ -368,7 +368,7 @@ function installModal(button){
 }
 
 function modalCoreUpdate(button){
-    name = "Updateing XDM"
+    name = "Updating XDM"
     var frame = ajaxModal(button, name, '/ajax/coreUpdate', {})
     
     firstMessage = true;        
