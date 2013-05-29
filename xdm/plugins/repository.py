@@ -19,18 +19,17 @@
 #You should have received a copy of the GNU General Public License
 #along with this program.  If not, see http://www.gnu.org/licenses/.
 
-from xdm.logger import *
-from lib import requests
-import datetime
-from xdm.plugins.bases import __all__ as allClasses
-import time
-from xdm import common, helper, actionManager
-
-from lib import requests
-import zipfile, StringIO
+import zipfile
+import StringIO
 import xdm
 import os
 import shutil
+import datetime
+
+from xdm.logger import *
+from lib import requests
+from xdm.plugins.bases import __all__ as allClasses
+from xdm import common, helper, actionManager
 
 
 class RepoManager(object):
@@ -89,13 +88,7 @@ class RepoManager(object):
         return ''
 
     def _updateable(self, repo_plugin, plugin):
-        #print 'local', plugin.major_version, plugin.minor_version
-        #print 'repo', repo_plugin.major_version, repo_plugin.minor_version
-        if repo_plugin.major_version > plugin.major_version:
-            return True
-        elif repo_plugin.major_version == plugin.major_version and repo_plugin.minor_version > plugin.minor_version:
-            return True
-        return False
+        return (repo_plugin.major_version, repo_plugin.minor_version) > (plugin.major_version, plugin.minor_version)
 
     def isInstalled(self, plugins, identifier):
         for plugin in plugins:
@@ -308,8 +301,8 @@ class Repo(object):
 
 class RepoPlugin(object):
     def __init__(self, identifier, info):
-        self.major_version = info['major_version']
-        self.minor_version = info['minor_version']
+        self.major_version = int(info['major_version'])
+        self.minor_version = int(info['minor_version'])
         self.format = info['format']
         self.name = info['name']
         self.desc = info['desc']
