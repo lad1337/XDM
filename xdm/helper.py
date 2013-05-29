@@ -58,8 +58,8 @@ def replace_all(text):
 
 def replace_x(text, dic):
     text = u'%s' % text
-    for i, j in dic.iteritems():
-        text = text.replace(i, j)
+    for bad, good in dic.iteritems():
+        text = text.replace(bad, good)
     return text
 
 
@@ -70,7 +70,7 @@ def fileNameClean(text):
 
 def replaceUmlaute(text):
     return replace_x(text, {u'ü': u'ue', u'ä': u'ae', u'ö': 'oe',
-                            u'Ü': u'UE', u'Ä': u'AE', u'Ö': 'OE',
+                            u'Ü': u'Ue', u'Ä': u'Ae', u'Ö': 'Oe',
                             u'ß': 'ss'})
 
 
@@ -90,7 +90,7 @@ def statusLabelClass(status):
 
 
 # form couchpotato
-def launchBrowser(host, port,https):
+def launchBrowser(host, port, https):
 
     if host == '0.0.0.0':
         host = 'localhost'

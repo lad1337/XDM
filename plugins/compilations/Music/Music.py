@@ -57,13 +57,7 @@ class Album(object):
                 """
 
     def getSearchTerms(self):
-        terms = ['%s %s' % (self.parent.name, self.name)]
-        german_fixed = []
-        for term in terms:
-            replaced = replaceUmlaute(term)
-            if replaced != term:
-                german_fixed.append(replaceUmlaute(term))
-        return terms + german_fixed
+        return ['%s %s' % (self.parent.name, self.name)]
 
     def getName(self):
         return self.name

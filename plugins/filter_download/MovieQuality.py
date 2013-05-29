@@ -23,7 +23,7 @@ from xdm.plugins import *
 import guessit
 
 
-class MovieQuality(Filter):
+class MovieQuality(DownloadFilter):
     version = "0.1"
     screenName = 'Movie Quality'
     addMediaTypeOptions = 'runFor'
@@ -37,18 +37,6 @@ class MovieQuality(Filter):
                      'audioCodec_select': 'audioCodec_select',
                      'any_all_select': 'any_all_select'}
 
-    def __init__(self, instance='Default'):
-        """
-        example of how to add all qualitys as checkboxes to the default config and each element
-        and set the global value as the default for the element
-        for attrName in dir(self):
-            if attrName.startswith('quality_'):
-                self._config['%s_enable' % attrName] = False
-                self.elementConfig['%s_enable' % attrName] = '%s_enable' % attrName
-        """
-        self._config['run_on_hook_select'] = common.FOUNDDOWNLOADS
-        Filter.__init__(self, instance=instance)
-
     def compare(self, element=None, download=None, string=None):
         guess = guessit.guess_movie_info(download.name, info=['filename'])
         self.e.getConfigsFor(element) #this will load all the elements configs
@@ -57,7 +45,7 @@ class MovieQuality(Filter):
 
         finalReason = []
         for attribute in ('format_select', 'screenSize_select', 'audioCodec_select'):
-            attributeGuessName = attribute[:-7]
+            attributeGuessName = attribute[:-7] # remove that _select
             attributeElementConfigValue = self.e.getConfig(attribute, element).value
             if attributeElementConfigValue == 'any': # current is any so we accept anything !
                 finalReason.append('%s can be anything' % attributeGuessName)

@@ -115,6 +115,7 @@ def searchElement(ele):
     didSearch = False
     for indexer in common.PM.getIndexers(runFor=ele.manager):
         createGenericEvent(ele, 'search', 'Searching %s on %s' % (ele, indexer))
+        log.info("Init search of %s on %s" % (ele, indexer))
         downloads = indexer.searchForElement(ele) #intensiv
         createGenericEvent(ele, 'result', '%s found %s results' % (indexer, len(downloads)))
         didSearch = True
@@ -188,7 +189,7 @@ def _filterBadDownloads(downloads):
                 log.info("Found a Download(%s) with the same url and we snatched it already. I'l get it again..." % download)
             download = old_download
 
-        for curFilterPlugin in common.PM.getFilters(hook=common.FOUNDDOWNLOADS, runFor=download.element.manager):
+        for curFilterPlugin in common.PM.getDownloadFilters(runFor=download.element.manager):
             filterResult = curFilterPlugin.compare(element=download.element, download=download)
             if not filterResult.result:
                 log.info('%s did not like %s, reason: %s' % (curFilterPlugin, download, filterResult.reason))

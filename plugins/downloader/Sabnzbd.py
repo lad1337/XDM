@@ -101,7 +101,7 @@ class Sabnzbd(Downloader):
             percentage = 100 - ((i['mbleft'] / i['mb']) * 100)
             return percentage
         else:
-            0
+            return 0
 
     def getElementStaus(self, element):
         """returns a Status and path"""

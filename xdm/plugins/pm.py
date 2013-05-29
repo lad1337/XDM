@@ -97,7 +97,10 @@ class PluginManager(object):
             if systemOnly:
                 classes = (plugins.System,)
             else:
-                classes = (plugins.System, plugins.Notifier, plugins.MediaTypeManager, plugins.Downloader, plugins.Filter, plugins.MediaAdder, plugins.Indexer, plugins.Provider, plugins.PostProcessor, plugins.DownloadType)
+                classes = (plugins.System, plugins.Notifier, plugins.MediaTypeManager,
+                           plugins.Downloader, plugins.DownloadFilter, plugins.SearchTermFilter,
+                           plugins.MediaAdder, plugins.Indexer, plugins.Provider,
+                           plugins.PostProcessor, plugins.DownloadType)
             for cur_plugin_type in classes: #for plugin types
                 cur_plugin_type_name = cur_plugin_type.__name__
                 cur_classes = self.find_subclasses(cur_plugin_type, reloadModules, debug=debug)
@@ -263,15 +266,6 @@ class PluginManager(object):
                 filtered.append(cur_cls)
         return filtered
 
-    def _getFilters(self, plugins, hook=None):
-        if hook is None:
-            return plugins
-        filtered = []
-        for cur_cls in plugins:
-            if cur_cls.c.run_on_hook_select == hook:
-                filtered.append(cur_cls)
-        return filtered
-
     # typed and runner checked
     def getDownloaders(self, i='', returnAll=False, types=[], runFor=None):
         return self._getRunners(self._getTyped(self._getAny(plugins.Downloader, i, returnAll), types), runFor)
@@ -285,15 +279,18 @@ class PluginManager(object):
         return self._getRunners(self._getTyped(self._getAny(plugins.PostProcessor, i, returnAll), types), runFor)
     PP = property(getPostProcessors)
 
-    # hook checked and runFor
-    def getFilters(self, i='', returnAll=False, hook=None, runFor=None):
-        return self._getRunners(self._getFilters(self._getAny(plugins.Filter, i, returnAll), hook), runFor)
-    F = property(getFilters)
-
     # runner checked
     def getProvider(self, i='', returnAll=False, runFor=None):
         return self._getRunners(self._getAny(plugins.Provider, i, returnAll), runFor)
     P = property(getProvider)
+
+    def getDownloadFilters(self, i='', returnAll=False, runFor=None):
+        return self._getRunners(self._getAny(plugins.DownloadFilter, i, returnAll), runFor)
+    DF = property(getDownloadFilters)
+
+    def getSearchTermFilters(self, i='', returnAll=False, runFor=None):
+        return self._getRunners(self._getAny(plugins.SearchTermFilter, i, returnAll), runFor)
+    SF = property(getSearchTermFilters)
 
     # none filtered
     def getDownloaderTypes(self, i='', returnAll=False):
@@ -320,7 +317,8 @@ class PluginManager(object):
         return self.getSystems(returnAll=returnAll, i=instance) +\
                 self.getIndexers(returnAll=returnAll, i=instance) +\
                 self.getDownloaders(returnAll=returnAll, i=instance) +\
-                self.getFilters(returnAll=returnAll, i=instance) +\
+                self.getDownloadFilters(returnAll=returnAll, i=instance) +\
+                self.getSearchTermFilters(returnAll=returnAll, i=instance) +\
                 self.getPostProcessors(returnAll=returnAll, i=instance) +\
                 self.getMediaAdder(returnAll=returnAll, i=instance) +\
                 self.getNotifiers(returnAll=returnAll, i=instance) +\

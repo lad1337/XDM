@@ -21,6 +21,7 @@
 
 import cherrypy
 import json
+import xdm
 from xdm import common, tasks, actionManager
 from xdm.logger import *
 from xdm.classes import *
@@ -202,6 +203,10 @@ class AjaxCalls:
 
     @cherrypy.expose
     def save(self, **kwargs):
+        return self._save(**kwargs)
+
+    @xdm.profileMeMaybe
+    def _save(self, **kwargs):
         actions = {}
         if 'saveOn' in kwargs:
             del kwargs['saveOn']
@@ -225,6 +230,7 @@ class AjaxCalls:
         # because i create each plugin for each config value that is for that plugin
         # because i need the config_meta from the class to create the action list
         # but i can use the plugins own c obj for saving the value
+        _plugin_cache = {} # first try to make it faster is by using a cache for each plugin instance 
         for k, v in kwargs.items():
             log("config K:%s V:%s" % (k, v))
             parts = k.split('-')
@@ -236,7 +242,12 @@ class AjaxCalls:
             class_name = parts[0]
             instance_name = parts[1]
             config_name = parts[2]
-            plugin = common.PM.getInstanceByName(class_name, instance_name)
+            _cacheName = "%s %s" % (class_name, instance_name)
+            if _cacheName in _plugin_cache:
+                plugin = _plugin_cache[_cacheName]
+            else:
+                plugin = common.PM.getInstanceByName(class_name, instance_name)
+                _plugin_cache[_cacheName] = plugin
             if plugin:
                 log("We have a plugin: %s (%s)" % (class_name, instance_name))
                 if element is not None: # we got an element id so its an element config

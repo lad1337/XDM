@@ -251,6 +251,7 @@ def main():
 
     except KeyboardInterrupt:
         actionManager.executeAction('shutdown', 'KeyboardInterrupt')
+    os._exit()
 
 
 def runUpdater():

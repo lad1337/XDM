@@ -23,7 +23,7 @@ from xdm.plugins import *
 import re
 
 
-class RegEx(Filter):
+class RegEx(DownloadFilter):
     version = "0.2"
     #addMediaTypeOptions = 'runFor'
     useConfigsForElementsAs = 'Enable'

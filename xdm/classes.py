@@ -209,9 +209,12 @@ class Element(BaseModel):
             fn = self.manager.getFn(self.type, name)
             self._fnChecked.append(name)
             if fn is not None:
-                setattr(self, '_' + name, types.MethodType(fn, self))
+                    setattr(self, '_' + name, types.MethodType(fn, self))
 
-        return getattr(self, '_' + name)
+        if name == 'getSearchTerms':
+            return getattr(self, '_getSearchTermsWrapper')
+        else:
+            return getattr(self, '_' + name)
 
     def __getattribute__(self, name):
         if name in BaseModel.__getattribute__(self, '_overwriteableFunctions'):
@@ -316,10 +319,19 @@ class Element(BaseModel):
         return self.getTemplate()
 
     def getSearchTerms(self):
-        return self._getSearchTerm()
+        return self._getSearchTermsWrapper()
 
-    def _getSearchTerm(self):
+    def _getSearchTerms(self):
         return [self.getName()]
+
+    def _getSearchTermsWrapper(self):
+        terms = self._getSearchTerms()
+        for curFilter in common.PM.getSearchTermFilters(runFor=self.manager):
+            log('Running %s on terms: %s' % (curFilter, terms))
+            terms += curFilter.compare(self, terms)
+        finalSet = list(set(terms))
+        log('Final search term set for %s is: %s' % (self, finalSet))
+        return finalSet
 
     def imgName(self):
         return "%s (%s).jpeg" % (helper.replace_all(self.name), self.id)

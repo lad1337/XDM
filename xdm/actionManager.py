@@ -67,7 +67,7 @@ def _callMethod(o, function):
 
 def shutdown():
     common.SM.setNewMessage("Shutting down. Bye bye and good luck!")
-    time.sleep(2)
+    log.info("Shutting down. Bye bye and good luck!")
     os._exit(0)
 
 
