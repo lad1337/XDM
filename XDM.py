@@ -22,6 +22,7 @@
 
 import sys
 import os
+import time
 # Fix for correct path
 if hasattr(sys, 'frozen'):
     app_path = os.path.abspath(os.path.join(os.path.abspath(sys.executable), '..', '..', 'Resources'))
@@ -51,7 +52,7 @@ from xdm.web import WebRoot
 from xdm.helper import launchBrowser, daemonize
 
 
-class RunApp():
+class App():
 
     def __init__(self):
 
@@ -141,6 +142,7 @@ class RunApp():
         else:
             port = common.SYSTEM.c.port
             server.socket_port = port
+        self.port = server.socket_port
 
         # PIDfile
         if options.pidfile:
@@ -163,7 +165,7 @@ class RunApp():
         cherrypy.config.update({'global': {'server.socket_port': port}
                                 })
 
-    def RunWebServer(self):
+    def startWebServer(self):
         log.info("Generating CherryPy configuration")
         #cherrypy.config.update(gamez.CONFIG_PATH)
 
@@ -227,19 +229,33 @@ class RunApp():
         log.info("Starting the XDM web server")
         cherrypy.tree.mount(WebRoot(app_path), config=conf)
         cherrypy.server.socket_host = common.SYSTEM.c.socket_host
-        try:
-            cherrypy.log.screen = False
-            cherrypy.engine.start()
-            log.info("XDM web server running")
-            common.SM.setNewMessage("Up and running.")
-            common.SM.setNewMessage("Done!")
-            cherrypy.engine.block()
-        except KeyboardInterrupt:
-            actionManager.executeAction('shutdown', 'KeyboardInterrupt')
+
+        cherrypy.log.screen = False
+        cherrypy.server.start()
+        log.info("XDM web server running")
+        common.SM.setNewMessage("Up and running.")
+        common.SM.setNewMessage("Done!")
+        cherrypy.server.wait()
+
+
+def main():
+    app = App()
+    try:
+        app.startWebServer()
+    except IOError:
+        log.error("Unable to start web server, is something else running on port %d?" % app.port)
+        os._exit(1)
+    try:
+        while True:
+            time.sleep(1)
+
+    except KeyboardInterrupt:
+        actionManager.executeAction('shutdown', 'KeyboardInterrupt')
 
 
 def runUpdater():
-    tasks.updateGames()
+    #tasks.updateGames()
+    log.info('updateing all elements is not implemented sorry')
 
 
 def runCoreUpdater():
@@ -258,4 +274,4 @@ def runMediaAdder():
     tasks.runMediaAdder()
 
 if __name__ == '__main__':
-    RunApp().RunWebServer()
+    main()
