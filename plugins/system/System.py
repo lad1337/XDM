@@ -1,9 +1,9 @@
 # Author: Dennis Lutter <lad1337@gmail.com>
 # URL: https://github.com/lad1337/XDM
 #
-# This file is part of XDM: Xtentable Download Manager.
+# This file is part of XDM: eXtentable Download Manager.
 #
-#XDM: Xtentable Download Manager. Plugin based media collection manager.
+#XDM: eXtentable Download Manager. Plugin based media collection manager.
 #Copyright (C) 2013  Dennis Lutter
 #
 #XDM is free software: you can redistribute it and/or modify
