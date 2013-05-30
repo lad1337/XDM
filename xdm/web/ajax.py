@@ -166,7 +166,7 @@ class AjaxCalls:
     def reboot(self):
         common.SM.reset();
         common.SM.setNewMessage('reboot.py -t NOW')
-        t = tasks.TaskThread(actionManager.executeAction, 'hardReboot', 'Webgui')
+        t = tasks.TaskThread(actionManager.executeAction, 'reboot', 'Webgui')
         t.start()
         return '<ul id="install-shell" class="shell"></ul>'
 

@@ -21,6 +21,7 @@
 
 from xdm.plugins import *
 from lib import requests
+from xdm import api
 
 
 class Sabnzbd(Downloader):
@@ -136,7 +137,7 @@ class Sabnzbd(Downloader):
         else:
             return (common.UNKNOWN, download, '')
 
-    @profileMeMaybe
+    @api.expose
     def _testConnection(self, host, port, apikey):
         payload = {'mode': 'version',
                    'output': 'json'}

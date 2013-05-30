@@ -30,7 +30,7 @@ import re
 import subprocess
 import time
 
-ACTIONS = ['reboot', 'hardReboot', 'recachePlugins', 'shutdown']
+ACTIONS = ['serverReStart', 'reboot', 'recachePlugins', 'shutdown']
 
 
 def executeAction(action, callers):
@@ -40,10 +40,10 @@ def executeAction(action, callers):
         return False
 
     log.info("Executing actions '%s'. Called from %s" % (action, callers))
-    if action == 'reboot':
-        cherrypy.engine.restart()
-    elif action == 'hardReboot':
-        hardReboot()
+    if action == 'serverReStart':
+        cherrypy.server.restart()
+    elif action == 'reboot':
+        reboot()
     elif action == 'shutdown':
         shutdown()
     elif action == 'recachePlugins':
@@ -71,7 +71,7 @@ def shutdown():
     os._exit(0)
 
 
-def hardReboot():
+def reboot():
     log("Determining restart method...")
     common.SM.setNewMessage("Determining restart method...")
     install_type = common.UPDATER.install_type

@@ -87,7 +87,7 @@ class CoreUpdater(object):
     def update(self):
         common.SM.setNewMessage("Initialising core update")
         if self.updater.update():
-            actionManager.executeAction('hardReboot', 'Updater')
+            actionManager.executeAction('reboot', 'Updater')
         return True
 
 

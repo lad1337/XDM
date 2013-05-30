@@ -48,17 +48,17 @@ class SystemConfig(System):
         return (True, {}, '%s configs removed' % amount)
 
     config_meta = {'plugin_buttons': {'clearAllUnsedConfgs': {'action': _clearAllUnsedConfgs, 'name': 'Clear unused configs', 'desc': 'Clear Configs that are not used (this is also done on startup)'}},
-                   'login_user': {'on_change_actions': ['reboot']},
-                    'login_password': {'on_change_actions': ['reboot']},
+                   'login_user': {'on_change_actions': ['serverReStart']},
+                    'login_password': {'on_change_actions': ['serverReStart']},
                     'interval_search': {'human': 'Search interval (minutes)'},
                     'interval_update': {'human': 'Update interval (minutes)'},
                     'https': {'human': 'HTTPS', 'desc': 'NOT IMPLEMENTED YET'},
-                    'interval_search': {'human': 'Search interval (minutes)', 'on_change_actions': ['reboot']},
-                    'interval_update': {'human': 'Update interval (minutes)', 'on_change_actions': ['reboot']},
-                    'interval_check': {'human': 'Download check interval (minutes)', 'on_change_actions': ['reboot']},
+                    'interval_search': {'human': 'Search interval (minutes)', 'on_change_actions': ['serverReStart']},
+                    'interval_update': {'human': 'Update interval (minutes)', 'on_change_actions': ['serverReStart']},
+                    'interval_check': {'human': 'Download check interval (minutes)', 'on_change_actions': ['serverReStart']},
                     'again_on_fail': {'human': 'Retry a different download after a failed one', 'desc': 'If on XDM tries to find (another) download after a failure, also see Resnatch Same'},
                     'resnatch_same': {'human': 'Resnatch Same', 'desc': 'If on XDM will resnatch the same download after a failure (if Retry is on at all)'},
-                    'extra_plugin_path': {'human': 'Extra Plugin Path', 'on_change_actions': ['reboot']},
+                    'extra_plugin_path': {'human': 'Extra Plugin Path', 'on_change_actions': ['serverReStart']},
                     'plugin_desc': 'System wide configurations',
                     'defaut_mt_select': {'human': 'Default MediaType'},
                     'dont_open_browser': {'human': 'Dont open the browser on start'}

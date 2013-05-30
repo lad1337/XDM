@@ -142,10 +142,6 @@ class profileMeMaybe(object):
 
     def __init__(self, target):
         self.target = target
-        # dynamically name __call__ after the target
-        wrapped = partial(self.__call__)
-        self.__call__ = update_wrapper(wrapped, self.target)
-        # dont ask me why or how but at some point of that name redirecting the __name__ of this instance is asked for
         # and we expect it to be the wrapped function name
         self.__name__ = self.target.__name__
 

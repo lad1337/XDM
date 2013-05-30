@@ -25,12 +25,14 @@ import xdm
 from xdm.logger import *
 from jsonrpclib.SimpleJSONRPCServer import SimpleJSONRPCServer
 import threading
-from xdm import actionManager, common
+from xdm import actionManager, common, tasks
 import json
 
 from functools import partial, update_wrapper
 from jsonrpclib.jsonrpc import ProtocolError, Fault
 import types
+
+DONTNEEDAPIKEY = ('ping', 'version')
 
 
 class ApiDispatcher(object):
@@ -45,15 +47,13 @@ class ApiDispatcher(object):
         return self._exposed.keys()
 
     def _dispatch(self, method, params):
-        print method, params
+        #TODO: log api calls
         checkApiKey = True
-        if method in ('ping', 'version'):
+        if method in DONTNEEDAPIKEY:
             checkApiKey = False
         if method in self._exposed:
             func = self._exposed[method]
             if checkApiKey:
-                print common.APIKEY
-                print type(params)
                 if  params and type(params) is types.ListType:
                     if params[0] != common.APIKEY:
                         return Fault(-31121, "Missing API key or wrong API key")
@@ -65,7 +65,6 @@ class ApiDispatcher(object):
                     return Fault(-31123, "API key denied access")
                 else:# correct api key as keyword
                     del params['apikey']
-
             try:
                 if type(params) is types.ListType:
                     response = func(*params)
@@ -81,22 +80,15 @@ apiDispatcher = ApiDispatcher()
 
 
 class expose(object):
-    """Expose the function and add it to the apiDispatcher"""
+    """Expose the function by adding it to the apiDispatcher"""
     def __init__(self, target):
-        print type(target), target.__objclass__
         self.target = target
-        # dynamically name __call__ after the target
-        wrapped = partial(self.__call__)
-        self.__call__ = update_wrapper(wrapped, self.target)
-        # dont ask me why or how but at some point of that name redirecting the __name__ of this instance is asked for
-        # and we expect it to be the wrapped function name
         self.__name__ = self.target.__name__
-        try:
-            obj = self.obj
-        except AttributeError: # if this is not an instance method self.obj is not defined
+        if target.__module__.startswith('xdm.api'):
             exposedFunctionName = self.__name__
-        else: # if this is a instance function automatically namspace it
-            exposedFunctionName = "%s.%s" % (obj.__name__.lower(), self.__name__)
+        else:
+            namespace = target.__module__.split('.')[-1].lower()
+            exposedFunctionName = "%s.%s" % (namespace, self.__name__)
 
         apiDispatcher.exposeThis(self, exposedFunctionName)
 
@@ -117,7 +109,7 @@ class expose(object):
 class JSONRPCapi(threading.Thread):
 
     def __init__(self, port):
-        self.server = SimpleJSONRPCServer(('localhost', port))
+        self.server = SimpleJSONRPCServer(('localhost', port), logRequests=False)
         self.server.register_instance(apiDispatcher)
         self.server.register_introspection_functions()
 
@@ -131,15 +123,28 @@ class JSONRPCapi(threading.Thread):
 
 
 @expose
-def ping(pong):
-    return pong
+def ping():
+    """Returns 'pong' nice way to test the connections"""
+    return 'pong'
 
 
 @expose
-def schmu():
-    return 'schmus'
+def version():
+    """Returns the XDM version tuple as a list e.g. [0, 4, 13, 0]"""
+    return common.getVersionTuple()
 
 
 @expose
 def reboot():
-    actionManager.executeAction('reboot', 'JSONRPCapi')
+    common.SM.reset()
+    t = tasks.TaskThread(actionManager.executeAction, 'reboot', 'JSONRPCapi')
+    t.start()
+    return True
+
+
+@expose
+def shutdown():
+    common.SM.reset()
+    t = tasks.TaskThread(actionManager.executeAction, 'shutdown', 'JSONRPCapi')
+    t.start()
+    return True
