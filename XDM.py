@@ -44,6 +44,7 @@ import cherrypy.lib.auth_basic
 import logging # get the debug log level
 import xdm
 from xdm import init, helper, actionManager
+from xdm.api import JSONRPCapi
 from xdm import common
 from xdm import logger # need this to set the log level
 from xdm import tasks
@@ -65,10 +66,13 @@ class App():
         p.add_argument('-n', '--nolaunch', action="store_true", dest='nolaunch', help="Don't start the browser.")
         p.add_argument('-b', '--datadir', dest='datadir', default=None, help="Set the directory for the database.")
         p.add_argument('-c', '--config', dest='config', default=None, help="Path to config file")
+        p.add_argument('--apiPort', dest='apiPort', default=None, help="Port the api runs on")
+        p.add_argument('--noWebServer', action="store_true", dest='noWebServer', help="Port the api runs on")
         p.add_argument('--pluginImportDebug', action="store_true", dest='pluginImportDebug', help="Extra verbosy debug during plugin import is printed.")
         p.add_argument('--profile', dest='profile', nargs='*', default=None, help="Wrap a decorated(!) function in a profiler. By default all decorated functions are profiled. Decorate your function with @profileMeMaybe")
 
         options = p.parse_args()
+        self.options = options
         common.STARTOPTIONS = options
 
         if options.version:
@@ -240,11 +244,24 @@ class App():
 
 def main():
     app = App()
-    try:
-        app.startWebServer()
-    except IOError:
-        log.error("Unable to start web server, is something else running on port %d?" % app.port)
-        os._exit(1)
+    if not app.options.noWebServer:
+        try:
+            app.startWebServer()
+        except IOError:
+            log.error("Unable to start web server, is something else running on port %d?" % app.port)
+            os._exit(1)
+    else:
+        log.info('Not starting webserver because of the command line option --noWebServer')
+    if app.options.apiPort:
+        try:
+            api = JSONRPCapi(int(app.options.apiPort))
+        except:
+            log.error('could not init jsonrpc api')
+            os._exit(1)
+        else:
+            log('Starting api thread')
+            api.start()
+
     try:
         while True:
             time.sleep(1)

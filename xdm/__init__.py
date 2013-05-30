@@ -64,6 +64,9 @@ class Common(object):
 
     LOGTOSCREEN = True
     LOGDEBUGTOSCREEN = False
+    
+    
+    APIKEY = "asdaasfdffgfgfgfvdfvfdvd"
 
     #Hooks
     SEARCHTERMS = 1

@@ -102,4 +102,5 @@ def hardReboot():
     else:
         log(u"not able to restart")
     common.SM.setNewMessage("Please wait...")
+    time.sleep(1)
     executeAction('shutdown', 'RebootAction')

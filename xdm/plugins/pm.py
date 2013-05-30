@@ -22,7 +22,7 @@
 import bases as plugins
 import os
 import traceback
-from xdm import actionManager
+from xdm import actionManager, api
 from xdm.classes import *
 from xdm.logger import *
 from xdm import common
@@ -49,10 +49,6 @@ class PluginManager(object):
         self.clearCache()
         self._score_cache = {}
         self.crashed_on_init_cache = {}
-
-    def updatePlugins(self):
-        timer = threading.Timer(1, self._updatePlugins)
-        timer.start()
 
     def _getPylintScore(self, path):
         old_stdout = sys.stdout
@@ -86,6 +82,7 @@ class PluginManager(object):
         self._mt_cache = {}
         self._cache = {}
 
+    @api.expose
     def cache(self, reloadModules=False, debug=False, systemOnly=False, clearUnsedConfgs=False, calculateScore=True):
         if systemOnly:
             log.info('Loading/searching system plugins')
@@ -160,50 +157,7 @@ class PluginManager(object):
                     log("I found %s instances for %s(v%s): %s" % (len(final_instances), cur_class.__name__, cur_class.version, self._cache[cur_plugin_type][cur_class]))
             #log("Final plugin cache %s" % self._cache)
 
-    #TODO make this work or remove it
-    def _updatePlugins(self):
-        with self._caching:
-            done_types = []
-            upgrade_done = False
-            for plugin in self.getAll(True):
-                if plugin.__class__ in done_types or not hasattr(plugin, 'update_url'):
-                    continue
-                else:
-                    done_types.append(plugin.__class__)
-                log("Checking if %s needs an update. Please wait... (%s)" % (plugin.__class__.__name__, plugin.update_url))
-                try:
-                    r = requests.get(plugin.update_url, timeout=20)
-                except (requests.ConnectionError, requests.Timeout):
-                    log.error("Error while retrieving the update for %s" % plugin.__class__.__name__)
-                    continue
-                source = r.text
-                m = re.search("""    version = ["'](?P<version>.*?)["']""", source)
-                if not (m or r.status_code.ok):
-                    continue
-                new_v = float(m.group('version'))
-                old_v = float(plugin.version)
-                if old_v >= new_v:
-                    continue
-                rel_plugin_path = self._path_cache[plugin.__class__]
-                src = os.path.abspath(rel_plugin_path)
-                dst = "%s.vversion%s.txt" % (src, old_v)
-                shutil.move(src, dst)
-                try:
-                    pluginFile = open(src, 'a')
-                    try:
-                        pluginFile.write(r.text)
-                    finally:
-                        pluginFile.close()
-                except IOError as exe:
-                    print exe
-                    log.error("Error during writing updated version")
-                    shutil.move(dst, src)
-                else:
-                    upgrade_done = True
-            if upgrade_done:
-                actionManager.executeAction('hardReboot', 'PluginManager')
-            return upgrade_done
-
+   
     def getPluginScore(self, plugin):
         if plugin.__class__ in self._score_cache:
             return self._score_cache[plugin.__class__]
