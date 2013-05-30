@@ -27,7 +27,7 @@ from xdm.helper import replaceUmlaute
 class Umlaute(SearchTermFilter):
     version = "0.1"
     _config = {}
-    config_meta = {'plugin_desc': 'For each search term generate another one where ä is replaced with ae and so forth.'}
+    config_meta = {'plugin_desc': u'For each search term generate another one where ä is replaced with ae and so forth.'}
 
     def compare(self, element, terms):
         log('Fixing umlaute for %s and %s' % (element, terms))
