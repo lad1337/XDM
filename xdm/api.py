@@ -109,7 +109,7 @@ class expose(object):
 class JSONRPCapi(threading.Thread):
 
     def __init__(self, port):
-        self.server = SimpleJSONRPCServer(('localhost', port), logRequests=False)
+        self.server = SimpleJSONRPCServer(('0.0.0.0', port), logRequests=False)
         self.server.register_instance(apiDispatcher)
         self.server.register_introspection_functions()
 
