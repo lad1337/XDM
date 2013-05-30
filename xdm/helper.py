@@ -33,6 +33,10 @@ from xdm import common
 import xdm
 import shutil
 
+import base64
+import random
+import hashlib
+
 
 def getSystemDataDir(progdir):
     if sys.platform == 'darwin':
@@ -328,3 +332,6 @@ def getLeafTpl():
 def webVars(obj):
     return vars(obj)
 
+
+def generateApiKey():
+    return base64.b64encode(hashlib.sha256( str(random.getrandbits(256)) ).digest(), random.choice(['rA','aZ','gQ','hH','hG','aR','DD'])).rstrip('==')

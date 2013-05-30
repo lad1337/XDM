@@ -24,7 +24,7 @@ import os
 import xdm
 from classes import *
 from classes import __all__ as allClasses
-from xdm import common, tasks
+from xdm import common, tasks, helper
 from logger import *
 from plugins.pm import PluginManager
 from updater import CoreUpdater
@@ -97,6 +97,10 @@ def postDB():
     common.PM.cache(debug=common.STARTOPTIONS.pluginImportDebug)
     common.SYSTEM = common.PM.getSystems('Default')[0] # yeah SYSTEM is a plugin
 
+    if common.SYSTEM.c.api_active and not common.SYSTEM.c.api_key:
+        log.info('Generating your first API key for XDM')
+        common.SYSTEM.c.api_key = helper.generateApiKey()
+
     # lets init all plugins once
     for plugin in common.PM.getAll():
         log("Plugin %s loaded successfully" % plugin.name)
@@ -106,11 +110,44 @@ def postDB():
     common.REPOMANAGER = RepoManager(Repo.select())
 
 
+def schedule():
+    common.SCHEDULER.stopAllTasks()
+    # download status checker schedule
+    rate = common.SYSTEM.c.interval_check * 60
+    log.info("Setting up download status checker scheduler every %s seconds" % rate)
+    common.SCHEDULER.addTask(tasks.runChecker, rate, rate)
+
+    # fixed search rate because noobs will set it to something noobish
+    rate = 12 * 60 * 60 # this should be 12h
+    log.info("Setting up search scheduler every %s seconds" % rate)
+    common.SCHEDULER.addTask(tasks.runSearcher, rate, rate)
+
+    # element updater
+    # TODO: implement a all Element updater
+    """
+    rate = common.SYSTEM.c.interval_update * 60
+    log.info("Setting up element list update scheduler every %s seconds" % rate)
+    common.SCHEDULER.addTask(tasks.runUpdater, rate, 'Element Updater')
+    """
+    # media adder schedule
+    rate = common.SYSTEM.c.interval_mediaadder * 60
+    log.info("Setting up mediaadder scheduler every %s seconds" % rate)
+    common.SCHEDULER.addTask(tasks.runMediaAdder, rate, rate)
+
+    # core update schedule
+    rate = common.SYSTEM.c.interval_core_update * 60
+    if rate:
+        log.info("Setting up core update scheduler every %s seconds" % rate)
+        common.SCHEDULER.addTask(tasks.coreUpdateCheck, rate, 0) # 0 = run now for first time
+    else:
+        log.info("Core update scheduler should never run on its own, because interval is set to 0")
+
+    common.SCHEDULER.startAllTasks()
+
+
 def runTasks():
     """tasks to run on boot"""
     t = tasks.TaskThread(tasks.removeTempElements)
-    t.start()
-    t = tasks.TaskThread(tasks.coreUpdateCheck)
     t.start()
     t = tasks.TaskThread(common.REPOMANAGER.cache)
     t.start()

@@ -66,6 +66,7 @@ class App():
         p.add_argument('-n', '--nolaunch', action="store_true", dest='nolaunch', help="Don't start the browser.")
         p.add_argument('-b', '--datadir', dest='datadir', default=None, help="Set the directory for the database.")
         p.add_argument('-c', '--config', dest='config', default=None, help="Path to config file")
+        p.add_argument('--noApi',action="store_true", dest='noApi', default=None, help="Disable the api")
         p.add_argument('--apiPort', dest='apiPort', default=None, help="Port the api runs on")
         p.add_argument('--noWebServer', action="store_true", dest='noWebServer', help="Port the api runs on")
         p.add_argument('--pluginImportDebug', action="store_true", dest='pluginImportDebug', help="Extra verbosy debug during plugin import is printed.")
@@ -132,6 +133,7 @@ class App():
         init.preDB(app_path, datadir)
         init.db()
         init.postDB()
+        init.schedule()
         init.runTasks()
 
         self.pluginResPaths = {}
@@ -147,6 +149,12 @@ class App():
             port = common.SYSTEM.c.port
             server.socket_port = port
         self.port = server.socket_port
+        # Set api port
+        if options.apiPort:
+            print "------------------- Api port manual set to " + options.apiPort + " -------------------"
+            self.port_api = int(options.apiPort)
+        else:
+            self.port_api = common.SYSTEM.c.port_api
 
         # PIDfile
         if options.pidfile:
@@ -205,31 +213,6 @@ class App():
         if sys.platform.startswith('darwin') or sys.platform.startswith('win'):
             cherrypy.config.update({'engine.autoreload.on': False})
 
-        rate = common.SYSTEM.c.interval_core_update * 60
-        log.info("Setting up core update scheduler every %s seconds" % rate)
-        if rate:
-            coreUpdateScheduler = cherrypy.process.plugins.Monitor(cherrypy.engine, runCoreUpdater, rate, 'Core Updater Searcher')
-            coreUpdateScheduler.subscribe()
-
-        # fixed search rate because noobs will set it to something noobish
-        rate = 12 * 60 * 60 # this should be 12h
-        log.info("Setting up search scheduler every %s seconds" % rate)
-        singleSearchScheduler = cherrypy.process.plugins.Monitor(cherrypy.engine, runSearcher, rate, 'Element Searcher')
-        singleSearchScheduler.subscribe()
-
-        rate = common.SYSTEM.c.interval_update * 60
-        log.info("Setting up element list update scheduler every %s seconds" % rate)
-        gameListUpdaterScheduler = cherrypy.process.plugins.Monitor(cherrypy.engine, runUpdater, rate, 'Element Updater')
-        gameListUpdaterScheduler.subscribe()
-        rate = common.SYSTEM.c.interval_check * 60
-        log.info("Setting up download status checker scheduler every %s seconds" % rate)
-        folderProcessingScheduler = cherrypy.process.plugins.Monitor(cherrypy.engine, runChecker, rate, 'Check Downloads')
-        folderProcessingScheduler.subscribe()
-        rate = common.SYSTEM.c.interval_mediaadder * 60
-        log.info("Setting up mediaadder scheduler every %s seconds" % rate)
-        folderProcessingScheduler = cherrypy.process.plugins.Monitor(cherrypy.engine, runMediaAdder, rate, 'Check for Media')
-        folderProcessingScheduler.subscribe()
-
         log.info("Starting the XDM web server")
         cherrypy.tree.mount(WebRoot(app_path), config=conf)
         cherrypy.server.socket_host = common.SYSTEM.c.socket_host
@@ -252,15 +235,17 @@ def main():
             os._exit(1)
     else:
         log.info('Not starting webserver because of the command line option --noWebServer')
-    if app.options.apiPort:
+    if not app.options.noApi and common.SYSTEM.c.api_active:
         try:
-            api = JSONRPCapi(int(app.options.apiPort))
+            api = JSONRPCapi(app.port_api)
         except:
             log.error('could not init jsonrpc api')
             os._exit(1)
         else:
             log('Starting api thread')
             api.start()
+    else:
+        log.info('Api is OFF')
 
     try:
         while True:
@@ -270,26 +255,6 @@ def main():
         actionManager.executeAction('shutdown', 'KeyboardInterrupt')
     os._exit()
 
-
-def runUpdater():
-    #tasks.updateGames()
-    log.info('updateing all elements is not implemented sorry')
-
-
-def runCoreUpdater():
-    tasks.coreUpdateCheck()
-
-
-def runSearcher():
-    tasks.runSearcher()
-
-
-def runChecker():
-    tasks.runChecker()
-
-
-def runMediaAdder():
-    tasks.runMediaAdder()
 
 if __name__ == '__main__':
     main()

@@ -55,8 +55,8 @@ class ApiDispatcher(object):
             func = self._exposed[method]
             if checkApiKey:
                 if  params and type(params) is types.ListType:
-                    if params[0] != common.APIKEY:
-                        return Fault(-31121, "Missing API key or wrong API key")
+                    if params[0] != common.SYSTEM.c.api_key:
+                        return Fault(-31121, "Missing or wrong API key")
                     else:# correct api key as list
                         del params[0]
                 elif 'apikey' not in params:
@@ -136,6 +136,7 @@ def version():
 
 @expose
 def reboot():
+    """just return True and starts a thread to reboot XDM"""
     common.SM.reset()
     t = tasks.TaskThread(actionManager.executeAction, 'reboot', 'JSONRPCapi')
     t.start()
@@ -144,7 +145,13 @@ def reboot():
 
 @expose
 def shutdown():
+    """just return True and starts a thread to shutdown XDM"""
     common.SM.reset()
     t = tasks.TaskThread(actionManager.executeAction, 'shutdown', 'JSONRPCapi')
     t.start()
     return True
+
+
+@expose
+def getActiveMediaTypes():
+    return [mtm.identifier for mtm in common.PM.MTM]

@@ -5,6 +5,9 @@ from lib.profilehooks import profile as profileHookFunction
 from functools import partial, update_wrapper, wraps
 from xdm.message import MessageManager, SystemMessageManager
 from xdm.news import NewsManager
+import sched
+import time
+from xdm.scheduler import Scheduler
 
 HOME_PATH = ""
 APP_PATH = ""
@@ -64,13 +67,8 @@ class Common(object):
 
     LOGTOSCREEN = True
     LOGDEBUGTOSCREEN = False
-    
-    
-    APIKEY = "asdaasfdffgfgfgfvdfvfdvd"
 
-    #Hooks
-    SEARCHTERMS = 1
-    FOUNDDOWNLOADS = 2
+    APIKEY = "asdaasfdffgfgfgfvdfvfdvd"
 
     #pp stop connditions
     STOPPPONSUCCESS = 1
@@ -83,6 +81,7 @@ class Common(object):
     MM = MessageManager()
     SM = SystemMessageManager()
     NM = NewsManager()
+    SCHEDULER = Scheduler()
 
     def getAllStatus(self):
         return [self.UNKNOWN, self.WANTED, self.SNATCHED, self.DOWNLOADING,
@@ -133,6 +132,7 @@ class Common(object):
         if version.build:
             return "%s %s.%s.%s.%s" % (major_names[major], major, minor, revision, build)
         return "%s %s.%s.%s" % (major_names[major], major, minor, revision)
+
 
 common = Common()
 

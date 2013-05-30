@@ -28,6 +28,7 @@ class SystemConfig(System):
     _config = {'login_user': '',
                'login_password': '',
                'port': 8085,
+               'port_api': 8086,
                'socket_host': '0.0.0.0',
                'https': False,
                'extra_plugin_path': '',
@@ -40,7 +41,9 @@ class SystemConfig(System):
                'resnatch_same': False,
                'defaut_mt_select': '',
                'dont_open_browser': False,
-               'show_feed': True
+               'show_feed': True,
+               'api_active': True,
+               'api_key': ''
                }
 
     def _clearAllUnsedConfgs(self):
