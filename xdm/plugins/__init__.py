@@ -21,7 +21,7 @@
 
 import datetime
 from bases import *
-from pm import PluginManager
+from pluginManager import PluginManager
 from xdm.classes import *
 from xdm.logger import *
 from xdm import common

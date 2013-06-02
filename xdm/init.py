@@ -26,7 +26,7 @@ from classes import *
 from classes import __all__ as allClasses
 from xdm import common, tasks, helper
 from logger import *
-from plugins.pm import PluginManager
+from plugins.pluginManager import PluginManager
 from updater import CoreUpdater
 from xdm.plugins.repository import RepoManager
 

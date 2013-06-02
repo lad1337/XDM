@@ -45,6 +45,9 @@ import logging # get the debug log level
 import xdm
 from xdm import init, helper, actionManager
 from xdm.api import JSONRPCapi
+# import sub api modules
+from xdm.api import system
+
 from xdm import common
 from xdm import logger # need this to set the log level
 from xdm import tasks

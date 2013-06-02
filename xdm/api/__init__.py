@@ -31,6 +31,9 @@ import json
 from functools import partial, update_wrapper
 from jsonrpclib.jsonrpc import ProtocolError, Fault
 import types
+import re
+import inspect
+
 
 DONTNEEDAPIKEY = ('ping', 'version')
 
@@ -41,10 +44,14 @@ class ApiDispatcher(object):
         self._exposed = {}
 
     def exposeThis(self, fn, name):
+        log('Registering api function %s' % name)
         self._exposed[name] = fn
 
-    def _listMethods(self):
-        return self._exposed.keys()
+    def getExposedMethods(self):
+        return sorted(self._exposed.keys())
+
+    def getFunction(self, functionName):
+        return self._exposed[functionName]
 
     def _dispatch(self, method, params):
         #TODO: log api calls
@@ -72,6 +79,7 @@ class ApiDispatcher(object):
                     response = func(**params)
                 return response
             except TypeError:
+                #log.error('error during call of %s' % method)
                 return Fault(-32602, 'Invalid parameters.')
         else:
             return Fault(-32601, 'Method %s not supported.' % method)
@@ -81,16 +89,17 @@ apiDispatcher = ApiDispatcher()
 
 class expose(object):
     """Expose the function by adding it to the apiDispatcher"""
-    def __init__(self, target):
-        self.target = target
+    def __init__(self, *args):
+        self.target = args[0]
         self.__name__ = self.target.__name__
-        if target.__module__.startswith('xdm.api'):
-            exposedFunctionName = self.__name__
+        namespace = self.target.__module__.split('.')[-1].lower().replace(' ', '_').replace('api', '')
+        if namespace:
+            self.exposedFunctionName = "%s.%s" % (namespace, self.__name__)
         else:
-            namespace = target.__module__.split('.')[-1].lower()
-            exposedFunctionName = "%s.%s" % (namespace, self.__name__)
-
-        apiDispatcher.exposeThis(self, exposedFunctionName)
+            self.exposedFunctionName = self.__name__
+        apiDispatcher.exposeThis(self, self.exposedFunctionName)
+        self.signature = getattr(self.target, 'signature', [])
+        self.help = getattr(self.target, 'help', self.target.__doc__)
 
     #http://stackoverflow.com/questions/8856164/class-decorator-decorating-method-in-python
     def __get__(self, obj, type=None):
@@ -111,7 +120,6 @@ class JSONRPCapi(threading.Thread):
     def __init__(self, port):
         self.server = SimpleJSONRPCServer(('0.0.0.0', port), logRequests=False)
         self.server.register_instance(apiDispatcher)
-        self.server.register_introspection_functions()
 
         threading.Thread.__init__(self)
 
@@ -123,35 +131,14 @@ class JSONRPCapi(threading.Thread):
 
 
 @expose
-def ping():
-    """Returns 'pong' nice way to test the connections"""
-    return 'pong'
+def ping(pong='pong'):
+    """Returns pong nice way to test the connections"""
+    return pong
+ping.signature = [['string'], ['string', 'string']]
 
 
 @expose
 def version():
     """Returns the XDM version tuple as a list e.g. [0, 4, 13, 0]"""
     return common.getVersionTuple()
-
-
-@expose
-def reboot():
-    """just return True and starts a thread to reboot XDM"""
-    common.SM.reset()
-    t = tasks.TaskThread(actionManager.executeAction, 'reboot', 'JSONRPCapi')
-    t.start()
-    return True
-
-
-@expose
-def shutdown():
-    """just return True and starts a thread to shutdown XDM"""
-    common.SM.reset()
-    t = tasks.TaskThread(actionManager.executeAction, 'shutdown', 'JSONRPCapi')
-    t.start()
-    return True
-
-
-@expose
-def getActiveMediaTypes():
-    return [mtm.identifier for mtm in common.PM.MTM]
+version.signature = [['tuple']]
