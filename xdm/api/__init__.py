@@ -88,7 +88,9 @@ apiDispatcher = ApiDispatcher()
 
 
 class expose(object):
-    """Expose the function by adding it to the apiDispatcher"""
+    """Exposes the function by adding it to the apiDispatcher
+    Use this as a decorator like: @expose
+    """
     def __init__(self, *args):
         self.target = args[0]
         self.__name__ = self.target.__name__

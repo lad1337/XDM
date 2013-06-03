@@ -36,21 +36,45 @@ import collections
 
 
 class Plugin(object):
-    """plugin base class. loads the config on init
-    "self.c" is reserved!!! thats how you get the config
-    "self.type" is reserved!!! its the class name
-    "self._type" is reserved!!! its the plugin type name e.g. Downloader
-    "self.instance" is reserved!!! its the instance name
-    "self.name" is reserved!!! its the class name and instance name
-    "self.single" is reserved!!! set this if you only want to allow one instance of your plugin !
-    """
+    """Plugin base class. loads the config on init"""
     _type = 'Plugin'
-    single = False # if True the gui will not give the option for more configurations. but there is no logic to stop you do it anyways
+    """The plugin type name e.g. Downloader"""
+    single = False
+    """if True the gui will not give the option for more configurations. but there is no logic to stop you do it anyways"""
     _config = {}
+    """The configuration defining dict""" 
     config_meta = {}
+    """Meta information on the the config keys"""
     version = "0.1"
+    """version string. may only have a major and a minor version number"""
     useConfigsForElementsAs = 'Category'
+    """MediaTypeManager can add configurations for elements.
+    this defines how this configuration is used.
+    This string will be used for:
+
+    - It will be added to the configurations name.
+    - A function will be created named ``get<useConfigsForElementsAs_value>()`` e.g. getCategory()
+    """
     addMediaTypeOptions = True
+    """Defines if options defined by a MediaType should be added to the plugin.
+
+    .. note::
+
+        This is ignored for plugins of the type MediaTypeManager_ and System_ since it's **never** done for them.
+
+    .. _MediaTypeManager: MediaTypeManager.html
+    .. System: System.html
+
+    bool
+        - ``True``: this will add all configurations defined by a MediaType
+        - ``False``: No configurations are added
+
+    list
+        a list of MediaType identifiers e.g. ``['de.lad1337.music', 'de.lad1337.games']``, this will add only options from the MediaType with the given identifier
+
+    str
+        only str value allowed is ``runFor``, this will only add runFor options to the plugin.
+    """
     screenName = ''
     identifier = ''
 
@@ -65,9 +89,6 @@ class Plugin(object):
         self.name = "%s (%s)" % (self.screenName, instance)
         self.type = self.__class__.__name__
         self.instance = instance.replace('.', '_')
-        # log message
-        #if self._type != 'DownloadType':
-        #    log("Creating new plugin %s" % self.name)
 
         #setup other config options from mediatypes
         if self.addMediaTypeOptions:
@@ -235,6 +256,7 @@ class Plugin(object):
         return object.__getattribute__(self, name)
 
     def _getUseConfigsForElementsAsWrapper(self, element):
+        """Gets the the config value for given element"""
         possibleConfigs = []
         for curConfig in self.c.configs:
             """print '\n#####################'
@@ -326,7 +348,9 @@ class DownloadType(Plugin):
     single = True
     addMediaTypeOptions = False
     extension = ''
+    """The file extension if a file is created for this DownloadType"""
     identifier = ''
+    """A absolute unique identifier in reverse URL style e.g. de.lad1337.nzb"""
 
 
 class DownloadTyped(Plugin):

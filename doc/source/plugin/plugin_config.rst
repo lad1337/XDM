@@ -1,0 +1,5 @@
+
+Plugin configuration
+********************
+
+TODO: write
