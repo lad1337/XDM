@@ -11,7 +11,7 @@ Core
 Boot structure
 ==============
 
-::
+.. parsed-literal::
 
    XDM.py
    main() -+
@@ -21,11 +21,11 @@ Boot structure
                  +- __init__() -+
                  |              |
                  |              +-- command line options handling / parsing
-                 |              +-- xdm.init.preDB(): path and folder setup
-                 |              +-- xdm.init.db(): dabase initialisation and migration
-                 |              +-- xdm.init.postDB(): plugin loading
-                 |              +-- init.schedule(): recuring shedular setup and starting
-                 |              +-- init.runTasks(): initial (cleanup) tasks
+                 |              +-- `xdm.init.preDB()`_: path and folder setup
+                 |              +-- `xdm.init.db()`_: database initialisation and migration
+                 |              +-- `xdm.init.postDB()`_: plugin loading
+                 |              +-- `xdm.init.schedule()`_: recuring shedular setup and starting
+                 |              +-- `xdm.init.runTasks()`_: initial (cleanup) tasks
                  |
                  +- startWebServer(): (optional)
                  |
@@ -34,7 +34,13 @@ Boot structure
                  |
                  |
                  +- main while loop with KeyboardInterrupt handler
-                 
+
+.. _`xdm.init.preDB()`: init.html#xdm.init.preDB
+.. _`xdm.init.db()`: init.html#xdm.init.db
+.. _`xdm.init.postDB()`: init.html#xdm.init.postDB
+.. _`xdm.init.schedule()`: init.html#xdm.init.schedule
+.. _`xdm.init.runTasks()`: init.html#xdm.init.runTasks
+
 The common object
 =================
 

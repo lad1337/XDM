@@ -8,6 +8,7 @@ XDM: eXtendable Download Manager. Plugin based media collection manager
 ***********************************************************************
 
 .. image:: ../../Meta-Resources/xdm-logo.svg
+   :height: 150px
 
 XDM is in BETA
 Official site http://xdm.lad1337.de
