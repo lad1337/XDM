@@ -29,14 +29,17 @@ from operator import attrgetter
 
 
 class MessageManager(object):
+    """Class that manages GUI messages / notifications"""
 
     def __init__(self):
         self.messages = {}
 
     def createInfo(self, message, role="system", confirm=None, deny=None, confirmJavascript=None, denyJavascript=None):
+        """creates a info message"""
         return self._createMessage(INFO, message, role=role, confirm=confirm, deny=deny, confirmJavascript=confirmJavascript, denyJavascript=denyJavascript)
 
     def createWarning(self, message, role="system", confirm=None, deny=None, confirmJavascript=None, denyJavascript=None):
+        """creates a warning message"""
         return self._createMessage(WARNING, message, role=role, confirm=confirm, deny=deny, confirmJavascript=confirmJavascript, denyJavascript=denyJavascript)
 
     def _createMessage(self, messageType, message, role="system", confirm=None, deny=None, confirmJavascript=None, denyJavascript=None):
@@ -165,6 +168,9 @@ class MessageJavascriptAction(object):
 
 
 class SystemMessageManager(object):
+    """manages system messages mostly used for ajax calls and there messages
+    not thread save! ... it is not checked who/what browser session created the message
+    """
 
     def __init__(self):
         self.system_messages = []

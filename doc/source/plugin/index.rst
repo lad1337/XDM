@@ -5,9 +5,10 @@ Plugins
 Contents:
 
 .. toctree::
-    :glob:
+   :glob:
  
-    *
+   *
+   plugins/*
 
 
 Getting started

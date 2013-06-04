@@ -62,6 +62,7 @@ class Task( threading.Thread):
 
 
 class Scheduler:
+    """Simple manager for recurring tasks"""
     def __init__(self):
         self._tasks = []
 
@@ -72,14 +73,30 @@ class Scheduler:
         return rep
 
     def addTask(self, action, loopdelay, initdelay=0):
+        """add a task
+
+        Params:
+
+        action
+            a function reference
+
+        loopdelay
+            delay between calls in seconds
+
+        initdelay
+            initial delay in seconds (default = 0)
+
+        """
         task = Task(action, loopdelay, initdelay)
         self._tasks.append(task)
 
     def startAllTasks(self):
+        """Start all task threads"""
         for task in self._tasks:
             task.start()
 
     def stopAllTasks(self):
+        """Stop all task threads"""
         for task in self._tasks:
             task.stop()
             task.join()

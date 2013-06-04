@@ -27,12 +27,14 @@ XDM_FEED_URL = 'http://xdm.lad1337.de/?feed=rss2&cat=5' # cat=5 is the "inapp" c
 
 
 class NewsManager(object):
+    """gets and caches the XDM news feed"""
 
     def __init__(self):
         self.feed = None
         self.news = []
 
     def cache(self):
+        """cache newest feed"""
         xdm.common.MM.clearRole('news')
         self.news = []
         self.feed = feedparser.parse(XDM_FEED_URL)
