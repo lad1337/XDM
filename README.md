@@ -2,10 +2,13 @@
 
 XDM: eXtendable Download Manager. Plugin based media collection manager.
 
-XDM is at BETA stage
-Current offical site [http://xdm.lad1337.de](http://xdm.lad1337.de)<br/>
+XDM is in BETA
+Current official site [http://xdm.lad1337.de](http://xdm.lad1337.de)<br/>
 Official main plugin repository at [https://github.com/lad1337/XDM-main-plugin-repo/](https://github.com/lad1337/XDM-main-plugin-repo/)
 
+### Documentation
+is available online at [https://xdm.readthedocs.org](https://xdm.readthedocs.org)<br>
+or in the source and can be build using [sphinx](http://sphinx-doc.org/)
 
 Libraries in use
 ----------------
@@ -26,6 +29,7 @@ Libraries in use
 - [async](https://github.com/gitpython-developers/async): Distribute interdependent tasks to 0 or more threads
 - [smmap](https://pypi.python.org/pypi/smmap): A pure git implementation of a sliding window memory map manager
 - [tmdb](http://github.com/doganaydin/themoviedb): themoviedb.org wrapper for api v3
+- [JSONRPClib](https://github.com/joshmarshall/jsonrpclib): A Python JSON-RPC over HTTP that mirrors xmlrpclib syntax.
 
 ### Frontend
 
@@ -62,8 +66,8 @@ Usage
 <pre>
 lad1337@hannah:XDM(branch:master)$ python XDM.py --help
 usage: XDM [-h] [-d] [-v] [-D] [-p PIDFILE] [-P PORT] [-n] [-b DATADIR]
-           [-c CONFIG] [--pluginImportDebug]
-           [--profile [PROFILE [PROFILE ...]]]
+           [-c CONFIG] [--noApi] [--apiPort APIPORT] [--noWebServer]
+           [--pluginImportDebug] [--profile [PROFILE [PROFILE ...]]]
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -78,44 +82,14 @@ optional arguments:
                         Set the directory for the database.
   -c CONFIG, --config CONFIG
                         Path to config file
+  --noApi               Disable the api
+  --apiPort APIPORT     Port the api runs on
+  --noWebServer         Port the api runs on
   --pluginImportDebug   Extra verbosy debug during plugin import is printed.
   --profile [PROFILE [PROFILE ...]]
                         Wrap a decorated(!) function in a profiler. By default
                         all decorated functions are profiled. Decorate your
                         function with @profileMeMaybe
-</pre>
-Note some options might not take affect right now e.g. PIDFILE DATADIR CONFIG
-
-Notes on the plugin development api (not final nor complete)
---
-<pre>
-Plugin Class attributes:
-
-addMediaTypeOptions (bool / list / str):
-Should options defined by the MediaType be added to your plugin.
-This is not done for plugins of the type: MediaTypeManager and System
-
-bool:
-- Default: True, this will add all options defined by the MediaType.
-- False will add no options.
-list:
-- a list of MediaType identifiers e.g. ['de.lad1337.music','de.lad1337.games'], this will add only options from the MediaType with the given identifier
-str:
-- only str value allowed is 'runFor', this will only add runFor options to your plugin.
-
-useConfigsForElementsAs (str):
-How do you want to use the options for your plugin.
-Setting this to e.g. 'Path' will create config options that have a file browser in the system settings and the appropriate human name/label.
-
-
-str:
-- Default: 'Category'
-
-You can retrive the config value by running self._get<useConfigsForElementsAs>(element)
-e.g. self._getCategory(element) or self._getPath(element).
-The function will return the value set in the config or None.
-NOTE: MediaType plugins can force this option and you will not be able to retrive it with self._get<useConfigsForElementsAs>(element)
-
 </pre>
 
 License
