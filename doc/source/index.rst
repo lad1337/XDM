@@ -20,10 +20,7 @@ This documentation consists of 3 main sections:
    
    plugin/index
    api/index
-
-- `Core`_
-
-.. _`Core`: core/index.html
+   core/index
    
 
 Usage

@@ -122,7 +122,7 @@ To get the config value access the ``c`` object of you plugin and then the attri
 It was never explained how the `add_message` is used, to change that we use the ``config_meta`` attribute.
 
 .. code-block:: python
-
+   
     from xdm.plugins import *
     
     class Printer(Notifier):

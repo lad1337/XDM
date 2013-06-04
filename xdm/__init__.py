@@ -44,6 +44,7 @@ major_names = {0: 'Zim',
 
 
 class Common(object):
+    """A class that conveniently holds references to common objects and variables"""
 
     STARTOPTIONS = None # the argparse.Namespace object
 
@@ -65,10 +66,7 @@ class Common(object):
     IGNORE = None # ignore this item
     TEMP = None # ignore this item
 
-    LOGTOSCREEN = True
-    LOGDEBUGTOSCREEN = False
-
-    APIKEY = "asdaasfdffgfgfgfvdfvfdvd"
+    APIKEY = ""
 
     #pp stop connditions
     STOPPPONSUCCESS = 1
@@ -84,29 +82,35 @@ class Common(object):
     SCHEDULER = Scheduler()
 
     def getAllStatus(self):
+        """get all available status instances"""
         return [self.UNKNOWN, self.WANTED, self.SNATCHED, self.DOWNLOADING,
                 self.DOWNLOADED, self.COMPLETED, self.FAILED, self.PP_FAIL,
                 self.DELETED, self.IGNORE, self.TEMP]
 
     def getEveryStatusBut(self, notWantedStatuses):
+        """get all available status instances except statuses in the list `notWantedStatuses`"""
         filtered = self.getAllStatus()
         for notWantedStatus in notWantedStatuses:
             filtered = [ x for x in filtered if x is not notWantedStatus ]
         return filtered
 
     def getHomeStatuses(self):
+        """get statuses that are shown on the home/index page"""
         return self.getEveryStatusBut(self.getCompletedStatuses() + [self.TEMP])
 
     def getCompletedStatuses(self):
+        """get statuses that are shown on the completed page"""
         return [self.DELETED, self.COMPLETED, self.DOWNLOADED, self.PP_FAIL]
 
     def getStatusByID(self, id):
+        """get a status be the database id"""
         for s in self.getAllStatus():
             if s.id == id:
                 return s
         raise ValueError("There is no status with the id %s" % id)
 
     def getDownloadTypeExtension(self, downloadTypeIdentifier):
+        """get the (file) of the DownloadType defined by `downloadTypeIdentifier` if none is found will return `txt`"""
         for dt in self.PM.DT:
             if dt.identifier == downloadTypeIdentifier:
                 return dt.extension
@@ -115,9 +119,11 @@ class Common(object):
             return 'txt'
 
     def isThisVersionNewer(self, major, minor, revision, build):
+        """return bool weather the running version is OLDER then the one build by the params"""
         return (major, minor, revision, build) > self.getVersionTuple()
 
     def getVersionTuple(self):
+        """return a tuple of the current version"""
         return (version.major, version.minor, version.revision, version.build)
 
     def getVersionString(self):
