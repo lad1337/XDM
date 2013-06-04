@@ -27,14 +27,10 @@ from jsonrpclib.SimpleJSONRPCServer import SimpleJSONRPCServer
 import threading
 from xdm import actionManager, common, tasks
 import json
-from lib import decorator
 
-from functools import partial, update_wrapper
 from jsonrpclib.jsonrpc import ProtocolError, Fault
 import types
 import re
-import inspect
-import functools
 
 
 DONTNEEDAPIKEY = ('ping', 'version')
@@ -81,7 +77,7 @@ class ApiDispatcher(object):
                     response = func(**params)
                 return response
             except TypeError:
-                #log.error('error during call of %s' % method)
+                log.error('error during call of %s' % method)
                 return Fault(-32602, 'Invalid parameters.')
         else:
             return Fault(-32601, 'Method %s not supported.' % method)
@@ -89,38 +85,19 @@ class ApiDispatcher(object):
 apiDispatcher = ApiDispatcher()
 
 
-class expose(object):
+# thanks to Yhg1s from #python
+#http://bpaste.net/show/ZYJPEBU6LeBITS0vKfyS/
+def expose(f):
     """Exposes the function by adding it to the apiDispatcher
     Use this as a decorator like: @expose
     """
-
-    def __init__(self, target):
-        self.target = target
-        self.__name__ = self.target.__name__
-        self.__doc__ = self.target.__doc__
-        self.__module__ = self.target.__module__
-
-        namespace = self.target.__module__.split('.')[-1].lower().replace(' ', '_').replace('api', '')
-        if namespace:
-            self.exposedFunctionName = "%s.%s" % (namespace, self.__name__)
-        else:
-            self.exposedFunctionName = self.__name__
-        apiDispatcher.exposeThis(self, self.exposedFunctionName)
-        self.signature = getattr(self.target, 'signature', [])
-        self.help = getattr(self.target, 'help', self.target.__doc__)
-
-    #http://stackoverflow.com/questions/8856164/class-decorator-decorating-method-in-python
-    def __get__(self, obj, type=None):
-        self.obj = obj
-        return self
-
-    def __call__(self, *args, **kwargs):
-        try:
-            obj = self.obj
-        except AttributeError: # if this is not an instance method self.obj is not defined
-            return self.target(*args, **kwargs)
-        else:
-            return self.target(obj, *args, **kwargs)
+    namespace = f.__module__.split('.')[-1].lower().replace(' ', '_').replace('api', '')
+    if namespace:
+        exposed_name = '%s.%s' % (namespace, f.__name__)
+    else:
+        exposed_name = f.__name__
+    apiDispatcher.exposeThis(f, exposed_name)
+    return f
 
 
 class JSONRPCapi(threading.Thread):
@@ -144,7 +121,6 @@ def ping(pong='pong'):
     return pong
 ping.signature = [['string'], ['string', 'string']]
 
-print inspect.getargspec(ping)
 
 @expose
 def version():

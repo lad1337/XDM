@@ -22,18 +22,13 @@
 import bases as plugins
 import os
 import traceback
-from xdm import actionManager, api
 from xdm.classes import *
 from xdm.logger import *
 from xdm import common
-from lib import requests
-import re
-import shutil
 import threading
 from cStringIO import StringIO
 from pylint import lint
 import sys
-from xdm.plugins.bases import MediaTypeManager
 
 
 class PluginManager(object):
@@ -82,7 +77,6 @@ class PluginManager(object):
         self._mt_cache = {}
         self._cache = {}
 
-    @api.expose
     def cache(self, reloadModules=False, debug=False, systemOnly=False, clearUnsedConfgs=False, calculateScore=True):
         if systemOnly:
             log.info('Loading/searching system plugins')

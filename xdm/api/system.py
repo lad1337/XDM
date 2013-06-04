@@ -45,12 +45,17 @@ reboot.signature = [['bool']]
 
 @api.expose
 def listMethods():
+    """Return a list of available method names"""
     return api.apiDispatcher.getExposedMethods()
 listMethods.signature = [['array']]
 
 
 @api.expose
 def methodSignature(mehtodeName='system.methodSignature'):
+    """Returns the signature of `methodName` as an list of list
+    each list item is a list that contains the return value type as the first value
+    all remaining values (if any) are value types that are accepted during call.
+    """
     try:
         fn = api.apiDispatcher.getFunction(mehtodeName)
     except KeyError:
@@ -68,9 +73,9 @@ def methodHelp(mehtodeName='system.methodHelp'):
     for human use, of the method in question.
 
     Keyword arguments:
-    mehtodeName -- str The name of the method (default 'system.methodHelp')
+        mehtodeName -- str The name of the method (default 'system.methodHelp')
     Return:
-    str The documentation text of the method.
+        str The documentation text of the method.
     """
     try:
         fn = api.apiDispatcher.getFunction(mehtodeName)
@@ -79,8 +84,3 @@ def methodHelp(mehtodeName='system.methodHelp'):
     return fn.help
 methodHelp.signature = [['string', 'string'], ['string']]
 
-
-@api.expose
-def getActiveMediaTypes():
-    return [mtm.identifier for mtm in common.PM.MTM]
-methodSignature.signature = [['array']]

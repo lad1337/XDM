@@ -10,26 +10,20 @@ XDM: eXtendable Download Manager. Plugin based media collection manager
 .. image:: ../../Meta-Resources/xdm-logo.svg
 
 XDM is in BETA
-Current official site http://xdm.lad1337.de
+Official site http://xdm.lad1337.de
 Official main plugin repository at https://github.com/lad1337/XDM-main-plugin-repo/
 
-Thank you for showing interest in XDM! This documentation consists of 3 main sections:
-
-- `Plugin Development`_
-- `API Reference`_
-- `Core`_
-
-.. _`Plugin Development`: plugin/index.html
-.. _`Core API Reference`: api/index.html
-.. _`Core`: core/index.html
-
-Contents:
+This documentation consists of 3 main sections:
 
 .. toctree::
    :maxdepth: 1
    
    plugin/index
    api/index
+
+- `Core`_
+
+.. _`Core`: core/index.html
    
 
 Usage
