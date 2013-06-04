@@ -653,15 +653,45 @@ class MediaAdder(Plugin):
 
 
 class MediaTypeManager(Plugin):
+    """Plugins of this type define a "MediaType" e.g. Movies
+    They define a Structure of Classes simple classes that resemble Objects needed for the media that is being reflected.
+    """
     _type = 'MediaTypeManager'
-    name = "Does Noting"
+    name = "Does Nothing"
     identifier = ''
+    """A absolute unique identifier in reverse URL style e.g. de.lad1337.nzb"""
     order = ()
+    """A tubple that defines the order top to bottom / outer to inner of the classes that replect the media"""
     download = None
+    """The class to download/search for"""
     addConfig = {}
-    elementConfigsFor = ()
-    defaultElements = {}
+    """Add configuration to otherplugins
 
+    keys
+        a plugin base class reference
+
+    value
+        list of dicts
+        [{'type':'category', 'default': None, 'prefix': 'Category for', 'sufix': 'Movies'}]
+        TODO: explain more
+
+    """
+    elementConfigsFor = ()
+    """Tuple of classes that will have a configuration on each plugin e.g. Platform of de.lad1337.games
+    TODO: link Platform
+    """
+    defaultElements = []
+    """list of dicts Elements to create
+
+    e.g.
+        {'tgdb':{'name': 'Nintendo Wii', 'alias':'Wii', 'id': 9}}
+
+    .. note::
+
+        each list item is a dict that can contain multiple provider informations for one Element.
+        In the above example we create the Wii with given attributes for the provider that has the tag tgdb (thegamesdb.net)
+    
+    """
     def __init__(self, instance):
         self.single = True
 

@@ -27,12 +27,14 @@ from jsonrpclib.SimpleJSONRPCServer import SimpleJSONRPCServer
 import threading
 from xdm import actionManager, common, tasks
 import json
+from lib import decorator
 
 from functools import partial, update_wrapper
 from jsonrpclib.jsonrpc import ProtocolError, Fault
 import types
 import re
 import inspect
+import functools
 
 
 DONTNEEDAPIKEY = ('ping', 'version')
@@ -91,9 +93,13 @@ class expose(object):
     """Exposes the function by adding it to the apiDispatcher
     Use this as a decorator like: @expose
     """
-    def __init__(self, *args):
-        self.target = args[0]
+
+    def __init__(self, target):
+        self.target = target
         self.__name__ = self.target.__name__
+        self.__doc__ = self.target.__doc__
+        self.__module__ = self.target.__module__
+
         namespace = self.target.__module__.split('.')[-1].lower().replace(' ', '_').replace('api', '')
         if namespace:
             self.exposedFunctionName = "%s.%s" % (namespace, self.__name__)
@@ -138,6 +144,7 @@ def ping(pong='pong'):
     return pong
 ping.signature = [['string'], ['string', 'string']]
 
+print inspect.getargspec(ping)
 
 @expose
 def version():
