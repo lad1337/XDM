@@ -24,7 +24,7 @@ def getWinDrives():
     return drives
 
 
-def foldersAtPath(path, includeParent = False):
+def foldersAtPath(path, includeParent=False, addFiles=False):
     """ Returns a list of dictionaries with the folders contained at the given path
         Give the empty string as the path to list the contents of the root path
         under Unix this means "/", on Windows this will be a list of drive letters)
@@ -57,14 +57,16 @@ def foldersAtPath(path, includeParent = False):
     if path == parentPath and os.name == 'nt':
         parentPath = ""
 
-    fileList = [{ 'name': filename, 'path': os.path.join( path, filename) } for filename in os.listdir(path)]
-    fileList = filter(lambda entry: os.path.isdir( entry['path']), fileList)
+    fileList = [{ 'name': filename, 'path': os.path.join( path, filename), 'isPath': os.path.isdir(os.path.join(path, filename)) } for filename in os.listdir(path)]
     fileList = sorted(fileList, lambda x, y: cmp(os.path.basename(x['name']).lower(), os.path.basename(y['path']).lower()))
+    finalFileList = filter(lambda entry: entry['isPath'], fileList) # always add folders
+    if addFiles:
+        finalFileList.extend(filter(lambda entry: not entry['isPath'], fileList)) # add files
 
     entries = [{'current_path': path}]
     if includeParent and parentPath != path:
-        entries.append({ 'name': "..", 'path': parentPath })
-    entries.extend(fileList)
+        entries.append({ 'name': "..", 'path': parentPath, 'isPath': True})
+    entries.extend(finalFileList)
 
     return entries
 
@@ -72,9 +74,9 @@ def foldersAtPath(path, includeParent = False):
 class WebFileBrowser:
 
     @cherrypy.expose
-    def index(self, path=''):
+    def index(self, path='', showFiles=False):
         cherrypy.response.headers['Content-Type'] = "application/json"
-        return json.dumps(foldersAtPath(path, True))
+        return json.dumps(foldersAtPath(path, True, showFiles))
 
     @cherrypy.expose
     def complete(self, term):

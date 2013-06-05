@@ -27,6 +27,7 @@ PLUGININSTALLDIR = 'extraPlugins'
 PLUGININSTALLPATH = ''
 PLUGININSTALLPATH_RELATIVE = ''
 
+
 DATABASE_NAME = "data.db"
 DATABASE_PATH = "./"
 DATABASE = SqliteDatabase(None, threadlocals=True, autocommit=True)

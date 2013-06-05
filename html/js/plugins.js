@@ -28,6 +28,7 @@
         defaults: {
             title:             'Choose Directory',
             url:               '/browser/',
+            showFiles:         false,
             autocompleteURL:   '/localhost:8085/browser/complete'
         }
     };
@@ -36,17 +37,17 @@
     var currentBrowserPath = null;
     var currentRequest     = null;
 
-    function browse(path, endpoint) {
-
+    function browse(path, endpoint, showFiles) {
+        
         if(currentBrowserPath == path)
             return;
-        
+        console.log(path)
         currentBrowserPath = path;
         
         if(currentRequest)
             currentRequest.abort();
         
-        currentRequest = $.getJSON(endpoint, { path: path }, function(data){
+        currentRequest = $.getJSON(endpoint, { path: path, showFiles: showFiles}, function(data){
             $('.modal-body',fileBrowserDialog).empty();
             var first_val = data[0];
             var i = 0;
@@ -54,22 +55,41 @@
                 return i++ != 0;
             });
             $('h3', fileBrowserDialog).html(first_val.current_path);
-            list = $('<ul class="nav nav-tabs nav-stacked">').appendTo('.modal-body',fileBrowserDialog);
+            list = $('<ul class="nav nav-stacked nav-list">').appendTo('.modal-body',fileBrowserDialog);
             $.each(data, function(i, entry) {
-                link = $("<a href='javascript:void(0)' />").click(function(){ browse(entry.path, endpoint); }).text(entry.name);
-                $('<i class="icon-folder-close folder"></i>').prependTo(link);
-                if(entry.name == '..')
-                    $('<i class="icon-chevron-left pull-right"></i>').appendTo(link)
-                else
-                    $('<i class="icon-chevron-right pull-right"></i>').appendTo(link)
                 
-                link.hover(
-                    function(){jQuery("i.folder", this).addClass("icon-folder-open");},
-                    function(){jQuery("i.folder", this).removeClass("icon-folder-open"); }
-                );
-                link.appendTo(list);
+                link = $("<a href='javascript:void(0)' />").text(entry.name)
+                if(entry.isPath)
+                    link.click(function(){ browse(entry.path, endpoint, showFiles); });
+                else{
+                    link.click(function(){
+                        currentBrowserPath = entry.path;
+                        $('li', list).removeClass('active')
+                        $(this).parent().addClass('active')
+                    });
+                }
+                    
+                if(entry.isPath){
+                    $('<i class="icon-folder-close front"></i>').prependTo(link);
+                    if(entry.name == '..')
+                        $('<i class="icon-chevron-left pull-right"></i>').appendTo(link)
+                    else
+                        $('<i class="icon-chevron-right pull-right"></i>').appendTo(link)
+
+                    link.hover(
+                        function(){jQuery("i.front", this).addClass("icon-folder-open");},
+                        function(){jQuery("i.front", this).removeClass("icon-folder-open"); }
+                    );
+                }else{
+                    $('<i class="icon-file-alt front"></i>').prependTo(link);
+                }
+                var li = $('<li>').append(link)
+                if(entry.path == path){
+                    li.addClass('active')
+                }
+                
+                li.appendTo(list);
             });
-            $("a", list).wrap('<li>');
         });
     }
 
@@ -92,7 +112,7 @@
             initialDir = options.initialDir;
         else
             initialDir = '';
-        browse(initialDir, options.url)
+        browse(initialDir, options.url, options.showFiles)
         fileBrowserDialog.modal();
 
         return false;
@@ -100,7 +120,7 @@
 
     $.fn.fileBrowser = function(options){
         options = $.extend({}, $.Browser.defaults, options);
-        
+
         // text field used for the result
         options.field = $(this);
         
@@ -124,11 +144,17 @@
         
         options = $.extend(options, {initialDir: initialDir})
         
+        if(options.showFiles)
+            buttonText = 'Browse file&hellip;'
+        else
+            buttonText = 'Browse folder&hellip;'
+            
         // append the browse button and give it a click behavior
-        return options.field.addClass('fileBrowserField').wrap('<div class="input-append">').after($('<input type="button" value="Browse&hellip;" class="fileBrowser btn" /></div>').click(function(){
-            
+        return options.field.addClass('fileBrowserField')
+        .wrap('<div class="input-append">')
+        .after($('<input type="button" value="' + buttonText + '" class="fileBrowser btn" /></div>')
+        .click(function(){
             $(this).nFileBrowser(callback, options);
-            
             return false;
         }));
     };

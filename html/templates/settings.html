@@ -53,7 +53,7 @@
                 <input name="{{ plugin.type }}-{{ plugin.instance }}-{{ config.name}}" type="hidden" {% if config.value %}value="{{ config.value }}"{% endif %}/>
                 
                 {% else %}
-                <div class="control-group{% if plugin['config_meta'][config.name]['human'] %} human{% endif %}{% if 'path' in config.name %} path{% endif %}">
+                <div class="control-group{% if plugin['config_meta'][config.name]['human'] %} human{% endif %}{% if 'filepath' in config.name %} filepath{%elif 'path' in config.name%} path{% endif %}">
                     <label class="control-label" title="{{plugin['config_meta'][config.name]['desc']}}">{% if plugin['config_meta'][config.name]['human'] %}{{ plugin['config_meta'][config.name]['human'] }}{% else %}{{ config.name.replace("_", " ") }}{% endif %}</label>
                     <div class="controls">
                         {% if 'select' in config.name %}
@@ -141,8 +141,12 @@
 $(document).ready(function() {
     if(!$('.nav.nav-list a[href="'+window.location.hash+'"]').tab('show').length)
         $('.nav.nav-list a[data-toggle="tab"]:first').tab('show')
+
     $('.control-group.path input').each(function(key, item){
-        $(item).fileBrowser({ title: 'Select Folder', key: 'postprocessPath' });
+        $(item).fileBrowser({ title: 'Select Folder', key: 'postprocessPath', showFiles: false});
+    });
+    $('.control-group.filepath input').each(function(key, item){
+        $(item).fileBrowser({ title: 'Select File', key: 'postprocessPath', showFiles: true});
     });
 
     // i cant get the tooltip data api to work so we do a jquery

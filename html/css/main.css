@@ -69,13 +69,16 @@ body{
     width: 80%;
 }
 
-#container.settings .form-horizontal .path .controls input[type="text"]{
+#container.settings .form-horizontal .path .controls input[type="text"],
+#container.settings .form-horizontal .filepath .controls input[type="text"]{
     width: 50%;
 }
 
-#container.settings .form-horizontal .path .controls input.fileBrowser{
+#container.settings .form-horizontal .path .controls input.fileBrowser,
+#container.settings .form-horizontal .filepath .controls input.fileBrowser{
     width: 30%;
 }
+
 
 .setting-placeholder{
     height: 3px;
@@ -275,7 +278,7 @@ td.download-size,
     padding-right: 5px;
 }
 
-#fileBrowserDialog .nav.nav-tabs.nav-stacked li i.folder{
+#fileBrowserDialog .nav li i.front{
     min-width: 19px;
     display: inline-block;
 }

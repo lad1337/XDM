@@ -165,21 +165,9 @@ class App():
             print "------------------- Set PIDfile to " + options.pidfile + " -------------------"
             PIDFile(cherrypy.engine, options.pidfile).subscribe()
 
-        # from couchpotato
-        host = common.SYSTEM.c.socket_host
-        https = False
-        try:
-            if not (options.nolaunch or common.SYSTEM.c.dont_open_browser):
-                print "------------------- launch Browser ( " + str(host) + ":" + str(port) + ") -------------------"
-                timer = threading.Timer(2, launchBrowser, [host, port, https])
-                timer.start()
-            return
-        except:
-            pass
 
         # update config for cherrypy
-        cherrypy.config.update({'global': {'server.socket_port': port}
-                                })
+        cherrypy.config.update({'global': {'server.socket_port': port}})
 
     def startWebServer(self):
         log.info("Generating CherryPy configuration")
@@ -212,7 +200,27 @@ class App():
                }
         conf.update(self.pluginResPaths)
 
+        options_dict = {}
         #TODO HTTPS support look at sb cp sab and others
+        sslCert_path = common.SYSTEM.c.https_cert_filepath
+        sslKey_path = common.SYSTEM.c.https_key_filepath
+        if common.SYSTEM.c.https:
+            # If either the HTTPS certificate or key do not exist, make some self-signed ones.
+            if not (sslCert_path and os.path.exists(sslCert_path)) or not (sslKey_path and os.path.exists(sslKey_path)):
+                if not helper.create_https_certificates(sslCert_path, sslKey_path):
+                    log.error(u"Unable to create cert/key files, disabling HTTPS")
+                    common.SYSTEM.c.https = False
+
+            if not (os.path.exists(sslCert_path) and os.path.exists(sslKey_path)):
+                log.error(u"Disabled HTTPS because of missing CERT and KEY files")
+                common.SYSTEM.c.https = False
+
+        if common.SYSTEM.c.https:
+            options_dict['server.ssl_certificate'] = sslCert_path
+            options_dict['server.ssl_private_key'] = sslKey_path
+
+        cherrypy.config.update(options_dict)
+
         # Workoround for OSX. It seems have problem wit the autoreload engine
         if sys.platform.startswith('darwin') or sys.platform.startswith('win'):
             cherrypy.config.update({'engine.autoreload.on': False})
@@ -227,6 +235,16 @@ class App():
         common.SM.setNewMessage("Up and running.")
         common.SM.setNewMessage("Done!")
         cherrypy.server.wait()
+
+        # from couchpotato
+        host = common.SYSTEM.c.socket_host
+        https = common.SYSTEM.c.https
+        try:
+            if not (common.STARTOPTIONS.nolaunch or common.SYSTEM.c.dont_open_browser):
+                print "------------------- launch Browser ( " + str(host) + ":" + str(self.port) + ") -------------------"
+                launchBrowser(host, self.port, https)
+        except:
+            pass
 
 
 def main():

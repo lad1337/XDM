@@ -99,7 +99,7 @@ def launchBrowser(host, port, https):
     if host == '0.0.0.0':
         host = 'localhost'
 
-    if(https == '1'):
+    if https:
         url = 'https://%s:%d' % (host, int(port))
     else:
         url = 'http://%s:%d' % (host, int(port))
@@ -115,14 +115,14 @@ def launchBrowser(host, port, https):
 # looks if adress contain https
 
 def ControlHost(host):
-    
+
     if 'https' in host:
         checkedhost = host
     elif 'http' in host:
         checkedhost = host
     else:
         checkedhost = "http://" + host
-    
+
     return checkedhost
 
 
@@ -135,7 +135,7 @@ def create_https_certificates(ssl_cert, ssl_key):
         from OpenSSL import crypto
         from lib.certgen import createKeyPair, createCertRequest, createCertificate, TYPE_RSA, serial
     except ImportError:
-        log.error("pyopenssl module missing, please install for https access")
+        log.error("pyopenssl module missing, please install for https access\n try\n $ easy_install PyOpenSSL")
         return False
 
     # Create the CA Certificate
@@ -143,7 +143,7 @@ def create_https_certificates(ssl_cert, ssl_key):
     careq = createCertRequest(cakey, CN='Certificate Authority')
     cacert = createCertificate(careq, (careq, cakey), serial, (0, 60*60*24*365*10)) # ten years
 
-    cname = 'Gamez'
+    cname = 'XDM'
     pkey = createKeyPair(TYPE_RSA, 1024)
     req = createCertRequest(pkey, CN=cname)
     cert = createCertificate(req, (cacert, cakey), serial, (0, 60*60*24*365*10)) # ten years

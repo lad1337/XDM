@@ -52,7 +52,7 @@ def preDB(app_path, datadir):
     xdm.DATABASE_PATH = os.path.join(xdm.DATADIR, xdm.DATABASE_NAME)
     xdm.CONFIG_DATABASE_PATH = os.path.join(xdm.DATADIR, xdm.CONFIG_DATABASE_NAME)
     xdm.HISTORY_DATABASE_PATH = os.path.join(xdm.DATADIR, xdm.HISTORY_DATABASE_NAME)
-    #databases
+    #databases FILE init
     xdm.DATABASE.init(xdm.DATABASE_PATH)
     xdm.CONFIG_DATABASE.init(xdm.CONFIG_DATABASE_PATH)
     xdm.HISTORY_DATABASE.init(xdm.HISTORY_DATABASE_PATH)
@@ -87,7 +87,17 @@ def postDB():
 
     common.PM = PluginManager()
     common.PM.cache(debug=common.STARTOPTIONS.pluginImportDebug, systemOnly=True,)
+    # load system config !
     common.SYSTEM = common.PM.getSystems('Default')[0] # yeah SYSTEM is a plugin
+    # system config loaded
+
+    if not os.path.isabs(common.SYSTEM.c.https_cert_filepath):
+        common.SYSTEM.c.https_cert_filepath = os.path.join(xdm.DATADIR, common.SYSTEM.c.https_cert_filepath)
+
+    if not os.path.isabs(common.SYSTEM.c.https_key_filepath):
+        common.SYSTEM.c.https_key_filepath = os.path.join(xdm.DATADIR, common.SYSTEM.c.https_key_filepath)
+
+    # prepare to load other plugins
     if not common.SYSTEM.c.extra_plugin_path:
         log.info('Setting extra plugin path to %s' % xdm.PLUGININSTALLPATH)
         common.SYSTEM.c.extra_plugin_path = xdm.PLUGININSTALLPATH
@@ -97,6 +107,7 @@ def postDB():
     common.PM.cache(debug=common.STARTOPTIONS.pluginImportDebug)
     common.SYSTEM = common.PM.getSystems('Default')[0] # yeah SYSTEM is a plugin
 
+    # generate api key if api is aktive
     if common.SYSTEM.c.api_active and not common.SYSTEM.c.api_key:
         log.info('Generating your first API key for XDM')
         common.SYSTEM.c.api_key = helper.generateApiKey()

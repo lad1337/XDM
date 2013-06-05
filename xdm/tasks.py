@@ -225,17 +225,19 @@ def runChecker():
                 if download.id:
                     commentOnDownload(download)
             elif status == common.SNATCHED:
-                element.status = common.SNATCHED
-                element.save()
-                download.status = common.SNATCHED
-                download.save()
+                if element.status != common.SNATCHED: # dont "resnatch" its during download
+                    element.status = common.SNATCHED
+                    element.save()
+                    download.status = common.SNATCHED
+                    download.save()
             elif status == common.DOWNLOADING:
-                element.status = common.DOWNLOADING
-                element.save()
-                if download.id:
-                    commentOnDownload(download)
-                download.status = common.DOWNLOADING
-                download.save()
+                if element.status != common.DOWNLOADING: # dont reset the downloading status durong download its during download
+                    element.status = common.DOWNLOADING
+                    element.save()
+                    if download.id:
+                        commentOnDownload(download)
+                    download.status = common.DOWNLOADING
+                    download.save()
             elif status == common.FAILED:
                 download.status = common.FAILED
                 download.save()

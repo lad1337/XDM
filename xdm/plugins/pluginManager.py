@@ -32,11 +32,15 @@ import sys
 
 
 class PluginManager(object):
+    """Class that manages/provides and finds plugins"""
+
     _cache = {}
     _mt_cache = {}
     path_cache = {}
     pylintScoreWarning = 7
+    """send a warning when score is bellow or equal this"""
     pylintScoreError = 4
+    """send an error when score is bellow or equal this"""
 
     def __init__(self, path='plugins'):
         self._caching = threading.Semaphore()
@@ -78,6 +82,15 @@ class PluginManager(object):
         self._cache = {}
 
     def cache(self, reloadModules=False, debug=False, systemOnly=False, clearUnsedConfgs=False, calculateScore=True):
+        """collects available plugins and saved it in self._cache
+
+        systemOnly
+            only look for System plugins
+
+        debug
+            bool prints extra messages during plugin search (defautl: False)
+
+        """
         if systemOnly:
             log.info('Loading/searching system plugins')
         else:

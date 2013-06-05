@@ -5,6 +5,8 @@ images/*
 temp/*
 extraPlugins/*
 *pylintOutput*
+server.crt
+server.key
 
 # python bins
 *.py[cod]

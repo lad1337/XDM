@@ -357,7 +357,7 @@ def buildOSX(buildParams):
 
     OPTIONS = {'argv_emulation': False,
                'iconfile': osxAppIcon,
-               'packages':["xml"],
+               'packages':["xml", "OpenSSL"],
                'plist': {'NSUIElement': 1,
                         'CFBundleShortVersionString': buildParams['build'],
                         'NSHumanReadableCopyright': _NSHumanReadableCopyright,
