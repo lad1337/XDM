@@ -1,10 +1,10 @@
 {% extends "base.html" %}
 {% set title = 'Settings' -%}
 {% set active_page = active_page|default('settings') -%}
-{% set active_sub_page = active_sub_page|default('main') -%}
+{% set active_sub_page = active_sub_page|default('settings') -%}
 {% block content %}
 
-<form id="theSettingsForm" class="container-fluid" action="/saveSettings" method="POST">
+<form id="theSettingsForm" class="container-fluid" action="{{webRoot}}/saveSettings" method="POST">
 
     <div class="row-fluid">
         <div class="span3 well">
@@ -85,9 +85,6 @@
                 </div>
                 {% endif %}
                 {% endfor %}
-                {% if plugin.update_url %}
-                <li>Update Url is <a href="{{ plugin.update_url }}" target="_blank">here</a></li>
-                {% endif %}
                 
                 {% if plugin['config_meta']['plugin_buttons'] %}
                 {% for name, button in plugin['config_meta']['plugin_buttons'].items()%}
@@ -165,7 +162,7 @@ $(document).ready(function() {
     });
     $("input.newInstance").click(function(){
         if( $(this).prev('input').val() )
-                document.location = '/createInstance?plugin=' + encodeURIComponent($(this).data('plugin')) + '&instance=' + encodeURIComponent($(this).prev('input').val())
+                document.location = webRoot+'/createInstance?plugin=' + encodeURIComponent($(this).data('plugin')) + '&instance=' + encodeURIComponent($(this).prev('input').val())
         else
             $(this).prev('input').stop().css("background-color", "#FFFF9C").animate({ backgroundColor: "#FFFFFF"}, 1500);
     });
@@ -225,7 +222,7 @@ $(document).ready(function() {
     });
     
     $("input.removeInstance").click(function(){       
-        document.location = '/removeInstance?plugin=' + $(this).data('plugin') + '&instance=' + $(this).data('instance')
+        document.location = webRoot+'/removeInstance?plugin=' + $(this).data('plugin') + '&instance=' + $(this).data('instance')
     });
 
     
@@ -242,9 +239,7 @@ $(document).ready(function() {
         saveButtons = $('input[type="submit"]')
         saveButtons.addClass('btn-striped animate')
         data = $('#theSettingsForm').serialize()
-        
-
-        $.getJSON('/ajax/save', data, function(res){
+        $.post(webRoot+'/ajax/save', data, function(res, textStatus) {
             if(res['result']){
                 $(this).button('loading');
                 noty({text: res['msg'], type: 'success', timeout: 1000})
@@ -253,10 +248,11 @@ $(document).ready(function() {
                 saveButtons.addClass('btn-warning')
             }
             saveButtons.removeClass('btn-striped animate')
-        }).error(function(){
+        }, "json").error(function(){
             noty({text: 'Server error. Is it running? Check logs', type: 'error'}) 
             saveButtons.removeClass('animate btn-success').addClass('btn-warning')
-        })
+        });
+
     });
     
 });

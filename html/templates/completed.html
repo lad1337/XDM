@@ -22,7 +22,8 @@
 
 {% block headInject %}
 {% for mt in mtms%}
-
-{{mt.headInject()}}
+<!-- headInject {{mt.identifier}} start -->
+{{mt.headInject().replace('{{webRoot}}', webRoot)}}
+<!-- headInject {{mt.identifier}} end -->
 {% endfor %}
 {% endblock %}

@@ -20,13 +20,13 @@
                 <pre>{{download.pp_log}}</pre>
               </div>
               <div class="modal-footer">
-                <a href="#" class="btn" data-dismiss="modal">Close</a>
+                <a href="javascript:void(0)" class="btn" data-dismiss="modal">Close</a>
               </div>
             </div>
             {%endif%}
         </td>
         <td><a href="{{download.url}}" title="{{download.external_id}}">Direct Link</td>
-        <td><a href="#" class="btn btn-info btn-mini" onClick="showEvents($(this), {{download.id}}); return false;">Events</a></td>
+        <td><a href="javascript:void(0)" class="btn btn-info btn-mini" onClick="showEvents($(this), {{download.id}});">Events</a></td>
         <td><a class="btn btn-primary btn-mini" href="/getDownload?id={{download.id}}">Get</a></td>
     </tr>
 {%else%}

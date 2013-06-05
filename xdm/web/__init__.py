@@ -27,6 +27,8 @@ import sys
 import platform
 import cherrypy
 import os
+import datetime
+import xdm
 from fileBrowser import WebFileBrowser
 from ajax import AjaxCalls
 from jinja2 import Environment, FileSystemLoader
@@ -34,8 +36,7 @@ from xdm.classes import *
 from xdm import common, tasks, helper
 from xdm.logger import *
 from xdm import actionManager
-import datetime
-import xdm
+
 
 
 class WebRoot:
@@ -56,10 +57,16 @@ class WebRoot:
                 'system': common.SYSTEM,
                 'PM': common.PM,
                 'common': common,
-                'messages': common.MM.getMessages()}
+                'messages': common.MM.getMessages(),
+                'webRoot': common.SYSTEM.c.webRoot}
 
     browser = WebFileBrowser()
     ajax = AjaxCalls(env)
+
+    def redirect(self, abspath, *args, **KWs):
+        assert abspath[0] == '/'
+        raise cherrypy.HTTPRedirect('%s%s' % (common.SYSTEM.c.webRoot, abspath), *args, **KWs)
+
 
     @cherrypy.expose
     def index(self, status_message='', version=''):
@@ -105,7 +112,7 @@ class WebRoot:
         element = Element.get(Element.id == id)
         newStatus = tasks.searchElement(element)
         element.save()
-        raise cherrypy.HTTPRedirect('/')
+        self.redirect('/')
 
     @cherrypy.expose
     def results(self, search_query=''):
@@ -142,9 +149,9 @@ class WebRoot:
                 c = cur_plugin.__class__(instance=instance)
                 break
         common.PM.cache()
-        url = '/settings/'
+        url = '%s/settings/' % common.SYSTEM.c.webRoot
         if c:
-            url = '/settings/#%s' % c.name.replace(' ', '_').replace('(', '').replace(')', '')
+            url = '%s/settings/#%s' % (common.SYSTEM.c.webRoot, c.name.replace(' ', '_').replace('(', '').replace(')', ''))
         raise cherrypy.HTTPRedirect(url)
 
     @cherrypy.expose
@@ -154,19 +161,19 @@ class WebRoot:
                 c = cur_plugin.deleteInstance()
                 break
         common.PM.cache()
-        raise cherrypy.HTTPRedirect('/settings/')
+        self.redirect('/settings/')
 
     @cherrypy.expose
     def refreshinfo(self, id):
         log("init update")
         tasks.updateElement(Element.get(Element.id == id))
-        raise cherrypy.HTTPRedirect('/')
+        raise cherrypy.HTTPRedirect('%s/' % common.SYSTEM.c.webRoot)
 
     @cherrypy.expose
     def delete(self, id):
         e = Element.get(Element.id == id)
         e.deleteWithChildren()
-        raise cherrypy.HTTPRedirect('/')
+        self.redirect('/')
 
     @cherrypy.expose
     def setStatus(self, id, s):
@@ -175,13 +182,13 @@ class WebRoot:
         ele.save()
         if ele.status == common.WANTED:
             tasks.searchElement(ele)
-        raise cherrypy.HTTPRedirect('/')
+        self.redirect('/')
 
     @cherrypy.expose
     def getDownload(self, id):
         download = Download.get(Download.id == id)
         tasks.snatchOne(download.element, [download])
-        raise cherrypy.HTTPRedirect('/')
+        self.redirect('/')
 
     @cherrypy.expose
     def makePermanent(self, id):
@@ -190,7 +197,7 @@ class WebRoot:
         time.sleep(1)
         t = tasks.TaskThread(tasks.searchElement, element)
         t.start()
-        raise cherrypy.HTTPRedirect('/')
+        self.redirect('/')
 
     @cherrypy.expose
     def addElement(self, mt, providerTag, pID):
@@ -203,17 +210,17 @@ class WebRoot:
             if new_e:
                 new_e.save()
                 new_e.downloadImages()
-        raise cherrypy.HTTPRedirect('/')
+        self.redirect('/')
 
     @cherrypy.expose
     def clearSearches(self):
         tasks.removeTempElements()
-        raise cherrypy.HTTPRedirect('/')
+        self.redirect('/')
 
     @cherrypy.expose
     def startDownloadChecker(self):
         tasks.runChecker()
-        raise cherrypy.HTTPRedirect("/")
+        self.redirect("/")
 
 
     @cherrypy.expose
@@ -223,7 +230,7 @@ class WebRoot:
             redirect_to += "#%s" % kwargs['saveOn']
             del kwargs['saveOn']
         self.ajax.save(**kwargs)
-        raise cherrypy.HTTPRedirect(redirect_to)
+        self.redirect(redirect_to)
 
 
         #actions = list(set(actions))

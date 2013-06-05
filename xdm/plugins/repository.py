@@ -240,14 +240,14 @@ class ZipPluginInstaller():
 
     def _badpath(self, path, base):
         # joinpath will ignore base if path is absolute
-        return not self.resolved(os.path.join(base, path)).startswith(base)
+        return not self._resolved(os.path.join(base, path)).startswith(base)
 
     def install(self, manager, repo_plugin, install_path):
         r = requests.get(repo_plugin.download_url)
         manager.setNewMessage('info', 'Download done.')
         z = zipfile.ZipFile(StringIO.StringIO(r.content))
 
-        base = self.resolved(".")
+        base = self._resolved(".")
         for memberPath in z.namelist():
             if self._badpath(memberPath, base):
                 manager.setNewMessage('error', 'Security error. Path of file is absolute or contains ".." !')

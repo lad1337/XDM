@@ -6,7 +6,7 @@
 {% block content%}
 
 <p style="text-align: center;">
-    <img src="/img/xdm-logo.svg" style="width:70%;display: inline-block;" />
+    <img src="{{webRoot}}/img/xdm-logo.svg" style="width:70%;display: inline-block;" />
 </p>
 <div class="well" style="position:relative;">
     <a href="https://github.com/lad1337/XDM"><img style="position: absolute; top: -1px; right: -2px; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_gray_6d6d6d.png" alt="Fork me on GitHub"></a>
@@ -17,7 +17,7 @@
         </p>
         <h4>Version: {{common.getVersionHuman()}}</h4>
         {% if common.UPDATER.info.needUpdate %}
-        <p>Update available to version {{common.UPDATER.info.externalVersion}} <a href="#" onClick="modalCoreUpdate(this); return false;" class="btn btn-success">Update Now</a></p>
+        <p>Update available to version {{common.UPDATER.info.externalVersion}} <a href="javascript:void(0)" onClick="modalCoreUpdate(this);" class="btn btn-success">Update Now</a></p>
         {%else%}
         <p class="muted">No update available. Checked just now!</p>
         {%endif%}

@@ -344,6 +344,8 @@ class Element(BaseModel):
             tpl = self.getSearchTemplate()
         else:
             tpl = self.getTemplate()
+
+        webRoot = common.SYSTEM.c.webRoot
         env = Environment(loader=DictLoader({'this': tpl}))
         elementWidgetEnvironment
         elementTemplate = env.get_template('this')
@@ -361,13 +363,13 @@ class Element(BaseModel):
                 infoTemplate = elementWidgetEnvironment.get_template('infoIcons.html')
 
             statusTemplate = elementWidgetEnvironment.get_template('status.html')
-            statusHtml = statusTemplate.render(this=self, globalStatus=Status.select())
+            statusHtml = statusTemplate.render(this=self, globalStatus=Status.select(), webRoot=webRoot)
         else:
             actionTemplate = elementWidgetEnvironment.get_template('actionsAdd.html')
             statusHtml = ''
         # render action buttons
         if actionTemplate is not None:
-            actionsHtml = actionTemplate.render(this=self)
+            actionsHtml = actionTemplate.render(this=self, webRoot=webRoot)
         else:
             actionsHtml = ''
         # render info buttons
@@ -381,7 +383,7 @@ class Element(BaseModel):
         downloadBarHtml = ''
         if '{{downloadProgressBar}}' in tpl:
             downloadBarTemplate = elementWidgetEnvironment.get_template('downloadBar.html')
-            downloadBarHtml = downloadBarTemplate.render(this=self)
+            downloadBarHtml = downloadBarTemplate.render(this=self, webRoot=webRoot)
 
         return elementTemplate.render(children='{{children}}',
                                       actionButtons=actionsHtml,
@@ -393,6 +395,7 @@ class Element(BaseModel):
                                       statusCssClass=statusCssClass,
                                       loopIndex=curIndex,
                                       downloadProgressBar=downloadBarHtml,
+                                      webRoot=webRoot,
                                       **self.buildFieldDict())
 
     def buildFieldDict(self):
@@ -881,7 +884,7 @@ class Image(BaseModel):
 
     def getSrc(self):
         if self.type: # type is only set after we down loaded the image
-            return '/%s' % os.path.join(xdm.IMAGEPATH_RELATIVE, str(self.element.mediaType), self.imgName()).replace(xdm.PROGDIR, '')
+            return '%s/%s' % (common.SYSTEM.c.webRoot, os.path.join(xdm.IMAGEPATH_RELATIVE, str(self.element.mediaType), self.imgName()).replace(xdm.PROGDIR, ''))
         else:
             return self.url
 

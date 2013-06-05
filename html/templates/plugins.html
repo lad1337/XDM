@@ -57,10 +57,10 @@
                 <td>{%if plugin.testMe()%}<i class="icon-check"></i>{%else%}<i class="icon-warning-sign"></i>{%endif%}</td>
                 <td style="width: 120px;">
                     {%if common.SYSTEM.c.extra_plugin_path in plugin.get_plugin_isntall_path()%}
-                    <a class="btn btn-danger btn-block" href="#" onClick="deinstallModal(this); return false;" data-identifier="{{plugin.identifier}}" data-type="{{plugin.type}}"">Deinstall</a>
+                    <a class="btn btn-danger btn-block" href="javascript:void(0)" onClick="deinstallModal(this);" data-identifier="{{plugin.identifier}}" data-type="{{plugin.type}}""><i class="icon-trash"></i>Deinstall</a>
                     {% set new_version = common.REPOMANAGER.hasUpdate(plugin.identifier)%}
                     {%if new_version%}
-                    <a href="#" class="btn btn-success btn-block" onClick="installModal(this); return false;" data-identifier="{{plugin.identifier}}">Update to {{new_version}}</a>
+                    <a href="javascript:void(0)" class="btn btn-success btn-block" onClick="installModal(this);" data-identifier="{{plugin.identifier}}"><i class="icon-upload"></i>Update to {{new_version}}</a>
                     {%endif%}
                     {%endif%}
                 </td>
@@ -71,7 +71,7 @@
 
 <div class="repo-container">
 
-    <h4 class="pull-left">Repositories</h4><a href="#" onClick="ajaxRepoRecache(); return false;" class="btn btn-inverse pull-right">Refresh Repositories</a>
+    <h4 class="pull-left">Repositories</h4><a href="javascript:void(0)" onClick="ajaxRepoRecache();" class="btn pull-right"><i class="icon-refresh"></i>Refresh Repositories</a>
     <div class="clearfix"></div>
     <div class="progress progress-striped active">
         <span class="progressbar-back-text">Loading...</span>
@@ -81,7 +81,7 @@
     </div>
     <div class="inner" style="display:none;"></div>
     <div class="input-prepend pull-left">
-        <a class="btn add-on" href="#" onClick="if(checkAndSetup(this)) addRepo(this); return false;" data-url="">Add Repository</a>
+        <a class="btn add-on" href="javascript:void(0)" onClick="if(checkAndSetup(this)) addRepo(this);" data-url="">Add Repository</a>
         <input type="text" placeholder="URL to the JSON"/>
     </div>
     <div class="clearfix"></div>
@@ -97,12 +97,12 @@ function ajaxRepoRecache(){
     $('.repo-container .progress').show("slide", { direction: "up" }, 500)
     $('.repo-container .inner').hide("slide", { direction: "up" }, 500)
     ajaxRepo()
-    jQuery.get( '/plugins', {'recache': 1});
+    jQuery.get( webRoot+'/plugins', {'recache': 1});
     window.setTimeout(function(){ajaxRepo()}, 1000);
 }
 
 function ajaxRepo(){
-    jQuery.get( '/ajax/repo', {}, function(res){
+    jQuery.get( webRoot+'/ajax/repo', {}, function(res){
         if(!res){
             console.log('retrying')
             window.setTimeout(function() {ajaxRepo()}, 1000);
@@ -131,16 +131,24 @@ function checkAndSetup(button){
 } 
 
 function addRepo(button){
-
     $('.repo-container .progress').show("slide", { direction: "up" }, 500)
     $('.repo-container .inner').hide("slide", { direction: "up" }, 500)
     var url = $(button).data('url')
     if(url){
-        jQuery.get( '/ajax/addRepo', {'url': url}, function(res){
+        jQuery.get( webRoot+'/ajax/addRepo', {'url': url}, function(res){
             ajaxRepo();
         });
     }
-    
+}
+function removeRepo(button){
+    $('.repo-container .progress').show("slide", { direction: "up" }, 500)
+    $('.repo-container .inner').hide("slide", { direction: "up" }, 500)
+    var url = $(button).data('url')
+    if(url){
+        jQuery.get( webRoot+'/ajax/removeRepo', {'url': url}, function(res){
+            ajaxRepo();
+        });
+    }
 }
 
 function installModalFromUrl(button){
@@ -155,7 +163,7 @@ function deinstallModal(button){
     id = $(button).data('identifier');
     data = {'identifier': id}
     name = 'Deinstalling '+id
-    var frame = ajaxModal(button, name, '/ajax/deinstallPlugin', data)
+    var frame = ajaxModal(button, name, webRoot+'/ajax/deinstallPlugin', data)
     
     firstMessage = true;        
     window.setTimeout(function(){messageScrobbler('getRepoMessage')}, 500);

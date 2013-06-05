@@ -19,58 +19,60 @@
     <head>
         <meta charset="utf-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-        <link rel="icon" type="image/png" href="/img/xdm-icon.32x32.png" />
+        <link rel="icon" type="image/png" href="{{webRoot}}/img/xdm-icon.32x32.png" />
         <title>{{ title }}</title>
         <meta name="description" content="">
         <meta name="viewport" content="width=device-width">
 
-        <script src="/js/vendor/modernizr-2.6.2.min.js"></script>
+        <script src="{{webRoot}}/js/vendor/modernizr-2.6.2.min.js"></script>
 
-        <link href="/css/ui-darkness/jquery-ui-1.10.1.custom.min.css" rel="stylesheet" media="screen">
+        <link href="{{webRoot}}/css/ui-darkness/jquery-ui-1.10.1.custom.min.css" rel="stylesheet" media="screen">
         <!-- Bootstrap -->
-        <link href="/bootstrap/css/bootstrap-combined.no-icons.min.css" rel="stylesheet" media="screen">
-        <link href="/css/fontawesome/css/font-awesome.min.css" rel="stylesheet" media="screen">
-        <link rel="stylesheet" href="/css/main.css?v={{common.getVersionString()}}">      
-        
-        <script src="/js/vendor/jquery-1.9.0.min.js"></script>
-        <script src="/js/vendor/jquery-ui-1.10.1.custom.min.js"></script>
-        <script src="/bootstrap/js/bootstrap.min.js"></script>
-        <script src="/js/plugins.js?v={{common.getVersionString()}}"></script>
-        <script src="/js/main.js?v={{common.getVersionString()}}"></script>
+        <link href="{{webRoot}}/bootstrap/css/bootstrap-combined.no-icons.min.css" rel="stylesheet" media="screen">
+        <link href="{{webRoot}}/css/fontawesome/css/font-awesome.min.css" rel="stylesheet" media="screen">
+        <link href="{{webRoot}}/css/main.css?v={{common.getVersionString()}}" rel="stylesheet">      
+
         <script>
         var mediaTypenames = [{% for mediaType in mtms%}'{{mediaType.type}}',{%endfor%}];
+        var webRoot = '{{webRoot}}';
         </script>
+        
+        <script src="{{webRoot}}/js/vendor/jquery-1.9.0.min.js"></script>
+        <script src="{{webRoot}}/js/vendor/jquery-ui-1.10.1.custom.min.js"></script>
+        <script src="{{webRoot}}/bootstrap/js/bootstrap.min.js"></script>
+        <script src="{{webRoot}}/js/plugins.js?v={{common.getVersionString()}}"></script>
+        <script src="{{webRoot}}/js/main.js?v={{common.getVersionString()}}"></script>
         {% block headInject %}
         {% endblock %}
     </head>
     <body>
-        <div id="container" class="{{ active_page }} page-container">
+        <div id="container" class="{%if active_sub_page %}{{active_sub_page}}{%else%}{{ active_page }}{%endif%} page-container">
             {% set navigation_bar = [
                                     ('/', 'index', 'Home', [('/', 'index', 'Wanted'),
                                                             ('/completed/', 'completed', 'Completed'),
                                                             ('/deleted/', 'deleted', 'Deleted')]),
                                     ('/results/', 'search', 'Search', []),
-                                    ('/settings/', 'settings', 'Settings', [('/settings/', 'main', 'Core and Plugin Settings'),
+                                    ('/settings/', 'settings', 'Settings', [('/settings/', 'settings', 'Core and Plugin Settings'),
                                                                             ('/plugins/', 'plugins', 'Manage Plugins')])
                                     ] -%}
             {% set active_page = active_page|default('index') -%}
             {% set active_sub_page = active_sub_page|default('index') -%}
             <div class="navbar">
                 <div class="navbar-inner">
-                    <a class="brand" href="/"><img src="/img/xdm-logo.svg" width="100"></a>
+                    <a class="brand" href="{{webRoot}}/"><img src="{{webRoot}}/img/xdm-logo.svg" width="100"></a>
                     <ul class="nav">
                         {% for href, id, caption, subMenu in navigation_bar %}
                         {%if not subMenu%}
                             <li class="{% if id == active_page %}active{% endif%}">
-                                <a href="{{ href|e }}">{{ caption }}</a>
+                                <a href="{{webRoot}}{{ href|e }}">{{ caption }}</a>
                             </li>
                         {%else%}
                             <li class="dropdown{% if id == active_page %} active{% endif%}" >
-                                <a href="{{ href|e }}" class="dropdown-toggle"  data-target="#" data-toggle="dopdown">{{ caption }}<b class="caret"></b></a>
+                                <a href="{{webRoot}}{{ href|e }}" class="dropdown-toggle"  data-target="#" data-toggle="dopdown">{{ caption }}<b class="caret"></b></a>
                                 <ul class="dropdown-menu">
                                     {% for href2, id2, caption2 in subMenu %}
-                                    <li class="{% if id2 == active_sub_page %}btn-striped{% endif%}">
-                                        <a href="{{ href2|e }}">{{ caption2 }}</a>
+                                    <li class="{% if id2 == active_sub_page %}active-sub disabled{% endif%}">
+                                        <a href="{{webRoot}}{{ href2|e }}">{{ caption2 }}</a>
                                     </li>
                                     {% endfor %}
                                 </ul>
@@ -83,7 +85,7 @@
                         <li class="dropdown">
                         
                         {%if messages|length%}
-                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" style="padding: 10px 8px 10px;">
+                        <a href="javascript:void(0)" class="dropdown-toggle" data-toggle="dropdown" style="padding: 10px 8px 10px;">
                             <span class="badge badge-info count">{{messages|length}}</span>
                         </a>
                         <table class="table dropdown-menu table-hover table-condensed">
@@ -97,7 +99,7 @@
                                     <button class="close" onClick="messageClose('{{message.uuid}}')"><i class="icon-remove-sign"></i></button>
                                     {%if message.confirmJavascript%}
                                     {# this will add the javascript method action#}
-                                    <input type="button" class="btn btn-mini btn-success btn-block" onClick="{{message.confirmJavascript.callString}}; return false;" value="OK"/>
+                                    <input type="button" class="btn btn-mini btn-success btn-block" onClick="{{message.confirmJavascript.callString}};" value="OK"/>
                                     {%elif message.confirm%}
                                     {# this will add the call to the python function action#}
                                     <input type="button" class="btn btn-mini btn-success btn-block" onClick="messageConfirm('{{message.uuid}}')" value="OK"/>
@@ -105,7 +107,7 @@
                                     
                                     {%if message.denyJavascript%}
                                     {# this will add the javascript method action#}
-                                    <input type="button" class="btn btn-mini btn-danger btn-block" onClick="{{message.denyJavascript.callString}}; return false;" value="No"/>
+                                    <input type="button" class="btn btn-mini btn-danger btn-block" onClick="{{message.denyJavascript.callString}};" value="No"/>
                                     {%elif message.deny%}
                                     {# this will add the call to the python function action#}
                                     <input type="button" class="btn btn-mini btn-danger btn-block" onClick="messageDeny('{{message.uuid}}')" value="No"/>
@@ -122,7 +124,7 @@
                         {%endif%}
                         </li>
                     </ul>
-                    <form class="navbar-search pull-right" action="/results" method="post" accept-charset="UTF-8">
+                    <form class="navbar-search pull-right" action="{{webRoot}}/results/" method="post" accept-charset="UTF-8">
                         <div class="input-append">
                             <input type="text" class="search-querdy" placeholder="Search" name="search_query" autocomplete="off" style="width: 100%;"/>
                             <span class="add-on"><i class="icon-remove"></i></span>
@@ -140,11 +142,11 @@
             {% endblock %}
         
             <footer>
-                {% block footer%}  
-                <a href="/updateAll" title="It works but the new page is bugging out, just refresh the page again">Refresh all</a> -
-                <a href="#" onClick="shutdownModal();return false;" >Shutdown</a> -
-                <a href="#" onClick="rebootModal();return false;">Reboot</a> - 
-                <a href="/about">About</a> - 
+                {% block footer%}
+                <a href="{{webRoot}}/about">About</a> - 
+                <a href="javascript:void(0)" onClick="rebootModal();return false;">Reboot</a> - 
+                <a href="javascript:void(0)" onClick="shutdownModal();return false;" >Shutdown</a> -
+                <a href="https://github.com/lad1337/XDM"><i class="icon-github-sign"></i></a> - 
                 <a href="https://twitter.com/XDM_APP"><i class="icon-twitter-sign"></i></a>
                 {% if system.c.show_feed%}
                 

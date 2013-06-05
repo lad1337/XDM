@@ -105,8 +105,8 @@ class Movies(MediaTypeManager):
 
     def headInject(self):
         return """
-        <link rel="stylesheet" href="/Movies/style.css">
-        <script src="/Movies/script.js"></script>
+        <link rel="stylesheet" href="{{webRoot}}/Movies/style.css">
+        <script src="{{webRoot}}/Movies/script.js"></script>
         """
 
 

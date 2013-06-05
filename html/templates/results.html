@@ -3,7 +3,7 @@
 {% set active_page = active_page|default('search') -%}
 {% block content %}
 
-<a href="/clearSearches" class="btn btn-inverse pull-right">Clear all searches</a>
+<a href="{{webRoot}}/clearSearches" class="btn btn-inverse pull-right">Clear all searches</a>
 {% for mt in searchers%}
 <div class="{{mt.identifier.replace('.','-')}} mediatype" id="{{mt.instance}}">
     <h4 class="pull-left">{{mt.type}} Results:</h4>
@@ -16,7 +16,7 @@
         {% for oldRoot in mt.getSearches() %}
         <div class="input-append">
             <a href="#{{mt.instance}}-{{oldRoot.id}}" data-toggle="tab" class="btn" data-id="{{oldRoot.id}}">{{oldRoot.term}}</a>
-            <a class="add-on btn" href="#" onclick="ajaxDeleteElement('{{oldRoot.id}}', $(this).parent());return false;"><i class="icon-remove"></i></a>
+            <a class="add-on btn" href="javascript:void(0)" onclick="ajaxDeleteElement('{{oldRoot.id}}', $(this).parent());return false;"><i class="icon-remove"></i></a>
         </div>
         {% endfor %}
     </div>
@@ -51,7 +51,7 @@ var data_{{mt.instance}}  = {}
 data_{{mt.instance}}['mt'] = '{{mt.identifier}}'
 data_{{mt.instance}}['search_query'] = '{{search_query}}'
 var searching{{mt.instance}} = true;
-jQuery.get( '/ajax/search', data_{{mt.instance}}, function(res){
+jQuery.get( webRoot+'/ajax/search', data_{{mt.instance}}, function(res){
     var p = $('#{{mt.instance}}-current')
     $('.searchTabPaneInner', p).html(res)
     $('.progress', p).hide("slide", { direction: "up" }, 500)
@@ -60,7 +60,7 @@ jQuery.get( '/ajax/search', data_{{mt.instance}}, function(res){
 
 var parent_{{mt.instance}} = $('#{{mt.instance}}-current');
 
-window.setTimeout(function() {ajaxSearchProgress(parent_{{mt.instance}}, data_{{mt.instance}});console.log('ajaxSearchProgress', data_{{mt.instance}}['mt'])}, 1000);
+window.setTimeout(function() {ajaxSearchProgress(parent_{{mt.instance}}, data_{{mt.instance}});}, 1000);
 
 </script>
 {% endif %}
@@ -70,7 +70,9 @@ window.setTimeout(function() {ajaxSearchProgress(parent_{{mt.instance}}, data_{{
 
 {% block headInject %}
 {% for mt in mtms%}
-{{mt.headInject()}}
+<!-- headInject {{mt.identifier}} start -->
+{{mt.headInject().replace('{{webRoot}}', webRoot)}}
+<!-- headInject {{mt.identifier}} end -->
 {% endfor %}
 {% endblock %}
 
@@ -81,7 +83,7 @@ window.setTimeout(function() {ajaxSearchProgress(parent_{{mt.instance}}, data_{{
 <script>
 
 function ajaxSearchProgress(parent, data){
-    jQuery.getJSON( '/ajax/searchProgress', data, function(res){
+    jQuery.getJSON( webRoot+'/ajax/searchProgress', data, function(res){
         //FIXME: this does not look like the structure i wanted to have always since its not in data of res
         if(res['percent']){
             $('.bar' ,parent).css('width', (res['percent'])+'%')
@@ -107,7 +109,7 @@ $(document).ready(function() {
         data = {}
         data['id'] = t.data('id')
         if(data['id'] && !$('.searchTabPaneInner', tab).html())
-            jQuery.get( '/getPaint', data, function(res){
+            jQuery.get( webRoot+'/getPaint', data, function(res){
                 $('.searchTabPaneInner', tab).html(res)
                 $('.progress', tab).hide("slide", { direction: "up" }, 500)
                 $('.searchTabPaneInner', tab).show("slide", { direction: "up" }, 500)

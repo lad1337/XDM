@@ -73,7 +73,7 @@ function messageClose(uuid){
     var messageTr = $('tr.message[data-uuid="'+uuid+'"]')
     data = {}
     data['uuid'] = uuid;
-    $.getJSON('/ajax/messageClose', data, function(res){
+    $.getJSON(webRoot+'/ajax/messageClose', data, function(res){
         if(res['result']){
             messageTr.hide('fast')
             newCount = parseInt($('.notifications .count').text()) - 1;
@@ -93,7 +93,7 @@ function messageConfirm(uuid){
     
     data = {}
     data['uuid'] = uuid;
-    $.getJSON('/ajax/messageConfirm', data, function(res){
+    $.getJSON(webRoot+'/ajax/messageConfirm', data, function(res){
         if(res['result']){
             messageTr.hide('fast')
             newCount = parseInt($('.notifications .count').text()) - 1;
@@ -113,7 +113,7 @@ function messageConfirm(uuid){
 function ajaxDeleteElement(id, deleteNode){
     data = {};
     data['id'] = id;
-    $.getJSON('/ajax/deleteElement', data, function(res){
+    $.getJSON(webRoot+'/ajax/deleteElement', data, function(res){
         if(res['result']){
             deleteNode.hide('slow')
             noty({text: res['msg'], type: 'success', timeout:2000})
@@ -159,7 +159,7 @@ function ajaxModal(sender, name, url, data){
 function showEvents(sender, id){
     data = {'id': id}
     name = 'Events'
-    var myModal = ajaxModal(sender, name, '/ajax/getEventsFrame', data)
+    var myModal = ajaxModal(sender, name, webRoot+'/ajax/getEventsFrame', data)
     // check for events
     if(!$('.modal-body tr:not(.notice)', myModal).length)
         $('.modal-footer', myModal).append('<input class="btn btn-warning" value="Clear Events" type="submit"></div>')
@@ -167,7 +167,7 @@ function showEvents(sender, id){
     $('input[type="submit"]', myModal).click(function(e){
         var t = $(this);
         t.addClass('btn-striped animate')
-        $.getJSON('/ajax/clearEvents', data, function(res){
+        $.getJSON(webRoot+'/ajax/clearEvents', data, function(res){
             if(res['result']){
                 noty({text: res['msg'], type: 'success', timeout: 1000})
                 $('.modal-body', myModal).html('<h4>No events yet.</h4>')
@@ -186,13 +186,13 @@ function showEvents(sender, id){
 function showDownlads(sender, id){
     data = {'id': id}
     name = 'Downloads'
-    ajaxModal(sender, name, '/ajax/getDownloadsFrame', data)
+    ajaxModal(sender, name, webRoot+'/ajax/getDownloadsFrame', data)
 }
 
 function showConfigs(sender, id){
     data = {'id': id}
     name = 'Configuration'
-    var myModal = ajaxModal(sender, name, '/ajax/getConfigFrame', data)
+    var myModal = ajaxModal(sender, name, webRoot+'/ajax/getConfigFrame', data)
     
     $('.modal-footer', myModal).append('<input class="btn btn-success" value="Save" type="submit"></div>')
     window.setTimeout(function(){
@@ -239,7 +239,7 @@ function formAjaxSaveConnect(saveButtons, theForm){
         data = theForm.serialize()
         
 
-        $.getJSON('/ajax/save', data, function(res){
+        $.getJSON(webRoot+'/ajax/save', data, function(res){
             if(res['result']){
                 $(this).button('loading');
                 noty({text: res['msg'], type: 'success', timeout: 1000})
@@ -282,7 +282,7 @@ function pluginAjaxCall(self, p_type, p_instance, id, action){
         if(typeof $(i).data('configname') !== "undefined")
             data['field_'+$(i).data('configname')] = $(i).val()
     });
-    $.getJSON('/ajax/pluginCall', data, function(res){
+    $.getJSON(webRoot+'/ajax/pluginCall', data, function(res){
         if(res['result']){
             noty({text: p_type+'('+p_instance+') - '+$(self).val()+': '+res['msg'], type: 'success', timeout: 2000})
             
@@ -308,7 +308,7 @@ function rebootModal(button){
 function rebootModalExecute(button){
     data = {}
     name = 'Rebooting'
-    var frame = ajaxModal(button, name, '/ajax/reboot', data)
+    var frame = ajaxModal(button, name, webRoot+'/ajax/reboot', data)
     
     firstMessage = true;        
     window.setInterval(function(){messageScrobbler('getSystemMessage', true)}, 500);
@@ -332,7 +332,7 @@ function shutdownModal(button){
 function shutdownModalExecute(button){
     data = {}
     name = 'Shutdown'
-    var frame = ajaxModal(button, name, '/ajax/shutdown', data)
+    var frame = ajaxModal(button, name, webRoot+'/ajax/shutdown', data)
     
     firstMessage = true;
     var finalMessageString = "Connection lost. Looks like it's Done!<br/>Thank you for using <pre>"+getAsciiArtLogo()+"</pre>"
@@ -358,7 +358,7 @@ function installModal(button){
     var id = $(button).data('identifier');
     data = {'identifier': id}
     name = 'Installing '+id
-    var frame = ajaxModal(button, name, '/ajax/installPlugin', data)
+    var frame = ajaxModal(button, name, webRoot+'/ajax/installPlugin', data)
     
     firstMessage = true;        
     window.setTimeout(function(){messageScrobbler('getRepoMessage')}, 500);
@@ -369,7 +369,7 @@ function installModal(button){
 
 function modalCoreUpdate(button){
     name = "Updating XDM"
-    var frame = ajaxModal(button, name, '/ajax/coreUpdate', {})
+    var frame = ajaxModal(button, name, webRoot+'/ajax/coreUpdate', {})
     
     firstMessage = true;        
     window.setInterval(function(){messageScrobbler('getSystemMessage', true)}, 500);
@@ -385,7 +385,7 @@ function messageScrobbler(functionUrl, interval, onErrorClass, onErrorMessage){
     if (typeof onErrorMessage == 'undefined')
         onErrorMessage = 'Connection to Server Lost';
     
-    $.getJSON('/ajax/'+functionUrl, {}, function(res){
+    $.getJSON(webRoot+'/ajax/'+functionUrl, {}, function(res){
         console.log(res)
         var lastMessage = ''
         $.each(res['data'],function(index, messageTuple){

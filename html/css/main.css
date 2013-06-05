@@ -45,6 +45,27 @@ body{
     line-height: 28px;
 }
 
+.navbar ul.nav li.dropdown:hover ul.dropdown-menu{
+    display: block;    
+}
+
+.navbar ul.nav li.dropdown ul.dropdown-menu{
+    -webkit-border-radius: 0px 0px 6px 6px;
+    border-radius: 0px 0px 6px 6px;
+    margin-top: 0;
+    border-top: none;
+    background-color: #f2f2f2;
+}
+
+.navbar .nav:not(.notifications)>li>.dropdown-menu:before,
+.navbar .nav:not(.notifications)>li>.dropdown-menu:after {
+  content: none;
+}
+
+.navbar .nav .active-sub a{
+    color: #0088cc;
+}
+
 #container {
     width: 90%;
     margin: 30px auto;
@@ -79,6 +100,10 @@ body{
     width: 30%;
 }
 
+#container.plugins .label i,
+#container.plugins .btn i{
+    margin-right: 0.3em;
+}
 
 .setting-placeholder{
     height: 3px;
@@ -311,10 +336,10 @@ td.download-size,
 #newsFeed {
     display: inline-block;
     width: 400px;
-    width: calc(100% - 380px);
-    width: -webkit-calc(100% - 380px);
-    width: -moz-calc(100% - 380px);
-    width: -o-calc(100% - 380px);
+    width: calc(100% - 325px);
+    width: -webkit-calc(100% - 325px);
+    width: -moz-calc(100% - 325px);
+    width: -o-calc(100% - 325px);
     position: relative;
 }
 

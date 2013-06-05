@@ -114,6 +114,6 @@ class Music(MediaTypeManager):
 
     def headInject(self):
         return """
-        <link rel="stylesheet" href="/Music/style.css">
-        <script src="/Music/script.js"></script>
+        <link rel="stylesheet" href="{{webRoot}}/Music/style.css">
+        <script src="{{webRoot}}/Music/script.js"></script>
         """

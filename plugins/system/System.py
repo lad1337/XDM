@@ -24,7 +24,7 @@ from xdm.plugins import *
 
 # this class is special because it will be set to SYSTEM in the whole app
 class SystemConfig(System):
-    version = "0.18"
+    version = "0.19"
     _config = {'login_user': '',
                'login_password': '',
                'port': 8085,
@@ -43,6 +43,7 @@ class SystemConfig(System):
                'resnatch_same': False,
                'defaut_mt_select': '',
                'dont_open_browser': False,
+               'webRoot': '',
                'show_feed': True,
                'api_active': True,
                'api_key': ''
@@ -60,6 +61,7 @@ class SystemConfig(System):
                     'https': {'human': 'https / SSL', 'desc': 'If changed XDM will reboot', 'on_change_actions': ['reboot']},
                     'https_cert_filepath': {'human': 'SSL certificate file', 'desc': 'If changed XDM will reboot', 'on_change_actions': ['reboot']},
                     'https_key_filepath': {'human': 'SSL key file', 'desc': 'If changed XDM will reboot', 'on_change_actions': ['reboot']},
+                    'webRoot': {'human': 'WebRoot', 'desc': 'Use this if you want to run XDM behind a reverse proxy. If changed XDM will reboot', 'on_change_actions': ['reboot']},
                     'interval_search': {'human': 'Search interval (minutes)', 'on_change_actions': ['serverReStart']},
                     'interval_update': {'human': 'Update interval (minutes)', 'desc': 'Set this to 0 if you want to disable XDM core update checks','on_change_actions': ['serverReStart']},
                     'interval_check': {'human': 'Download check interval (minutes)', 'on_change_actions': ['serverReStart']},

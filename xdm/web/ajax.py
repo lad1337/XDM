@@ -129,8 +129,21 @@ class AjaxCalls:
     def addRepo(self, url):
         r = Repo()
         r.name = 'unknown'
+        r.info_url = ''
         r.url = url
         r.save()
+        common.REPOMANAGER = RepoManager(Repo.select())
+        t = tasks.TaskThread(tasks.cacheRepos)
+        t.start()
+        return ''
+
+    @cherrypy.expose
+    def removeRepo(self, url):
+        try:
+            repo = Repo.get(Repo.url == url)
+        except Repo.DoesNotExist:
+            return ''
+        repo.delete_instance()
         common.REPOMANAGER = RepoManager(Repo.select())
         t = tasks.TaskThread(tasks.cacheRepos)
         t.start()

@@ -34,6 +34,7 @@ class ConfigWrapper(object):
         self._plugin = plugin
         self._configDefinition = configDefinition
         self.configs = []
+        self._configValueCache = {}
 
     def addConfig(self, c):
         self.configs.append(c)
@@ -77,14 +78,20 @@ class ConfigWrapper(object):
         return out
 
     def __getattr__(self, name):
+        try:
+            return self._configValueCache[name]
+        except KeyError:
+            pass
         for cur_c in self.configs:
             if cur_c.name == name:
+                self._configValueCache[name] = cur_c.value
                 return cur_c.value
         raise AttributeError
 
     def __setattr__(self, name, value):
         for cur_c in self.configs:
             if cur_c.name == name:
+                self._configValueCache = {}
                 cur_c.value = value
                 cur_c.save()
                 return

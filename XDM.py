@@ -200,7 +200,7 @@ class App():
                }
         conf.update(self.pluginResPaths)
 
-        options_dict = {}
+        options_dict = {'global': {'tools.proxy.on': bool(common.SYSTEM.c.webRoot)}}
         #TODO HTTPS support look at sb cp sab and others
         sslCert_path = common.SYSTEM.c.https_cert_filepath
         sslKey_path = common.SYSTEM.c.https_key_filepath

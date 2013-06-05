@@ -24,7 +24,7 @@
 {% block headInject %}
 {% for mt in mtms%}
 <!-- headInject {{mt.identifier}} start -->
-{{mt.headInject()}}
+{{mt.headInject().replace('{{webRoot}}', webRoot)}}
 <!-- headInject {{mt.identifier}} end -->
 {% endfor %}
 
@@ -50,8 +50,7 @@ $(document).ready(function() {
 });
 
 function poolDownloadStatus(ids){
-    console.log(ids)
-    $.getJSON('/ajax/getDownloadBars', ids, function(res){
+    $.getJSON(webRoot+'/ajax/getDownloadBars', ids, function(res){
         if(res['result']){
             $.each(res['data'],function(curID, percentage){
                 var parent = $('.progress-download[data-id="'+curID+'"]');

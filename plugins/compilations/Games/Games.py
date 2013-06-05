@@ -130,6 +130,6 @@ class Games(MediaTypeManager):
 
     def headInject(self):
         return """
-        <link rel="stylesheet" href="/Games/style.css">
+        <link rel="stylesheet" href="{{webRoot}}/Games/style.css">
         """
 

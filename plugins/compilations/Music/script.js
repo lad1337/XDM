@@ -32,7 +32,7 @@ $(document).ready(function() {
             $(thisImg).addClass('btn-striped animate');
             data = {}
             data['id'] = p.data('id')
-            jQuery.get( '/getChildrensPaint', data, function(res){
+            jQuery.get( webRoot+'/getChildrensPaint', data, function(res){
                 $('.songs ol',p).html(res)
                 
                 var colums = 2;
