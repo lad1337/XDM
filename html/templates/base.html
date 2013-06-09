@@ -49,8 +49,7 @@
         <div id="container" class="{%if active_sub_page %}{{active_sub_page}}{%else%}{{ active_page }}{%endif%} page-container">
             {% set navigation_bar = [
                                     ('/', 'index', 'Home', [('/', 'index', 'Wanted'),
-                                                            ('/completed/', 'completed', 'Completed'),
-                                                            ('/deleted/', 'deleted', 'Deleted')]),
+                                                            ('/completed/', 'completed', 'Completed')]),
                                     ('/results/', 'search', 'Search', []),
                                     ('/settings/', 'settings', 'Settings', [('/settings/', 'settings', 'Core and Plugin Settings'),
                                                                             ('/plugins/', 'plugins', 'Manage Plugins')])

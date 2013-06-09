@@ -66,7 +66,6 @@ class WebRoot:
         assert abspath[0] == '/'
         raise cherrypy.HTTPRedirect('%s%s' % (common.SYSTEM.c.webRoot, abspath), *args, **KWs)
 
-
     @cherrypy.expose
     def index(self, status_message='', version=''):
         template = self.env.get_template('index.html')
@@ -95,14 +94,8 @@ class WebRoot:
         template = self.env.get_template('plugins.html')
         return template.render(**self._globals())
 
-
     @cherrypy.expose
     def completed(self):
-        template = self.env.get_template('completed.html')
-        return template.render(**self._globals())
-
-    @cherrypy.expose
-    def deleted(self):
         template = self.env.get_template('completed.html')
         return template.render(**self._globals())
 

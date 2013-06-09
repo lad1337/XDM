@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% set title = 'XDM Completed' -%}
-{% set active_page = active_page|default('completed') -%}
+{% set active_page = active_page|default('index') -%}
+{% set active_sub_page = 'completed' -%}
 
 {% block content%}
 <div class="btn-group" data-toggle="buttons-radio">
