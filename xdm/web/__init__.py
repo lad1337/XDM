@@ -38,7 +38,6 @@ from xdm.logger import *
 from xdm import actionManager
 
 
-
 class WebRoot:
     appPath = ''
 
@@ -98,7 +97,12 @@ class WebRoot:
 
 
     @cherrypy.expose
-    def completed(self, status_message='', version=''):
+    def completed(self):
+        template = self.env.get_template('completed.html')
+        return template.render(**self._globals())
+
+    @cherrypy.expose
+    def deleted(self):
         template = self.env.get_template('completed.html')
         return template.render(**self._globals())
 
