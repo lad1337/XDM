@@ -119,7 +119,7 @@
                 {%for mtm in plugin._getSupportedManagers()%}
                 <span class="support-for-mediatype label label-info" title="{{mtm.identifier}}">{{mtm.screenName}}</span>
                 {%else%}
-                this does not support anything WTF
+                <span class="label label-warning">This only supports (an) unknown MediaTypeManager(s): {{plugin.types}}</span>
                 {%endfor%}
                 {%endif%}
             </p>

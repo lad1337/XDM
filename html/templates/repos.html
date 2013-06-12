@@ -42,7 +42,7 @@
                             <a class="btn btn-info btn-block" href="javascript:void(0)" onClick="installModal(this);" data-identifier="{{plugin.identifier}}"><i class="icon-download-alt"></i>Install</a>
                         {%endif%}
                     {%else%}
-                        <span class="btn btn-danger disabled btn-block"><i class="icon-ok"></i>Plugin requires XDM version {{common.makeVersionHuman(*plugin.xdm_version)}} you have {{common.getVersionHuman()}}</span>
+                        <span class="btn btn-danger disabled btn-block"><i class="icon-warning-sign"></i>Plugin requires XDM version {{common.makeVersionHuman(*plugin.xdm_version)}} you have {{common.getVersionHuman()}}</span>
                     {%endif%}
             {%endif%}
             
