@@ -221,7 +221,7 @@ class Element(BaseModel):
             return self._replaceFn(name)
         try:
             return BaseModel.__getattribute__(self, name)
-        except AttributeError:
+        except AttributeError: #WARNING this can hide Attribute errors of other classes / instances down the road and will report a false error message!
             if 'image' in name:
                 img = self.getImage(name)
                 if img is not None:
@@ -431,22 +431,25 @@ class Element(BaseModel):
         children = Element.select().where(Element.parent == self.id)
         curIndex = 0
         if '{{children}}' in html:
-            for child in sorted(children, key=lambda c: c.orderFieldValue):
+            for child in sorted(children, key=lambda c: c.orderFieldValues):
                 html = html.replace('{{children}}', '%s{{children}}' % child.paint(search=search, single=single, status=status, curIndex=curIndex), 1)
                 curIndex += 1
 
         html = html.replace('{{children}}', '')
         return html
 
-    def _getOrderField(self):
-        return self.manager.getOrderField(self.type)
+    def _getOrderFields(self):
+        return self.manager.getOrderFields(self.type)
 
-    orderField = property(_getOrderField)
+    orderFields = property(_getOrderFields)
 
-    def _getOrderFieldValue(self):
-        return self.getField(self.manager.getOrderField(self.type))
+    def _getOrderFieldValues(self):
+        out = []
+        for field in self.orderFields:
+            out.append(self.getField(field))
+        return out
 
-    orderFieldValue = property(_getOrderFieldValue)
+    orderFieldValues = property(_getOrderFieldValues)
 
     def _getAllAncestorss(self):
         if not self.parent:
@@ -889,7 +892,7 @@ class Image(BaseModel):
             return self.url
 
     def imgName(self):
-        return helper.fileNameClean("%s (%s) %s.%s" % (helper.replace_all(self.element.name), self.element.id,self.name, self.type))
+        return helper.fileNameClean("%s (%s) %s.%s" % (helper.replace_all(self.element.getName()), self.element.id, self.name, self.type))
 
 
 class Repo(BaseModel):

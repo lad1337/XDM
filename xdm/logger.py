@@ -104,14 +104,15 @@ class StructuredMessage(object):
 class LogWrapper():
 
     def _log(self, lvl, msg, censor=None, **kwargs):
-        if type(censor) == tuple:
-            for s in censor:
-                msg = msg.replace(s, '##censored##')
-        elif type(censor) == dict:
-            for value, name in censor.items():
-                msg = msg.replace(value, '##%s##' % name)
-        elif type(censor) == str:
-            msg = msg.replace(censor, '##censored##')
+        if xdm.common.STARTOPTIONS is None or (not xdm.common.STARTOPTIONS.dev):
+            if type(censor) == tuple:
+                for s in censor:
+                    msg = msg.replace(s, '##censored##')
+            elif type(censor) == dict:
+                for value, name in censor.items():
+                    msg = msg.replace(value, '##%s##' % name)
+            elif type(censor) == str:
+                msg = msg.replace(censor, '##censored##')
 
         curframe = inspect.currentframe()
         calframe = inspect.getouterframes(curframe, 0)

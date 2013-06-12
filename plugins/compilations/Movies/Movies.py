@@ -36,7 +36,7 @@ class Movie(object):
     _orderBy = 'name'
 
     def getTemplate(self):
-        # me is the object !!
+        # this is this object !!
         # each field can be accesed directly
         # special stiff like {{actions}} will be explained defined later
         # {{image}} will return the field value

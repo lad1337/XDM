@@ -25,6 +25,7 @@ import xdm
 import os
 import shutil
 import datetime
+import operator
 
 from xdm.logger import *
 from lib import requests
@@ -152,6 +153,12 @@ class RepoManager(object):
 
         if plugin_to_update is None:
             self.setNewMessage('error', 'Could not find a plugin with identifier %s' % identifier)
+            self.setNewMessage('info', 'Done!')
+            return
+
+        if not plugin_to_update.xdmMeetsVersionRequirement():
+            self.setNewMessage('error', 'The plugin requires XDM version %s or higher you have %s' % (common.makeVersionHuman(*plugin_to_update.xdm_version)), common.getVersionHuman())
+            self.setNewMessage('info', 'by the way how did you even get here ? the GUI should not have allowed this to begin with!')
             self.setNewMessage('info', 'Done!')
             return
 
@@ -312,6 +319,7 @@ class Repo(object):
         for identifier, plugin_versions in repo_info['plugins'].items():
             for version_info in plugin_versions:
                 self.plugins.append(ExternalPlugin(identifier, version_info))
+        self.plugins = sorted(self.plugins, key=operator.attrgetter('type', 'name'))
 
 
 class RepoPlugin(object):
@@ -325,11 +333,18 @@ class RepoPlugin(object):
         self.type = info['type']
         self.identifier = identifier
 
+        #new stuff has to check is if its there
+        # or better use get with a default
+        self.xdm_version = tuple(info.get('xdm_version', [0, 0, 0]))
+
     def checkType(self):
         return self.type in allClasses + ['Compilations']
 
     def versionHuman(self):
         return '%s.%s' % (self.major_version, self.minor_version)
+
+    def xdmMeetsVersionRequirement(self):
+        return common.getVersionTuple() >= self.xdm_version
 
     def __str__(self):
         return'Name: %s, identifier: %s, download_url: %s, desc: %s' % (self.name, self.identifier, self.download_url, self.desc)

@@ -75,6 +75,15 @@ class Plugin(object):
     str
         only str value allowed is ``runFor``, this will only add runFor options to the plugin.
     """
+    xdm_version = (0, 0, 0)
+    """this is the greater or equal XDM version this plugin needs to function
+
+    .. note::
+
+        By default this is (0, 0, 0) but the json builder will return the current version of XDM if it is not specifically set.
+
+    """
+
     screenName = ''
     identifier = ''
 
@@ -329,6 +338,10 @@ class Plugin(object):
         desc = "Please write a description for me in config_meta['plugin_desc']"
         if 'plugin_desc' in self.config_meta:
             desc = self.config_meta['plugin_desc']
+        if not sum(self.xdm_version):
+            xdm_version = common.getVersionTuple()
+        else:
+            xdm_version = self.xdm_version
         #http://stackoverflow.com/a/4402799/729059
         data = collections.OrderedDict([("major_version", self.major_version),
                                         ("minor_version", self.minor_version),
@@ -336,6 +349,7 @@ class Plugin(object):
                                         ("type", self._type),
                                         ("format", 'zip'),
                                         ("desc", desc),
+                                        ("xdm_version", (xdm_version[0], xdm_version[1], xdm_version[2])), # buildnumber is not taken into account for version comparison on plugins
                                         ("download_url", "##enter the url to the zip file here !##")])
 
         out = {self.identifier: [data]}
@@ -569,7 +583,7 @@ class Provider(Plugin):
 
     def _getSupportedManagers(self):
         out = []
-        for mtm in common.PM.MTM:
+        for mtm in common.PM.getMediaTypeManager(returnAll=True):
             if mtm.identifier in self.types:
                 out.append(mtm)
         return out
@@ -775,11 +789,16 @@ class MediaTypeManager(Plugin):
     def getManagedTypes(self):
         return [self.type] + [classType.__name__ for classType in self.order]
 
-    def getOrderField(self, eType):
+    def getOrderFields(self, eType):
         if eType in self.s and '_orderBy' in self.s[eType]['class'].__dict__:
+            fields = self.s[eType]['class'].__dict__['_orderBy']
+            if type(fields) is tuple:
+                return fields
+            else:
+                return (fields,)
             return self.s[eType]['class'].__dict__['_orderBy']
         else:
-            return ''
+            return []
 
     def getAttrs(self, eType):
         return self.s[eType]['attr']

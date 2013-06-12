@@ -135,7 +135,7 @@ class Common(object):
     def getVersionHuman(self):
         return self.makeVersionHuman(version.major, version.minor, version.revision, version.build)
 
-    def makeVersionHuman(self, major, minor, revision, build):
+    def makeVersionHuman(self, major, minor, revision, build=0):
         if version.build:
             return "%s %s.%s.%s.%s" % (major_names[major], major, minor, revision, build)
         return "%s %s.%s.%s" % (major_names[major], major, minor, revision)

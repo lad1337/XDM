@@ -36,6 +36,7 @@ from xdm.classes import *
 from xdm import common, tasks, helper
 from xdm.logger import *
 from xdm import actionManager
+from xdm.api import WebApi
 
 
 class WebRoot:
@@ -61,6 +62,7 @@ class WebRoot:
 
     browser = WebFileBrowser()
     ajax = AjaxCalls(env)
+    api = WebApi()
 
     def redirect(self, abspath, *args, **KWs):
         assert abspath[0] == '/'

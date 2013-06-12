@@ -110,6 +110,8 @@ class PluginManager(object):
                 cur_classes = self.find_subclasses(cur_plugin_type, reloadModules, debug=debug)
                 if not systemOnly and os.path.isdir(common.SYSTEM.c.extra_plugin_path):
                     extra_plugin_path = common.SYSTEM.c.extra_plugin_path
+                    if debug:
+                        print '###### extra path %s #######' % extra_plugin_path
                     cur_classes.extend(self.find_subclasses(cur_plugin_type, reloadModules, debug=debug, path=extra_plugin_path))
 
                 if cur_classes:
@@ -362,11 +364,13 @@ class PluginManager(object):
                     #type
                     continue
 
-        for root, dirs, files in os.walk(path):
+        followlinks = common.STARTOPTIONS.dev
+        for root, dirs, files in os.walk(path, followlinks=followlinks):
             if 'pluginRootLibarys' in root or '__old__' in root:
                 continue
             if debug:
                 print dirs
+                print files
             if 'pluginRootLibarys' in dirs:
                 extra_root_path = os.path.join(root, 'pluginRootLibarys')
                 if extra_root_path not in sys.path:

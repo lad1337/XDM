@@ -36,6 +36,22 @@ import re
 DONTNEEDAPIKEY = ('ping', 'version')
 
 
+import cherrypy
+
+
+class WebApi:
+
+    @cherrypy.expose
+    def index(self, *args, **kwargs):
+        pass
+
+    def __getattr__(self, name):
+        if name == common.SYSTEM.c.api_key:
+            return self.default
+        raise AttributeError("%r object has no attribute %r" % (self.__class__.__name__, name))
+
+
+
 class ApiDispatcher(object):
 
     def __init__(self):
