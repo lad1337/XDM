@@ -69,6 +69,13 @@ $(document).ready(function() {
 });
 
 
+function closeAllMessages(){
+    $('.notifications .open').removeClass('open')
+    $('tr.message .close').each(function(index, item){
+        $(item).click()
+    });
+}
+
 function messageClose(uuid){
     var messageTr = $('tr.message[data-uuid="'+uuid+'"]')
     data = {}

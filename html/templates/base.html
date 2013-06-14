@@ -88,6 +88,12 @@
                             <span class="badge badge-info count">{{messages|length}}</span>
                         </a>
                         <table class="table dropdown-menu table-hover table-condensed">
+                            {% if messages|length >= 3 %}
+                            <tr>
+                                <td>Close all messages</td>
+                                <td><input type="button" class="btn btn-mini btn-success" onClick="closeAllMessages();" value="OK"/></td>
+                            </tr>
+                            {% endif %}
                             {%for message in messages%}
                             <tr class="message {{message.getClass()}}" data-uuid={{message.uuid}}>
                                 <td style="width:229px;">
