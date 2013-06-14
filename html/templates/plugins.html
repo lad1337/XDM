@@ -20,28 +20,26 @@
         {% for plugin in common.PM.getAll(True, 'Default')%}
             <tr>
                 <td>
-                    {{plugin.screenName}}<br/>
-                    <span class="muted">
-                        {{plugin.identifier.replace('.','.&shy;')}}
-                        {%if plugin.identifier%}
-                        <a href="#json_{{plugin.identifier|idSafe}}" data-toggle="modal"><i class="icon-code"></i></a>
-                        <div class="modal modal-wide hide fade" id="json_{{plugin.identifier|idSafe}}" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-                            <div class="modal-header">
-                                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                                <h3>JSON for {{plugin.screenName}}</h3>
-                            </div>
-                            <div class="modal-body">
-                                <pre>{{plugin.createRepoJSON()}}</pre>
-                            </div>
-                            <div class="modal-footer">
-                                <p class="muted pull-left">
-                                    Use this in your repo JSON 
-                                </p>
-                                <button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
-                            </div>
+                    <span title="{{plugin.identifier}}">{{plugin.screenName}}</span>
+                    {%if plugin.identifier%}
+                    <br/>
+                    <a href="#json_{{plugin.identifier|idSafe}}" data-toggle="modal"><i class="icon-code"></i></a>
+                    <div class="modal modal-wide hide fade" id="json_{{plugin.identifier|idSafe}}" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                            <h3>JSON for {{plugin.screenName}} ({{plugin.identifier}})</h3>
                         </div>
-                        {%endif%}
-                    </span>
+                        <div class="modal-body">
+                            <pre>{{plugin.createRepoJSON()}}</pre>
+                        </div>
+                        <div class="modal-footer">
+                            <p class="muted pull-left">
+                                Use this in your repo JSON 
+                            </p>
+                            <button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
+                        </div>
+                    </div>
+                    {%endif%}
                 </td>
                 <td>{{plugin._type}}</td>
                 <td>
@@ -71,7 +69,8 @@
 
 <div class="repo-container">
 
-    <h4 class="pull-left">Repositories</h4><a href="javascript:void(0)" onClick="ajaxRepoRecache();" class="btn pull-right"><i class="icon-refresh"></i>Refresh Repositories</a>
+    <h4 class="pull-left">Repositories</h4>
+    <a href="javascript:void(0)" onClick="ajaxRepoRecache();" class="btn pull-right repo-refresh"><i class="icon-repeat"></i>Refresh Repositories</a>
     <div class="clearfix"></div>
     <div class="progress progress-striped active">
         <span class="progressbar-back-text">Loading...</span>
@@ -93,10 +92,9 @@
 <script>
 
 function ajaxRepoRecache(){
-    
     $('.repo-container .progress').show("slide", { direction: "up" }, 500)
     $('.repo-container .inner').hide("slide", { direction: "up" }, 500)
-    ajaxRepo()
+
     jQuery.get( webRoot+'/plugins', {'recache': 1});
     window.setTimeout(function(){ajaxRepo()}, 1000);
 }
@@ -178,7 +176,6 @@ $(document).ready(function() {
         $('span', $(this).parent()).css('line-height', $(this).parent().height()+'px')
     });
     $('.progress .bar').resize()
-    
 });
 
 </script>

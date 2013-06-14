@@ -307,6 +307,7 @@ class Repo(object):
     def cache(self):
         """Checks the internet for plusings in repo"""
         self.plugins = []
+        _plugins = []
         log.info("Checking if repo at %s" % self.url)
         try:
             r = requests.get(self.url, timeout=20)
@@ -318,8 +319,13 @@ class Repo(object):
         self.info_url = repo_info['info_url']
         for identifier, plugin_versions in repo_info['plugins'].items():
             for version_info in plugin_versions:
-                self.plugins.append(ExternalPlugin(identifier, version_info))
-        self.plugins = sorted(self.plugins, key=operator.attrgetter('type', 'name'))
+                _plugins.append(ExternalPlugin(identifier, version_info))
+
+        #FIXME: make this not loop thru the plugins more then needed
+        for pType in common.PM.getAll.order:
+            for plugin in _plugins:
+                if plugin.type == pType:
+                    self.plugins.append(plugin)
 
 
 class RepoPlugin(object):
