@@ -45,7 +45,11 @@ major_names = {0: 'Zim',
 
 
 class Common(object):
-    """A class that conveniently holds references to common objects and variables"""
+    """A class that conveniently holds references to common objects and variables
+    *@DynamicAttrs*
+    """
+    # trying to remove the import errors for all the None objects but it does no seam to work (its a different case here)
+    # http://pydev.org/manual_adv_code_analysis.html see Passing info to code-analysis
 
     STARTOPTIONS = None # the argparse.Namespace object
 
