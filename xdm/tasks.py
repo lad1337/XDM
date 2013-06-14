@@ -45,6 +45,9 @@ def coreUpdateCheck():
     log.info('%s' % updateResponse)
     if updateResponse.needUpdate == True:
         common.MM.createInfo('%s Update now?' % updateResponse.message, confirmJavascript='modalCoreUpdate(this)', role="coreUpdate")
+        for notifier in common.PM.N:
+            if notifier.c.on_update:
+                notifier.sendMessage(updateResponse.message)
     elif updateResponse.needUpdate is None:
         common.MM.createWarning(updateResponse.message, role="coreUpdate")
 
