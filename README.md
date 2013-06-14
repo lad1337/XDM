@@ -6,6 +6,17 @@ XDM is in BETA
 Current official site [http://xdm.lad1337.de](http://xdm.lad1337.de)<br/>
 Official main plugin repository at [https://github.com/lad1337/XDM-main-plugin-repo/](https://github.com/lad1337/XDM-main-plugin-repo/)
 
+## Known support for Mediatypes
+
+- Movies: add Movies and find and Postprocess (in core)
+- Music: add Albums and find and Postprocess (only for Mac OSX adding to iTunes) (in core)
+- Games: add PC, Xbox360, PS3 and Wii Games and find and Postprocess (in core)
+- Books: add Books and find (in main repository)
+
+For more info on available first party plugins see the main repository at [https://github.com/lad1337/XDM-main-plugin-repo/](https://github.com/lad1337/XDM-main-plugin-repo/).
+
+Note: At some point in the future all MediaTypeManagers and corresponding plugins will be moved into the repository and out of the core.
+
 ### Documentation
 is available online at [https://xdm.readthedocs.org](https://xdm.readthedocs.org)<br>
 or in the source and can be build using [sphinx](http://sphinx-doc.org/)
@@ -64,9 +75,8 @@ Plugin and reposetory managment
 Usage
 -----
 <pre>
-lad1337@hannah:XDM(branch:master)$ python XDM.py --help
-usage: XDM [-h] [-d] [-v] [-D] [-p PIDFILE] [-P PORT] [-n] [-b DATADIR]
-           [-c CONFIG] [--noApi] [--apiPort APIPORT] [--noWebServer]
+sage: XDM [-h] [-d] [-v] [-D] [-p PIDFILE] [-P PORT] [-n] [-b DATADIR]
+           [-c CONFIG] [--dev] [--noApi] [--apiPort APIPORT] [--noWebServer]
            [--pluginImportDebug] [--profile [PROFILE [PROFILE ...]]]
 
 optional arguments:
@@ -82,6 +92,8 @@ optional arguments:
                         Set the directory for the database.
   -c CONFIG, --config CONFIG
                         Path to config file
+  --dev                 Developer mode. Disables the censoring during log and
+                        the plugin manager follows symlinks
   --noApi               Disable the api
   --apiPort APIPORT     Port the api runs on
   --noWebServer         Port the api runs on
