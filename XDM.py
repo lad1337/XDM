@@ -201,8 +201,11 @@ class App():
                }
         conf.update(self.pluginResPaths)
 
-        options_dict = {'global': {'tools.proxy.on': bool(common.SYSTEM.c.webRoot)}}
-        #TODO HTTPS support look at sb cp sab and others
+        if common.SYSTEM.c.webRoot: # if this is always set even when False then https does not work
+            options_dict = {'global': {'tools.proxy.on': True}}
+        else:
+            options_dict = {}
+
         sslCert_path = common.SYSTEM.c.https_cert_filepath
         sslKey_path = common.SYSTEM.c.https_key_filepath
         if common.SYSTEM.c.https:
@@ -220,13 +223,17 @@ class App():
             options_dict['server.ssl_certificate'] = sslCert_path
             options_dict['server.ssl_private_key'] = sslKey_path
 
-        cherrypy.config.update(options_dict)
-
         # Workoround for OSX. It seems have problem wit the autoreload engine
         if sys.platform.startswith('darwin') or sys.platform.startswith('win'):
-            cherrypy.config.update({'engine.autoreload.on': False})
+            options_dict['engine.autoreload.on'] = False
 
-        log.info("Starting the XDM web server")
+        cherrypy.config.update(options_dict)
+
+        if common.SYSTEM.c.https:
+            log.info("Starting the XDM https web server")
+        else:
+            log.info("Starting the XDM http web server")
+
         cherrypy.tree.mount(WebRoot(app_path), config=conf)
         cherrypy.server.socket_host = common.SYSTEM.c.socket_host
 
