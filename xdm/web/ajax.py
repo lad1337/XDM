@@ -243,9 +243,17 @@ class AjaxCalls:
         # because i create each plugin for each config value that is for that plugin
         # because i need the config_meta from the class to create the action list
         # but i can use the plugins own c obj for saving the value
-        _plugin_cache = {} # first try to make it faster is by using a cache for each plugin instance 
+        _plugin_cache = {} # first try to make it faster is by using a cache for each plugin instance
         for k, v in kwargs.items():
-            log("config K:%s V:%s" % (k, v))
+            try:
+                k = k.decode('utf-8')
+            except UnicodeDecodeError:
+                k = k.decode('latin-1') # for some obscure reason cherrypy (i think) encodes param key into latin-1 some times
+                k = k.encode('utf-8') # but i like utf-8
+            #print k, repr(k)
+            #print v, repr(v)
+
+            log(u"config K:%s V:%s" % (k, v))
             parts = k.split('-')
             #print parts
             # parts[0] plugin class name
@@ -262,7 +270,7 @@ class AjaxCalls:
                 plugin = common.PM.getInstanceByName(class_name, instance_name)
                 _plugin_cache[_cacheName] = plugin
             if plugin:
-                log("We have a plugin: %s (%s)" % (class_name, instance_name))
+                log(u"We have a plugin: %s (%s)" % (class_name, instance_name))
                 if element is not None: # we got an element id so its an element config
                     old_value = getattr(plugin.e, config_name)
                 else: # normal settings page
@@ -289,7 +297,7 @@ class AjaxCalls:
                     pass
                 continue
             else: # no plugin with that class_name or instance found
-                log("We don't have a plugin: %s (%s)" % (class_name, instance_name))
+                log(u"We don't have a plugin: %s (%s)" % (class_name, instance_name))
                 continue
 
         common.PM.cache()

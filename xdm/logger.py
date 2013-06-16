@@ -93,7 +93,8 @@ class StructuredMessage(object):
                            'lvl': lvlNames[lvl]['p'],
                             'msg': message,
                             'caller': {'file': calframe[2][1], 'line': calframe[2][2], 'fn': calframe[2][3]},
-                            'data': kwargs}, cls=MyEncoder)
+                            'data': kwargs},
+                            cls=MyEncoder)
 
         try:
             return _json(self.time, self.lvl, self.message, self.calframe, self.kwargs)

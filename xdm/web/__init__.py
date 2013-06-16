@@ -37,6 +37,7 @@ from xdm import common, tasks, helper
 from xdm.logger import *
 from xdm import actionManager
 from xdm.api import WebApi
+import re
 
 
 class WebRoot:
@@ -145,7 +146,8 @@ class WebRoot:
         c = None
         for cur_plugin in common.PM.getAll(True):
             if cur_plugin.type == plugin and not cur_plugin.single:
-                c = cur_plugin.__class__(instance=instance)
+                cleanInstance = re.sub(ur'[\W]+', u'_', instance, flags=re.UNICODE)
+                c = cur_plugin.__class__(instance=cleanInstance)
                 break
         common.PM.cache()
         url = '%s/settings/' % common.SYSTEM.c.webRoot

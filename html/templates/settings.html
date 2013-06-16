@@ -4,7 +4,7 @@
 {% set active_sub_page = active_sub_page|default('settings') -%}
 {% block content %}
 
-<form id="theSettingsForm" class="container-fluid" action="{{webRoot}}/saveSettings" method="POST">
+<form id="theSettingsForm" class="container-fluid" action="{{webRoot}}/saveSettings" method="POST" accept-charset="UTF-8">
 
     <div class="row-fluid">
         <div class="span3 well">
@@ -34,7 +34,7 @@
         <fieldset class="span9 tab-content well form-horizontal" action="/saveSettings" method="POST">
             {% for plugin in plugins -%}
             <div class="tab-pane fade" id="{{plugin.name|idSafe}}">
-                <h4>{{ plugin.name }}
+                <h4>{{ plugin.screenName }}{% if plugin._type != 'MediaTypeManager'%} ({{ plugin.instance }}){% endif %}
                     {%if plugin._type != 'MediaTypeManager'%}
                     <input class="removeInstance btn btn-inverse pull-right" type="button" value="{% if plugin.instance == 'Default' %}Reset{% else %}Delete{% endif %}{% if not plugin.single%} this{%endif%} {{ plugin.screenName }}{% if not plugin.single%} Instance{%endif%}" data-plugin="{{ plugin.type }}" data-instance="{{ plugin.instance }}"/>
                     {%endif%}
@@ -136,7 +136,7 @@
 
 
 $(document).ready(function() {
-    if(!$('.nav.nav-list a[href="'+window.location.hash+'"]').tab('show').length)
+    if(!$('.nav.nav-list a[href="'+decodeURIComponent(window.location.hash)+'"]').tab('show').length)
         $('.nav.nav-list a[data-toggle="tab"]:first').tab('show')
 
     $('.control-group.path input').each(function(key, item){

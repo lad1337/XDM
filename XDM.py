@@ -190,7 +190,10 @@ class App():
             useAuth = True
         userPassDict = {username: password}
         checkpassword = cherrypy.lib.auth_basic.checkpassword_dict(userPassDict)
-        conf = {'/': {'tools.auth_basic.on': useAuth, 'tools.auth_basic.realm': 'Gamez', 'tools.auth_basic.checkpassword': checkpassword},
+        conf = {'/': {'tools.auth_basic.on': useAuth,
+                      'tools.auth_basic.realm': 'Gamez',
+                      'tools.auth_basic.checkpassword': checkpassword,
+                      'tools.encode.encoding': 'utf-8'},
                 '/api': {'tools.auth_basic.on': False},
                 '/css': {'tools.staticdir.on': True, 'tools.staticdir.dir': css_path},
                 '/js': {'tools.staticdir.on': True, 'tools.staticdir.dir': js_path},
@@ -228,6 +231,8 @@ class App():
             options_dict['engine.autoreload.on'] = False
 
         cherrypy.config.update(options_dict)
+        cherrypy.config["tools.encode.on"] = True
+        cherrypy.config["tools.encode.encoding"] = "utf-8"
 
         if common.SYSTEM.c.https:
             log.info("Starting the XDM https web server")
