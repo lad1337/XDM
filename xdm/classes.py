@@ -95,7 +95,7 @@ class BaseModel(Model):
 
     def __str__(self):
         if hasattr(self, 'name'):
-            return str(self.name)
+            return u'%s' % self.name
         super(BaseModel, self).__str__()
 
     def __add__(self, other):

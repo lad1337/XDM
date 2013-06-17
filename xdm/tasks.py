@@ -35,7 +35,7 @@ class TaskThread(threading.Thread):
         threading.Thread.__init__(self)
 
     def run(self):
-        log.debug('Running %s with args: %s and kwargs: %s' % (self._target.__name__, self._args, self._kwargs))
+        log.debug(u'Running %s with args: %s and kwargs: %s' % (self._target.__name__, self._args, self._kwargs))
         self._target(*self._args, **self._kwargs)
 
 
@@ -70,27 +70,27 @@ def runSearcher():
             #TODO: find a standart way for a release date maybe just add it :/
             """elif ele.release_date and ele.release_date > datetime.datetime.now(): # is the release date in the future
                 continue"""
-            log("Looking for %s" % ele)
+            log(u"Looking for %s" % ele)
             searchElement(ele)
 
 
 def notify(element):
 
     if element.status == common.SNATCHED:
-        common.MM.createInfo("%s was snatched" % element.getName())
+        common.MM.createInfo(u"%s was snatched" % element.getName())
     elif element.status == common.COMPLETED:
-        common.MM.createInfo("%s is Completed" % element.getName())
+        common.MM.createInfo(u"%s is Completed" % element.getName())
     elif element.status == common.DOWNLOADED:
-        common.MM.createInfo("%s was downloaded" % element.getName())
+        common.MM.createInfo(u"%s was downloaded" % element.getName())
     elif element.status == common.PP_FAIL:
-        common.MM.createWarning("%s had an error during post processing" % element.getName())
+        common.MM.createWarning(u"%s had an error during post processing" % element.getName())
 
     for notifier in common.PM.N:
-        createGenericEvent(element, 'notifier', 'Sending notification with %s on status %s' % (notifier, element.status))
+        createGenericEvent(element, 'notifier', u'Sending notification with %s on status %s' % (notifier, element.status))
         if notifier.c.on_snatch and element.status == common.SNATCHED:
-            notifier.sendMessage("%s has been snatched" % element.getName(), element)
+            notifier.sendMessage(u"%s has been snatched" % element.getName(), element)
         if notifier.c.on_complete and element.status in (common.COMPLETED, common.DOWNLOADED, common.PP_FAIL):
-            notifier.sendMessage("%s is now %s" % (element, element.status), element)
+            notifier.sendMessage(u"%s is now %s" % (element, element.status), element)
 
 
 def createGenericEvent(ele, event_type, event_msg):
@@ -117,10 +117,10 @@ def commentOnDownload(download):
 def searchElement(ele):
     didSearch = False
     for indexer in common.PM.getIndexers(runFor=ele.manager):
-        createGenericEvent(ele, 'search', 'Searching %s on %s' % (ele, indexer))
-        log.info("Init search of %s on %s" % (ele, indexer))
+        createGenericEvent(ele, 'search', u'Searching %s on %s' % (ele, indexer))
+        log.info(u"Init search of %s on %s" % (ele, indexer))
         downloads = indexer.searchForElement(ele) #intensiv
-        createGenericEvent(ele, 'result', '%s found %s results' % (indexer, len(downloads)))
+        createGenericEvent(ele, 'result', u'%s found %s results' % (indexer, len(downloads)))
         didSearch = True
 
         #downloads = _filterBadDownloads(blacklist, whitelist, downloads)
@@ -128,9 +128,9 @@ def searchElement(ele):
         if downloads:
             return snatchOne(ele, downloads)
         else:
-            log.info("We filtered all downloads out for %s" % ele)
+            log.info(u"We filtered all downloads out for %s" % ele)
     if not didSearch:
-        log.warning("No Indexer active/available for %s" % ele.manager)
+        log.warning(u"No Indexer active/available for %s" % ele.manager)
     return ele.status
 
 
@@ -141,22 +141,22 @@ def snatchOne(ele, downloads):
         for download in downloads:
             if not download.type in downloader.types:
                 continue
-            createGenericEvent(ele, 'snatchTry', 'Trying to snatch %s with %s' % (download.name, downloader))
-            createGenericEvent(download, 'snatchTry', '%s is trying to snatch me' % (downloader))
-            log.info('Trying to snatch %s with %s' % (download.name, downloader))
+            createGenericEvent(ele, 'snatchTry', u'Trying to snatch %s with %s' % (download.name, downloader))
+            createGenericEvent(download, 'snatchTry', u'%s is trying to snatch me' % (downloader))
+            log.info(u'Trying to snatch %s with %s' % (download.name, downloader))
             if downloader.addDownload(download):
                 ele.status = common.SNATCHED
                 ele.save()
                 download.status = common.SNATCHED
                 download.save()
-                createGenericEvent(download, 'snatch', '%s snatched me' % (downloader))
+                createGenericEvent(download, 'snatch', u'%s snatched me' % (downloader))
                 notify(ele)
                 return ele.status #exit on first success
             triedSnatch = True
         if triedSnatch and downloads:
-            log.warning("No Downloaders active/available for %s (or they all failed)" % download.type)
+            log.warning(u"No Downloaders active/available for %s (or they all failed)" % download.type)
         elif not downloads:
-            log.info("No downloads found for %s" % download.element)
+            log.info(u"No downloads found for %s" % download.element)
     return ele.status
 
 
@@ -171,38 +171,38 @@ def _filterBadDownloads(downloads):
             pass
 
         if not old_download:
-            log("Saving the new download we found %s" % download)
+            log(u"Saving the new download we found %s" % download)
             download.status = common.UNKNOWN
             download.save()
         else:
             try:
                 Element.get(Element.id == download.element.id)
             except Element.DoesNotExist:
-                log.warning("The element for the download(%s) does not exist any more deleting the old one but taking the status from the old one" % download.id)
+                log.warning(u"The element for the download(%s) does not exist any more deleting the old one but taking the status from the old one" % download.id)
                 download.status = old_download.status
                 old_download.delete_instance()
                 download.save()
                 old_download = download
             if old_download.status in (common.FAILED, common.DOWNLOADED):
-                log.info("Found a Download(%s) with the same url and it failed or we downloaded it already. Skipping..." % download)
+                log.info(u"Found a Download(%s) with the same url and it failed or we downloaded it already. Skipping..." % download)
                 continue
             if old_download.status == common.SNATCHED:
                 if common.SYSTEM.c.resnatch_same:
                     continue
-                log.info("Found a Download(%s) with the same url and we snatched it already. I'l get it again..." % download)
+                log.info(u"Found a Download(%s) with the same url and we snatched it already. I'l get it again..." % download)
             download = old_download
 
         for curFilterPlugin in common.PM.getDownloadFilters(runFor=download.element.manager):
             filterResult = curFilterPlugin.compare(element=download.element, download=download)
             if not filterResult.result:
-                log.info('%s did not like %s, reason: %s' % (curFilterPlugin, download, filterResult.reason))
+                log.info(u'%s did not like %s, reason: %s' % (curFilterPlugin, download, filterResult.reason))
                 #createGenericEvent(download.element, 'filter', '%s did not like %s, reason: %s' % (curFilterPlugin, download, filterResult.reason))
-                createGenericEvent(download, 'filter', '%s did not like me, reason: %s' % (curFilterPlugin, filterResult.reason))
+                createGenericEvent(download, 'filter', u'%s did not like me, reason: %s' % (curFilterPlugin, filterResult.reason))
                 break
             else:
-                log.info('%s liked %s, reason: %s' % (curFilterPlugin, download, filterResult.reason))
-                createGenericEvent(download.element, 'filter', '%s liked %s, reason: %s' % (curFilterPlugin, download, filterResult.reason))
-                createGenericEvent(download, 'filter', '%s liked me, reason: %s' % (curFilterPlugin, filterResult.reason))
+                log.info(u'%s liked %s, reason: %s' % (curFilterPlugin, download, filterResult.reason))
+                createGenericEvent(download.element, u'filter', '%s liked %s, reason: %s' % (curFilterPlugin, download, filterResult.reason))
+                createGenericEvent(download, 'filter', u'%s liked me, reason: %s' % (curFilterPlugin, filterResult.reason))
         else:
             clean.append(download)
     return clean
@@ -214,9 +214,9 @@ def runChecker():
         for element in elements:
             if element.status not in (common.SNATCHED, common.DOWNLOADING):
                 continue
-            log("Checking status for %s" % element)
+            log(u"Checking status for %s" % element)
             status, download, path = checker.getElementStaus(element)
-            log("%s gave back status %s for %s on download %s" % (checker, status, element, download))
+            log(u"%s gave back status %s for %s on download %s" % (checker, status, element, download))
             if status == common.DOWNLOADED:
                 element.status = common.DOWNLOADED
                 element.save()
@@ -257,14 +257,14 @@ def ppElement(element, download, path):
     pp_try = False
     for pp in common.PM.getPostProcessors(runFor=element.manager):
         createGenericEvent(element, 'postProcess', 'Starting PP with %s' % pp)
-        log('Starting PP on %s with %s at %s' % (element, pp, path))
+        log(u'Starting PP on %s with %s at %s' % (element, pp, path))
         ppResult, pp_log = pp.postProcessPath(element, path)
         pp_try = True
         if ppResult:
             element.status = common.COMPLETED
             element.save()
             download.status = common.COMPLETED
-            download.pp_log = 'LOG from %s:\n%s\n######\n%s' % (pp, pp_log, download.pp_log)
+            download.pp_log = u'LOG from %s:\n%s\n######\n%s' % (pp, pp_log, download.pp_log)
             download.save()
             if pp.c.stop_after_me_select == common.STOPPPONSUCCESS or pp.c.stop_after_me_select == common.STOPPPALWAYS:
                 return True
@@ -284,20 +284,20 @@ def updateElement(element, force=False):
         #TODO: make sure we use the updated element after one provider is done
         pID = element.getField('id', p.tag)
         if not pID:
-            log.info('we dont have this element(%s) on provider(%s) yet. we will search for it' % (element, p))
+            log.info(u'we dont have this element(%s) on provider(%s) yet. we will search for it' % (element, p))
             #TODO search element by name or with help of xem ... yeah wishful thinking
             #new_e = p.searchForElement(element.getName())
             log.warning('getting an element by name is not implemented can not refresh')
             return None
-        log.debug('Getting element with provider id %s on %s' % (pID, p))
+        log.debug(u'Getting element with provider id %s on %s' % (pID, p))
         new_e = p.getElement(pID)
-        createGenericEvent(element, 'refreshing', 'Serching for update on %s' % p)
+        createGenericEvent(element, 'refreshing', u'Serching for update on %s' % p)
         if new_e:
-            log.info("%s returned an element" % p)
+            log.info(u"%s returned an element" % p)
         else:
-            log.info("%s returned NO element" % p)
+            log.info(u"%s returned NO element" % p)
         if new_e and new_e != element:
-            log.info("Found new version of %s" % element)
+            log.info(u"Found new version of %s" % element)
             for f in list(new_e.fields):
                 element.setField(f.name, f.value, f.provider)
             element.deleteImages()
@@ -320,24 +320,24 @@ def runMediaAdder():
             except Element.DoesNotExist:
                 pass
             else:
-                log('We already have %s' % new_e)
+                log(u'We already have %s' % new_e)
                 successfulAdd.append(media)
                 continue
             for provider in common.PM.getProvider(runFor=mtm):
-                log.info('%s is looking for %s(%s) on %s' % (adder, media.name, media.externalID, provider))
+                log.info(u'%s is looking for %s(%s) on %s' % (adder, media.name, media.externalID, provider))
                 ele = provider.getElement(media.externalID)
                 if ele:
-                    log.info('we found %s. now lets gets real' % ele)
+                    log.info(u'we found %s. now lets gets real' % ele)
                     if ele.manager.makeReal(ele):
-                        createGenericEvent(ele, 'autoAdd', 'I was added by %s' % adder)
-                        common.MM.createInfo('%s added %s' % (adder, ele.getName()))
+                        createGenericEvent(ele, u'autoAdd', 'I was added by %s' % adder)
+                        common.MM.createInfo(u'%s added %s' % (adder, ele.getName()))
                         if media not in successfulAdd:
                             successfulAdd.append(media)
                             if ele.status == common.WANTED:
                                 t = TaskThread(searchElement, ele)
                                 t.start()
                 else:
-                    log.info('%s did not find %s(%s)' % (provider, media.name, media.externalID))
+                    log.info(u'%s did not find %s(%s)' % (provider, media.name, media.externalID))
         adder.successfulAdd(successfulAdd)
 
 

@@ -53,7 +53,7 @@ class SystemConfig(System):
         amount = common.PM.clearAllUnsedConfgs()
         return (True, {}, '%s configs removed' % amount)
 
-    config_meta = {'plugin_buttons': {'clearAllUnsedConfgs': {'action': _clearAllUnsedConfgs, 'name': 'Clear unused configs', 'desc': 'Clear Configs that are not used (this is also done on startup)'}},
+    config_meta = {'plugin_buttons': {'clearAllUnsedConfgs': {'action': _clearAllUnsedConfgs, 'name': 'Clear unused configs', 'desc': 'Clear configs that are not used.'}},
                    'login_user': {'on_change_actions': ['serverReStart']},
                     'login_password': {'on_change_actions': ['serverReStart']},
                     'interval_search': {'human': 'Search interval (minutes)'},

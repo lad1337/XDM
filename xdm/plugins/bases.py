@@ -195,10 +195,19 @@ class Plugin(object):
                                   Config.instance == self.instance))
         for cur_c in configs:
 
-            if cur_c.element is not None and cur_c.type == 'element_config':
-                # element configs ae only loade on the fly,
-                # to register them we get them all if the current config has an element attached
-                self.e.getConfigsFor(cur_c.element)
+            try:
+                _e = cur_c.element
+            except Element.DoesNotExist:
+                log('Element for the config was not found, probably because the MediaType is not installed any more: %s' % cur_c)
+                log('Deleting config with missing element %s(%s) in %s' % (cur_c, cur_c.get_id(), self))
+                cur_c.delete_instance()
+                amount += 1
+                continue
+            else:
+                if cur_c.element is not None and cur_c.type == 'element_config':
+                    # element configs are only loade on the fly,
+                    # to register them we get them all if the current config has an element attached
+                    self.e.getConfigsFor(cur_c.element)
             if cur_c in self.c.configs or cur_c in self.e.configs:
                 continue
             else:
@@ -280,6 +289,11 @@ class Plugin(object):
                 print '--', curConfig.mediaType, 'vs', element.mediaType
                 print '--', 'isAncestorOf', curConfig.element.isAncestorOf(element)
             """
+            try:
+                _e = curConfig.element
+            except Element.DoesNotExist:
+                continue
+
             if curConfig.element is None:
                 continue
             if curConfig.mediaType == element.mediaType and\

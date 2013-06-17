@@ -95,7 +95,7 @@ class Movies(Core):
     def __init__(self, title="", limit=False, language=None):
         self.limit = limit
         self.update_configuration()
-        title = self.escape(title)
+        #title = self.escape(title)
         self.movies = self.getJSON(config['urls']['movie.search'] % (title,str(1)), language=language)
         pages = self.movies["total_pages"]
         if not self.limit:
@@ -241,7 +241,7 @@ class People(Core):
     def __init__(self, people_name, limit=False, language=None):
         self.limit = limit
         self.update_configuration()
-        people_name = self.escape(people_name)
+        #people_name = self.escape(people_name)
         self.people = self.getJSON(config['urls']['people.search'] % (people_name,str(1)), language=language)
         pages = self.people["total_pages"]
         if not self.limit:
