@@ -73,10 +73,7 @@ class TheGamesDB(Provider):
             g.overview = overview.text
         if trailer != None:
             g.trailer = trailer.text
-
-        if release_date != None:
-            # tgdb gives back times like 11/13/2007
-            g.release_date = datetime.datetime.strptime(release_date.text, "%m/%d/%Y")"""
+        """
 
         g = Element()
         g.type = 'Game'
@@ -86,6 +83,8 @@ class TheGamesDB(Provider):
         g.setField('front_image', self._boxartUrl(imagesTag, platformIDTag.text, base_url, 'front'), self.tag)
         g.setField('back_image', self._boxartUrl(imagesTag, platformIDTag.text, base_url, 'back'), self.tag)
         g.setField('genre', self._genresStr(genresTag), self.tag)
+        g.setField('release_date', datetime.datetime.strptime(release_date.text, "%m/%d/%Y"), self.tag)
+
         if int(platformIDTag.text) not in self._pCache:
             mts = MediaType.select().where(MediaType.identifier == 'de.lad1337.games')
             q = Element.select().where(Element.mediaType << mts, Element.type == 'Platform')

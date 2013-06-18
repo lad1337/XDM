@@ -21,13 +21,14 @@
 
 from xdm.plugins import *
 
+
 class Game(object):
     name = ''
     genres = ''
     describtion = ''
     front_image = ''
     back_image = ''
-    release_date = datetime.datetime.now()
+    release_date = ''
 
     _orderBy = 'name'
 
@@ -51,7 +52,9 @@ class Game(object):
                 </div>
             </div>
             </td>
-            <td>{{name}}<!-- and {{this.name}} and {{this.getName()}}--></td>
+            <td>{{name}}<!-- and {{this.name}} and {{this.getName()}}-->
+            <br/>Released: {{this.getReleaseDate()|relativeTime}}
+            </td>
             <td>{{this.parent.alias}}</td>
         </tr>
         """
@@ -64,6 +67,9 @@ class Game(object):
 
     def getName(self):
         return '%s' % self.name
+
+    def getReleaseDate(self):
+        return self.release_date
 
 
 class Platform(object):

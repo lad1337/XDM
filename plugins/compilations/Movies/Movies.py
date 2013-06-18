@@ -20,6 +20,7 @@
 #along with this program.  If not, see http://www.gnu.org/licenses/.
 
 from xdm.plugins import *
+from lib.dateutil.parser import *
 import tmdb
 
 
@@ -71,6 +72,7 @@ class Movie(object):
                     </a></li>
                 {% endfor %}
                 </ul>
+                <span style="color:#fff;">Released: {{this.getReleaseDate()|relativeTime}}</span>
                 {%endif%}
                 {{statusSelect}}
                 <a href="#" class="btn btn-mini btn-info pull-right overview" data-placement="bottom" data-toggle="popover" title="Overview for {{this.getName()}}" data-content="{{overview}}" data-container=".de-lad1337-movies">Overview</a>
@@ -83,6 +85,9 @@ class Movie(object):
 
     def getName(self):
         return '%s (%s)' % (self.name, self.year)
+
+    def getReleaseDate(self):
+        return self.release_date
 
 
 class Movies(MediaTypeManager):
@@ -152,7 +157,6 @@ class Tmdb(Provider):
         movie.type = 'Movie'
         movie.setField('name', tmdbMovie.get_title(), self.tag)
         rl_date = tmdbMovie.get_release_date()
-        movie.setField('release_date', tmdbMovie.get_release_date(), self.tag)
         if len(rl_date.split('-')) > 1:
             movie.setField('year', rl_date.split('-')[0], self.tag)
         else:
@@ -163,6 +167,10 @@ class Tmdb(Provider):
         movie.setField('runtime', tmdbMovie.get_runtime(), self.tag)
         movie.setField('id', tmdbMovie.get_id(), self.tag)
         movie.setField('id', tmdbMovie.get_imdb_id(), 'imdb')
+        releaseDate = tmdbMovie.get_release_date()
+        releaseDateTime = parse(releaseDate)
+
+        movie.setField('release_date', releaseDateTime, self.tag)
         index = 0
         for index, youtubeTrailer in enumerate(tmdbMovie.get_trailers()['youtube']):
             trailerIDFieldName = 'youtube_trailer_id_%s' % index

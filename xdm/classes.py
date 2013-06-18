@@ -59,6 +59,16 @@ class BaseModel(Model):
         return True # True like its all good !
 
     @classmethod
+    def _migrateNewField(cls, newField):
+        field = QueryCompiler().field_sql(newField)
+        table = cls._meta.db_table
+        if cls._checkForColumn(newField):
+            return False # False like: dude stop !
+        cls._meta.database.execute_sql('ALTER TABLE %s ADD COLUMN %s' % (table, field))
+        return True
+
+
+    @classmethod
     def updateTable(cls):
         supers = list(cls.__bases__)
         if supers[0] == BaseModel:
@@ -181,7 +191,7 @@ class Element(BaseModel):
     type = CharField()
     parent = ForeignKeyField('self', related_name='children', null=True)
     status = ForeignKeyField(Status)
-    _overwriteableFunctions = ('getTemplate', 'getSearchTerms', 'getName', 'getSearchTemplate')
+    _overwriteableFunctions = ('getTemplate', 'getSearchTerms', 'getName', 'getSearchTemplate', 'getReleaseDate')
     _tmp_fields = []
 
     def __init__(self, *args, **kwargs):
@@ -347,6 +357,7 @@ class Element(BaseModel):
 
         webRoot = common.SYSTEM.c.webRoot
         env = Environment(loader=DictLoader({'this': tpl}))
+        env.filters['relativeTime'] = helper.reltime
         elementWidgetEnvironment
         elementTemplate = env.get_template('this')
         actionTemplate = None
@@ -477,6 +488,12 @@ class Element(BaseModel):
     def _getName(self):
         return ' '.join([str(x.value) for x in self.fields])
 
+    def getReleaseDate(self):
+        return self._getReleaseDate
+
+    def _getReleaseDate(self):
+        return datetime.datetime.now()
+
     def isDescendantOf(self, granny):
         return granny in self.ancestors
 
@@ -563,7 +580,7 @@ class Element(BaseModel):
             return None
 
 
-class Field(BaseModel):
+class Field_V0(BaseModel):
     element = ForeignKeyField(Element, related_name='fields')
     name = CharField()
     provider = CharField()
@@ -571,8 +588,19 @@ class Field(BaseModel):
     _value_char = TextField(True)
     _value_bool = IntegerField(True)
 
+    class Meta:
+        db_table = 'Field'
+
     def __str__(self):
         return 'Field of %s name:%s value:%s' % (self.element, self.name, self.value)
+
+
+class Field(Field_V0):
+    _value_datetime = DateTimeField(True)
+
+    @classmethod
+    def _migrate(cls):
+        return cls._migrateNewField(cls._value_datetime)
 
     def _get_value(self):
         if self._value_bool in (1, 0):
@@ -582,10 +610,14 @@ class Field(BaseModel):
             if type(self._value_int) is not int and self._value_int.is_integer():
                 return int(self._value_int)
             return self._value_int
+        elif self._value_datetime != None:
+            return self._value_datetime
         else:
             return self._value_char
 
     def _set_value(self, value):
+
+        # convert strings such as '12' to ints
         try:
             value = int(value)
         except (ValueError, TypeError):
@@ -594,19 +626,28 @@ class Field(BaseModel):
         if type(value).__name__ in ('int', 'float'):
             self._value_char = None
             self._value_bool = None
+            self._value_datetime = None
             self._value_int = value
             return
         if type(value).__name__ in ('str', 'unicode'):
             self._value_bool = None
             self._value_int = None
+            self._value_datetime = None
             self._value_char = value
             return
         if type(value).__name__ in ('bool', 'NoneType'):
             self._value_char = None
             self._value_int = None
+            self._value_datetime = None
             self._value_bool = value
             return
-        raise Exception('unknown config save type %s for config %s' % (type(value), self.name))
+        if type(value).__name__ in ('date', 'datetime'):
+            self._value_char = None
+            self._value_int = None
+            self._value_bool = None
+            self._value_datetime = value
+            return
+        raise TypeError('unknown config save type %s for config %s' % (type(value), self.name))
 
     value = property(_get_value, _set_value)
 

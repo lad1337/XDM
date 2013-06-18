@@ -20,11 +20,13 @@
 #along with this program.  If not, see http://www.gnu.org/licenses/.
 
 from xdm.logger import *
-from xdm import common
+from xdm import common, helper
 from xdm.classes import *
 import json
 from xdm.jsonHelper import MyEncoder
 import threading
+import datetime
+from babel.dates import format_timedelta
 
 
 class TaskThread(threading.Thread):
@@ -67,9 +69,7 @@ def runSearcher():
                 ele.status = common.WANTED
             elif ele.status != common.WANTED:
                 continue
-            #TODO: find a standart way for a release date maybe just add it :/
-            """elif ele.release_date and ele.release_date > datetime.datetime.now(): # is the release date in the future
-                continue"""
+
             log(u"Looking for %s" % ele)
             searchElement(ele)
 
@@ -115,6 +115,26 @@ def commentOnDownload(download):
 
 
 def searchElement(ele):
+    _ignoreRD = False
+    _thresholdRD = datetime.timedelta()
+    if ele.manager.c.release_threshold_select:
+        if ele.manager.c.release_threshold_select in helper.releaseThresholdDelta:
+            _thresholdRD = helper.releaseThresholdDelta[ele.manager.c.release_threshold_select]
+        else: # its not the first option and not a timedelta, so it is the last option which tells us to ignore it completely
+            _ignoreRD = True
+
+    #TODO: clean this
+    if not _ignoreRD and (ele.getReleaseDate() - _thresholdRD) > datetime.datetime.now():
+        log(u"%s is not yet released it will be released at %s. Not searching!" % (ele, ele.getReleaseDate()))
+        return ele.status
+    else:
+        if _ignoreRD:
+            log(u"%s is released at %s but we are supposed to ignore the release date" % (ele, ele.getReleaseDate()))
+        elif _thresholdRD:
+            log(u"%s is released at %s but we are supposed to search %s ahead" % (ele, ele.getReleaseDate(), format_timedelta(_thresholdRD, locale="en_US")))
+        else:
+            log(u"%s was released at %s" % (ele, ele.getReleaseDate()))
+
     didSearch = False
     for indexer in common.PM.getIndexers(runFor=ele.manager):
         createGenericEvent(ele, 'search', u'Searching %s on %s' % (ele, indexer))

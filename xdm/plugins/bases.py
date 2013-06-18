@@ -30,6 +30,8 @@ from meta import *
 from xdm.helper import replace_all
 import json
 import collections
+from babel.dates import format_timedelta
+import datetime
 
 
 """plugins should not set the status of an element !!! it will be done in the loops that call / use the plugins"""
@@ -292,6 +294,12 @@ class Plugin(object):
             try:
                 _e = curConfig.element
             except Element.DoesNotExist:
+                continue
+
+            try:
+                _mt = curConfig.mediaType
+            except MediaType.DoesNotExist:
+                log.warning('A config(%s) assumed a MediaType but was not found. This can happend when an old config database is used.' % curConfig.id)
                 continue
 
             if curConfig.element is None:
@@ -726,6 +734,10 @@ class MediaTypeManager(Plugin):
         self.config_meta['enable'] = {'on_enable': 'recachePlugins'}
         self._config['default_new_status_select'] = common.WANTED.id
         self.config_meta['default_new_status_select'] = {'human': 'Status for newly added %s' % self.__class__.__name__}
+
+        self._config['release_threshold_select'] = 2 #default to two days see self._release_threshold_select()
+        self.config_meta['release_threshold_select'] = {'human': 'Time to ignore the release date prior the release date.'}
+
         super(MediaTypeManager, self).__init__(instance)
 
         self.searcher = None
@@ -874,5 +886,15 @@ class MediaTypeManager(Plugin):
         return {common.UNKNOWN.id: common.UNKNOWN.name,
                 common.WANTED.id: common.WANTED.name,
                 common.IGNORE.id: common.IGNORE.name}
+
+    def _release_threshold_select(self):
+        return {0: "Don't ignore.",
+                1: format_timedelta(helper.releaseThresholdDelta[1]),
+                2: format_timedelta(helper.releaseThresholdDelta[2]),
+                3: format_timedelta(helper.releaseThresholdDelta[3]),
+                4: format_timedelta(helper.releaseThresholdDelta[4]),
+                5: format_timedelta(helper.releaseThresholdDelta[5]),
+                6: 'Completely ignore'}
+
 
 __all__ = ['System', 'PostProcessor', 'Provider', 'Indexer', 'Notifier', 'Downloader', 'MediaTypeManager', 'Element', 'DownloadType', 'DownloadFilter', 'SearchTermFilter', 'MediaAdder']
