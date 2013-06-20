@@ -135,6 +135,15 @@ class App():
             common.RUNPROFILER = True
             print common.RUNPROFILER
 
+        # PIDfile
+        if options.pidfile:
+            print "------------------- Set PIDfile to " + options.pidfile + " -------------------"
+            PIDFile(cherrypy.engine, options.pidfile).subscribe()
+        if options.pidfile:
+            pid = str(os.getpid())
+            log(u"Writing PID %s to %s" % (pid, options.pidfile))
+            file(os.path.abspath(options.pidfile), 'w').write("%s\n" % pid)
+
         init.preDB(app_path, datadir)
         init.db()
         init.postDB()
@@ -160,12 +169,6 @@ class App():
             self.port_api = int(options.apiPort)
         else:
             self.port_api = common.SYSTEM.c.port_api
-
-        # PIDfile
-        if options.pidfile:
-            print "------------------- Set PIDfile to " + options.pidfile + " -------------------"
-            PIDFile(cherrypy.engine, options.pidfile).subscribe()
-
 
         # update config for cherrypy
         cherrypy.config.update({'global': {'server.socket_port': port}})
