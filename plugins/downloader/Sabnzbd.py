@@ -52,14 +52,15 @@ class Sabnzbd(Downloader):
         payload = {'apikey': self.c.apikey,
                  'name': download.url,
                  'nzbname': self._downloadName(download),
-                 'mode': 'addurl'
+                 'mode': 'addurl',
+                 'output': 'json'
                  }
 
         cat = self._getCategory(download.element)
         if cat is not None:
             payload['cat'] = cat
         try:
-            r = requests.get(self._baseUrl(), params=payload, timeout=10)
+            r = requests.get(self._baseUrl(), params=payload)
         except:
             log.error("Unable to connect to Sanzbd. Most likely a timout. is Sab running")
             return False
@@ -67,14 +68,18 @@ class Sabnzbd(Downloader):
         log("sab response code: %s" % r.status_code)
         log("sab response: %s" % r.text)
         log.info("NZB added to Sabnzbd")
-        return True
+
+        jsonSabResponse = r.json()
+        if 'status' in jsonSabResponse:
+            return jsonSabResponse['status']
+        return False
 
     def _getHistory(self):
 
         payload = {'apikey': self.c.apikey,
                    'mode': 'history',
                    'output': 'json'}
-        r = requests.get(self._baseUrl(), params=payload)
+        r = requests.get(self._baseUrl(), params=payload, timeout=60)
         log("Sab hitory url %s" % r.url, censor={self.c.apikey: 'apikey'})
         response = r.json()
         self._history = response['history']['slots']
