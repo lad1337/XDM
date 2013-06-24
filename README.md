@@ -104,6 +104,18 @@ optional arguments:
                         function with @profileMeMaybe
 </pre>
 
+
+i18n
+----
+
+You will need an instlled version of babel
+
+    Build message catalog       $ pybabel extract -F babel.cfg -o ./i18n/messages.pot .
+    Create language po          $ pybabel init -i ./i18n/messages.pot -d i18n -l ``language name``
+    Update language po          $ pybabel update -i ./i18n/messages.pot -d i18n
+    Compile mo files            $ pybabel compile -d i18n -f
+
+
 License
 =======
 XDM: Xtentable Download Manager. Plugin based media collection manager.<br>
