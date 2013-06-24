@@ -4,9 +4,13 @@
 <tbody>
 {% for download in downloads %}
     <tr>
-        <td style="max-width: 350px;">{{download.name.replace('.','.&shy;')}}</td>
+        <td style="max-width: 350px;">
+            {{download.name.replace('.','.&shy;')}}
+        </td>
         <td class="download-size">{{download.humanSize()}}</td>
-        <td style="text-align:center;"><span class="label label-info">{{common.getDownloadTypeExtension(download.type)}}</span></td>
+        <td style="text-align:center;">
+            <span class="label label-info">{{common.getDownloadTypeExtension(download.type)}}</span>
+        </td>
         <td style="text-align:center;">
             <span class="{{download.status|statusLabelClass}}">{{download.status}}</span>
             {%if download.status in common.getCompletedStatuses() and download.pp_log%}
@@ -25,9 +29,14 @@
             </div>
             {%endif%}
         </td>
-        <td><a href="{{download.url}}" title="{{download.external_id}}">Direct Link</td>
+        <td>
+            <a href="{{download.url}}" title="{{download.external_id}}">Direct Link</a>
+        </td>
         <td><a href="javascript:void(0)" class="btn btn-info btn-mini" onClick="showEvents($(this), {{download.id}});">Events</a></td>
-        <td><a class="btn btn-primary btn-mini" href="/getDownload?id={{download.id}}">Get</a></td>
+        <td style="position:relative;height: 40px;">
+            <a class="btn btn-primary btn-mini" href="/getDownload?id={{download.id}}">Get</a>
+            <div class="muted" style="position:absolute;bottom:0;width:200px;right:5px;text-align:right;">{{download.indexer}} ({{download.indexer_instance}})</div>
+        </td>
     </tr>
 {%else%}
     <tr class="notice">

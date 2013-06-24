@@ -139,11 +139,11 @@ class TheGamesDB(Provider):
 
         return rootElement
 
-    def getElement(self, id):
+    def getElement(self, id, element=None):
         id = int(id)
         root = self._searchForElement(id=id)
         for game in root.decendants:
-            print game, game.getField('id', self.tag), 'vs', id
+            #print game, game.getField('id', self.tag), 'vs', id
             if game.getField('id', self.tag) == id:
                 return game
         else:

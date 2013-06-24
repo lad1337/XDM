@@ -24,6 +24,7 @@ import os
 import xdm
 import git
 from xdm.logger import *
+from core_migrate import *
 from lib import requests
 from xdm import version, common, actionManager
 import re
@@ -31,6 +32,7 @@ from subprocess import call
 import urllib
 import subprocess
 from git.util import RemoteProgress
+import shutil
 
 install_type_exe = 0# any compiled windows build
 install_type_mac = 1# any compiled mac osx build
@@ -40,7 +42,6 @@ install_type_names = {install_type_exe: 'Windows Binary',
                    install_type_mac: 'Mac App',
                    install_type_git: 'Git',
                    install_type_source: 'Source'}
-
 
 class CoreUpdater(object):
 
@@ -59,6 +60,43 @@ class CoreUpdater(object):
             self.updater = SourceUpdateManager()
         else:
             self.updater = None
+
+    def migrate(self):
+        xdm.common.addState(1)
+        common.SM.reset()
+        try:
+            self._migrate()
+        except:
+            log.error("Error during migration")
+            log.info("Shutting down because migration did not work sorry")
+            actionManager.executeAction('shutdown', 'failed migration')
+        common.SM.reset()
+        xdm.common.removeState(1)
+
+    def _migrate(self):
+        cur_version = xdm.common.getVersionTuple(noBuild=True)
+        last_known_version = tuple([int(x) for x in common.SYSTEM.hc.last_known_version.split('.')])
+        log.info('Checking migrate functions with last known version: %s and cur version: %s' % (last_known_version, cur_version))
+
+        if last_known_version < (0, 4, 19) <= cur_version:
+            msg = "Running migrate function migrate_0_4_19"
+            common.SM.setNewMessage('###########<br>Migration: %s' % msg)
+            log.info(msg)
+            self.backupDatabases('pre-0.4.19-migration')
+            migrate_0_4_19()
+
+        # add more migrate function calls here
+        common.SYSTEM.hc.last_known_version = ".".join([str(x) for x in xdm.common.getVersionTuple(noBuild=True)])
+
+    def backupDatabases(self, reason):
+        for databasePath in (xdm.CONFIG_DATABASE_PATH, xdm.HISTORY_DATABASE_PATH, xdm.DATABASE_PATH):
+            backupFolder = os.path.join(os.path.dirname(databasePath), 'backups')
+            oldname = os.path.basename(databasePath)
+            if not os.path.isdir(backupFolder):
+                os.mkdir(backupFolder)
+            finalPath = os.path.join(backupFolder, '%s.%s.db' % (oldname.split('.')[0], reason))
+            log('Creating backup of %s to %s' % (databasePath, finalPath))
+            shutil.copy(databasePath, finalPath)
 
     def _find_install_type(self):
         """Determines how this copy of XDM was installed."""
@@ -85,9 +123,11 @@ class CoreUpdater(object):
         return self.info
 
     def update(self):
+        xdm.common.addState(3)
         common.SM.setNewMessage("Initialising core update")
         if self.updater.update():
             actionManager.executeAction('reboot', 'Updater')
+        xdm.common.removeState(3)
         return True
 
 

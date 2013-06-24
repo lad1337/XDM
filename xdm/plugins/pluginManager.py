@@ -58,7 +58,7 @@ class PluginManager(object):
             r = lint.Run(['--disable=W0704,C0301,C0302,C0111,R0903,R0902,R0201,W0614,W0602,C0103,W0603,C0321,F0401,W0603,W0602,C0301,C0111,C0321,C0103,W0401,W0614,E0202', path], exit=False)
             s = eval(r.linter.config.evaluation, {}, r.linter.stats)
         except:
-            log.error('Chrash during pylint scoring. TODO: get traceback and stuff')
+            log.error('Chrash during pylint scoring.')
             s = 0
         sys.stdout = old_stdout
         sys.stderr = old_stderr
@@ -82,6 +82,10 @@ class PluginManager(object):
         self._cache = {}
 
     def cache(self, reloadModules=False, debug=False, systemOnly=False, clearUnsedConfgs=False, calculateScore=True):
+        self._cachePlugins(reloadModules, debug, systemOnly, clearUnsedConfgs, calculateScore)
+        self._checkElementFields()
+
+    def _cachePlugins(self, reloadModules=False, debug=False, systemOnly=False, clearUnsedConfgs=False, calculateScore=True):
         """collects available plugins and saved it in self._cache
 
         systemOnly
@@ -166,7 +170,10 @@ class PluginManager(object):
                     log("I found %s instances for %s(v%s): %s" % (len(final_instances), cur_class.__name__, cur_class.version, self._cache[cur_plugin_type][cur_class]))
             #log("Final plugin cache %s" % self._cache)
 
-   
+    def _checkElementFields(self):
+        for mtm in self.MTM:
+            mtm.checkElementFields()
+
     def getPluginScore(self, plugin):
         if plugin.__class__ in self._score_cache:
             return self._score_cache[plugin.__class__]

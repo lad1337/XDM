@@ -1,0 +1,72 @@
+# English (United States) translations for XDM.
+# Copyright (C) 2013 Dennis Lutter
+# This file is distributed under the same license as the XDM project.
+# Dennis Lutter <lad1337@gmail.com>, 2013.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"Report-Msgid-Bugs-To: lad1337@gmail.com\n"
+"POT-Creation-Date: 2013-06-20 15:59+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: Dennis Lutter <lad1337@gmail.com>\n"
+"Language-Team: en_US <lad1337@gmail.com>\n"
+"Plural-Forms: nplurals=2; plural=(n != 1)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 1.0dev-r661\n"
+
+#: html/templates/modalFrames/eventsFrame.html:7
+msgid "time_ago"
+msgstr "ago"
+
+#: html/templates/widget/released.html:2
+msgid "was_released"
+msgstr "Was released"
+
+#: html/templates/widget/released.html:4
+msgid "will_be_released"
+msgstr "Is released"
+
+#: plugins/system/System.py:84
+msgid "automatic"
+msgstr "Automatic"
+
+#: xdm/init.py:189
+msgid "Wanted"
+msgstr ""
+
+#: xdm/init.py:190
+msgid "Snatched"
+msgstr ""
+
+#: xdm/init.py:191
+msgid "Downloaded"
+msgstr ""
+
+#: xdm/init.py:192
+msgid "Completed"
+msgstr ""
+
+#: xdm/init.py:193
+msgid "Post Processing Fail"
+msgstr ""
+
+#: xdm/init.py:194
+msgid "Unknown"
+msgstr ""
+
+#: xdm/init.py:195
+msgid "Deleted"
+msgstr ""
+
+#: xdm/init.py:196
+msgid "Ignore"
+msgstr ""
+
+#: xdm/init.py:197
+msgid "Downloading"
+msgstr ""
+

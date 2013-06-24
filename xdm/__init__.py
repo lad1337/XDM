@@ -8,6 +8,7 @@ from xdm.news import NewsManager
 import sched
 import time
 from xdm.scheduler import Scheduler
+import xdm
 
 HOME_PATH = ""
 APP_PATH = ""
@@ -43,6 +44,14 @@ major_names = {0: 'Zim',
                2: 'Dib',
                3: 'Gaz'}
 
+xdm_states = {0: 'booting',
+              1: 'migrating',
+              2: 'running',
+              3: 'updating',
+              4: 'plugin_install',
+              5: 'searching',
+              6: 'cleaning'}
+
 
 class Common(object):
     """A class that conveniently holds references to common objects and variables
@@ -73,6 +82,12 @@ class Common(object):
 
     APIKEY = ""
 
+    STATES = [xdm_states[0]]
+
+    def _running(self):
+        return xdm_states[2] in self.STATES
+    RUNNING = property(_running)
+
     #pp stop connditions
     STOPPPONSUCCESS = 1
     STOPPPONFAILURE = 2
@@ -85,6 +100,15 @@ class Common(object):
     SM = SystemMessageManager()
     NM = NewsManager()
     SCHEDULER = Scheduler()
+
+    def addState(self, num):
+        self.STATES.append(xdm_states[num])
+        self.STATES = list(set(self.STATES))
+
+    def removeState(self, num):
+        if xdm_states[num] in self.STATES:
+            del self.STATES[self.STATES.index(xdm_states[num])]
+        xdm.logger.log('Removing state "%s". STATES are now %s' % (xdm_states[num], self.STATES))
 
     def getAllStatus(self):
         """get all available status instances"""
@@ -127,9 +151,12 @@ class Common(object):
         """return bool weather the running version is OLDER then the one build by the params"""
         return (major, minor, revision, build) > self.getVersionTuple()
 
-    def getVersionTuple(self):
+    def getVersionTuple(self, noBuild=False):
         """return a tuple of the current version"""
-        return (version.major, version.minor, version.revision, version.build)
+        if not noBuild:
+            return (version.major, version.minor, version.revision, version.build)
+        else:
+            return (version.major, version.minor, version.revision)
 
     def getVersionString(self):
         if version.build:

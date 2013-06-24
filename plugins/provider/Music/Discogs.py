@@ -23,6 +23,7 @@ from xdm.plugins import *
 
 from libs import discogs_client as discogs
 import re
+discogs.user_agent = '%s +http://xdm.lad1337.de' % common.getVersionHuman()
 
 
 class Discogs(Provider):
@@ -98,6 +99,7 @@ class Discogs(Provider):
             artistElement.saveTemp()
         try:
             albumElement = Element.getWhereField(mediaType, 'Album', {'id': release.data['id']}, self.tag, artistElement)
+            print "we have", albumElement
         except Element.DoesNotExist:
             albumElement = Element()
             albumElement.mediaType = mediaType
@@ -123,15 +125,27 @@ class Discogs(Provider):
                 trackElement.saveTemp()
             albumElement.downloadImages()
 
-    def getElement(self, id):
+    def getElement(self, id, element=None):
         mt = MediaType.get(MediaType.identifier == 'de.lad1337.music')
         mtm = common.PM.getMediaTypeManager('de.lad1337.music')[0]
         fakeRoot = mtm.getFakeRoot('%s ID: %s' % (self.tag, id))
         release = discogs.Release(id)
+        master = discogs.MasterRelease(id)
+        #print release
+        #print master
         self._createAlbum(fakeRoot, mt, release)
+        self._createAlbum(fakeRoot, mt, master)
 
         for ele in fakeRoot.decendants:
-            if ele.getField('id', self.tag) == id:
-                return ele
+            if element is None:
+                if ele.getField('id', self.tag) == id:
+                    return ele
+            else:
+                """print ele.getField('id', self.tag), id, ele.getField('id', self.tag) == id
+                print element.type, ele.type, element.type == ele.type
+                print element.parent.getField('id', self.tag), ele.parent.getField('id', self.tag), element.parent.getField('id', self.tag) == ele.parent.getField('id', self.tag)
+                print '#############'"""
+                if ele.getField('id', self.tag) == id and element.type == ele.type and element.parent.getField('id', self.tag) == ele.parent.getField('id', self.tag):
+                    return ele
         else:
             return False

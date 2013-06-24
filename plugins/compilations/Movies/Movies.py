@@ -32,7 +32,6 @@ class Movie(object):
     overview = ''
     runtime = ''
     poster_image = ''
-    backdrop_image = ''
 
     _orderBy = 'name'
 
@@ -72,7 +71,7 @@ class Movie(object):
                     </a></li>
                 {% endfor %}
                 </ul>
-                <span style="color:#fff;">Released: {{this.getReleaseDate()|relativeTime}}</span>
+                <span style="color:#fff;display:block;">{{released}}</span>
                 {%endif%}
                 {{statusSelect}}
                 <a href="#" class="btn btn-mini btn-info pull-right overview" data-placement="bottom" data-toggle="popover" title="Overview for {{this.getName()}}" data-content="{{overview}}" data-container=".de-lad1337-movies">Overview</a>
@@ -91,6 +90,7 @@ class Movie(object):
 
 
 class Movies(MediaTypeManager):
+    version = "0.2"
     _config = {'enabled': True}
     config_meta = {'plugin_desc': 'Movies'}
     order = (Movie,)
@@ -116,7 +116,7 @@ class Movies(MediaTypeManager):
 
 
 class Tmdb(Provider):
-    version = "0.11"
+    version = "0.12"
     _tag = 'tmdb'
     screenName = 'TheMovieDB'
     single = True
@@ -181,7 +181,7 @@ class Tmdb(Provider):
         movie.setField('tailer_count', index + 1, self.tag)
         movie.saveTemp()
 
-    def getElement(self, id):
+    def getElement(self, id, element=None):
         """we like tmdb ids"""
         mediaType = MediaType.get(MediaType.identifier == 'de.lad1337.movies')
         mtm = common.PM.getMediaTypeManager('de.lad1337.movies')[0]

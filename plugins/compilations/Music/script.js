@@ -36,7 +36,7 @@ $(document).ready(function() {
                 $('.songs ol',p).html(res)
                 
                 var colums = 2;
-                if($('.de-lad1337-music').width()<598)
+                if($('.de-lad1337-music').width()<767)
                     colums = 1
                 
                 var neededHeight = Math.round($('ol li', p).length/colums)*20+80;

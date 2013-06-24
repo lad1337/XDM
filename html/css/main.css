@@ -100,6 +100,10 @@ body{
     width: 30%;
 }
 
+#container.settings .form-horizontal input[type="checkbox"]{
+    margin-top: 9px;
+}
+
 #container.plugins .label i,
 #container.plugins .btn i{
     margin-right: 0.3em;
@@ -312,7 +316,9 @@ td.download-size,
     list-style: none;
     padding: 0;
     margin: 0;
-    background: #575757 url(../img/bg.gif) fixed;
+    background-color: #000;
+    /*background-image: url(../img/bg.gif); this causeses to show now background at all in chrome*/
+    background-attachment: fixed;
     color: #66FF00;
     padding: 18px;
     min-height: 404px;
@@ -444,14 +450,16 @@ td.download-size,
         padding-left: 0;
     }
     .navbar-search{
-        width: 100%;
+        width: 85%;
         padding-left: 0;
         padding-right: 0;
         -webkit-border-radius: 0;
         -moz-border-radius: 0;
         border-radius: 0;
     }
-    
+    .nav.pull-right.notifications{
+        margin-right: 15px;
+    }
     .navbar-search .input-append{
         left: 0;
         width: 80%;

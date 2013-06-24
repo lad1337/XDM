@@ -39,7 +39,9 @@ from jinja2.loaders import FileSystemLoader, DictLoader
 
 #bcc = FileSystemBytecodeCache(pattern='%s.cache')
 #, bytecode_cache=bcc
-elementWidgetEnvironment = Environment(loader=FileSystemLoader(os.path.join('html', 'templates', 'widget')))
+elementWidgetEnvironment = Environment(loader=FileSystemLoader(os.path.join('html', 'templates', 'widget')), extensions=['jinja2.ext.i18n'])
+elementWidgetEnvironment.install_gettext_callables(_, ngettext, newstyle=True)
+elementWidgetEnvironment.filters['relativeTime'] = helper.reltime
 
 
 class BaseModel(Model):
@@ -118,7 +120,7 @@ class BaseModel(Model):
         if self.__class__.__name__ == 'Element':
             if self.status != common.TEMP:
                 History.createEvent(self)
-        elif hasattr(self, 'element'):
+        elif hasattr(self, 'element') and self:
             if self.element is not None and self.element.status != common.TEMP:
                 History.createEvent(self)
 
@@ -167,6 +169,10 @@ class Status(Status_V0):
         cls._meta.database.execute_sql('ALTER TABLE %s ADD COLUMN %s' % (table, field))
         return True
 
+    def _screenName(self):
+        return lgettext(self.name)
+    screenName = property(_screenName)
+
 
 class MediaType(BaseModel):
     name = CharField()
@@ -201,7 +207,7 @@ class Element(BaseModel):
         self.__fieldCache = list(self.fields)
 
     def __str__(self):
-        return '%s(%s) %s' % (self.type, self.mediaType, self.getName())
+        return '%s(%s)[%s] %s' % (self.type, self.mediaType, self.get_id(), self.getName())
 
     def copy(self):
         new = Element()
@@ -254,16 +260,24 @@ class Element(BaseModel):
     def getField(self, name, provider=None, returnObject=False):
         #this is faster then a db query oO
         #my mother had me tested
+        xdm_field = None
         for f in list(self.fields) + self._tmp_fields:
             if f.name == name and provider and f.provider == provider:
                 if returnObject:
                     return f
                 return f.value
             elif f.name == name and not provider:
+                if f.provider == 'XDM':
+                    xdm_field = f
+                    continue
                 if returnObject:
                     return f
                 return f.value
         else:
+            if xdm_field is not None:
+                if returnObject:
+                    return xdm_field
+                return xdm_field.value
             return None
 
     def setField(self, name, value, provider=''):
@@ -356,7 +370,8 @@ class Element(BaseModel):
             tpl = self.getTemplate()
 
         webRoot = common.SYSTEM.c.webRoot
-        env = Environment(loader=DictLoader({'this': tpl}))
+        env = Environment(loader=DictLoader({'this': tpl}), extensions=['jinja2.ext.i18n'])
+        env.install_gettext_callables(_, ngettext, newstyle=True)
         env.filters['relativeTime'] = helper.reltime
         elementWidgetEnvironment
         elementTemplate = env.get_template('this')
@@ -396,6 +411,11 @@ class Element(BaseModel):
             downloadBarTemplate = elementWidgetEnvironment.get_template('downloadBar.html')
             downloadBarHtml = downloadBarTemplate.render(this=self, webRoot=webRoot)
 
+        releasedHtml = ''
+        if '{{released}}' in tpl:
+            releasedTemplate = elementWidgetEnvironment.get_template('released.html')
+            releasedHtml = releasedTemplate.render(this=self)
+
         return elementTemplate.render(children='{{children}}',
                                       actionButtons=actionsHtml,
                                       iconActionButtons=actionsHtml,
@@ -406,6 +426,7 @@ class Element(BaseModel):
                                       statusCssClass=statusCssClass,
                                       loopIndex=curIndex,
                                       downloadProgressBar=downloadBarHtml,
+                                      released=releasedHtml,
                                       webRoot=webRoot,
                                       **self.buildFieldDict())
 
@@ -494,6 +515,11 @@ class Element(BaseModel):
     def _getReleaseDate(self):
         return datetime.datetime.now()
 
+    def isReleaseDateInPast(self):
+        if type(self.getReleaseDate()).__name__ in ('date', 'datetime'):
+            return self.getReleaseDate() < datetime.datetime.now()
+        return True
+
     def isDescendantOf(self, granny):
         return granny in self.ancestors
 
@@ -522,13 +548,15 @@ class Element(BaseModel):
         last_e = None
         lastAttributeOK = False
         for f in fs:
+            if parent and f.element.parent != parent:
+                continue
             if last_e != f.element:
                 if lastAttributeOK:
                     #last one was cool
                     return last_e
                 lastAttributeOK = False
                 last_e = f.element
-            lastAttributeOK = '%s' % attributes[f.name] == '%s' % f.value
+            lastAttributeOK = u'%s' % attributes[f.name] == u'%s' % f.value
         raise Element.DoesNotExist
 
     def deleteWithChildren(self, silent=False):
@@ -797,6 +825,11 @@ class History(BaseModel):
             h.obj_type = obj.type
         else:
             h.obj_type = obj.__class__.__name__
+
+        if not h.obj_type:
+            log.warning('While creating a history event had no obj_type not creating event. %s' % obj)
+            return
+
         if h.event == 'insert' and dict_diff(old, obj.__dict__):
             h.save()
         if h.event == 'update' and dict_diff(old.__dict__, obj.__dict__):
@@ -912,7 +945,12 @@ class Image(BaseModel):
         if not self.url:
             return
         log("Downloading image %s" % self.url)
-        r = requests.get(self.url)
+        try:
+            r = requests.get(self.url)
+        except requests.exceptions.MissingSchema:
+            log.error("Downloading image %s failed" % self.url)
+            self.type = self._extByHeader('')
+            return
         self.type = self._extByHeader(r.headers['content-type'])
         if r.status_code == 200:
             with open(self.getPath(), 'wb') as f:

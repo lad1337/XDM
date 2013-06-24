@@ -3,6 +3,23 @@
 {%if cur_index%}
 {% set active_page = active_page|default(cur_index) -%}
 {%endif%}
+
+{% block headInject %}
+<script>
+$(document).ready(function() {
+    $('.icon-stack.status').hover(function(){
+        $('.front', this).addClass('hidden');
+        $('.action', this).removeClass('hidden');
+        $('.icon-cog', this).addClass('icon-spin');
+    }, function(){
+        $('.front', this).removeClass('hidden');
+        $('.action', this).addClass('hidden');
+        $('.icon-cog', this).removeClass('icon-spin');
+    })
+});
+</script>
+{% endblock %}
+
 {% block content%}
 
 <p style="text-align: center;">
@@ -47,8 +64,7 @@
     </div>
     
     <div class="row-fluid">
-    
-        <div class="span9">
+        <div class="span7">
             <h4>XDM paths:</h4>
             <table class="table table-bordered table-condensed">
                 <tr>
@@ -107,6 +123,83 @@
                     <td>{{xdm.PLUGININSTALLPATH_RELATIVE}}</td>
                 </tr>
                 
+            </table>
+        </div>
+        <div class="span5">
+            <h4>Schedules:</h4>
+            <table class="table table-bordered table-condensed">
+            
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Interval</th>
+                        <th>Last run</th>
+                        <th>Next run</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tfoot>
+                    <tr>
+                        <td colspan="5" style="vertical-align: middle;">
+                            Waiting:
+                            <span class="icon-stack">
+                                <i class="icon-cog icon-stack-base"></i>
+                                <i class="icon-ok text-success" style="font-size: 190%;"></i>
+                            </span>
+                            Running:
+                            <span class="icon-stack">
+                                <i class="icon-cog icon-stack-base icon-spin"></i>
+                                <i class="icon-ok text-success" style="font-size: 190%;"></i>
+                            </span>
+                            Stopped:
+                            <span class="icon-stack">
+                                <i class="icon-cog icon-stack-base"></i>
+                                <i class="icon-ban-circle text-error" style="font-size: 190%;"></i>
+                            </span>
+                            Fails:
+                            <a href="javascript:void(0)" class="badge badge-important">X</a>
+                        </td>
+                    </tr>
+                </tfoot>
+                <tbody>
+                    {%for task in common.SCHEDULER.getTasks()%}
+                    <tr>
+                        <td>{{task.name}}</td>
+                        <td>{{task.getLoopDelay()}}s</td>
+                        <td title="{{task.getLastRun()}}">{%if task.getLastRun()%}{{task.getLastRun()|relativeTime}}{%else%}never{%endif%}</td>
+                        <td>{{task.getNextRunDatetime()|relativeTime}}</td>
+                        <td>
+                            <span class="icon-stack status">
+                                <i class="icon-cog icon-stack-base{%if not task.isSleeping()%} icon-spin{%endif%}"></i>
+                                {%if task.isRunning()%}
+                                <i class="icon-ok text-success front" style="font-size: 190%;"></i>
+                                {%else%}
+                                <i class="icon-ban-circle text-error front" style="font-size: 190%;"></i>
+                                {%endif%}
+                                
+                                <a href="?runTask={{task.getUuid()}}" title="Run now / Restart (a 2 seconds delay may occur)" class="hidden action" style="text-decoration: none;"><i class="icon-play"  style="font-size: 135%;color: #fff;margin-left: 2px"></i></a>
+                            </span>
+                            {%if task.getFails()%}
+                            <a href="#{{task.name|idSafe}}-modal" role="button" class="badge badge-important" data-toggle="modal" title="Click me for more info">{{task.getFails()}}</a>
+                            <div id="{{task.name|idSafe}}-modal" class="modal hide fade modal-wide" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+                                <div class="modal-header">
+                                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                                    <h3 id="myModalLabel">Last error for {{task.name}}</h3>
+                                </div>
+                                <div class="modal-body">
+                                    <pre>{{task._failMessage}}</pre>
+                                </div>
+                                <div class="modal-footer">
+                                    <button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
+                                </div>
+                            </div>
+                            {%else%}
+                            <span class="badge">0</span>
+                            {%endif%}
+                        </td>
+                    </tr>
+                    {%endfor%}
+                </tbody>
             </table>
         </div>
     </div>

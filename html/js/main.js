@@ -401,6 +401,7 @@ function messageScrobbler(functionUrl, interval, onErrorClass, onErrorMessage){
             }else{
                 $('#install-shell').append('<li><span class="'+messageTuple[0]+'">'+messageTuple[1]+'</span></li>')
             }
+        
             $('#install-shell').parent().scrollTop(900000)
             firstMessage = false;
             lastMessage = messageTuple[1]
@@ -424,7 +425,13 @@ function messageScrobbler(functionUrl, interval, onErrorClass, onErrorMessage){
            
         }
     }).error(function() {
-        $('#install-shell').append('<li><span class="'+onErrorClass+'">'+onErrorMessage+'</span></li>')
+        console.log($('#install-shell li:last-child').text(), onErrorMessage)
+        var oldText = $('#install-shell li:last-child').text();
+        if(oldText.substring(0, onErrorMessage.length) === onErrorMessage){
+            $('#install-shell li:last-child').html( '<span class="'+onErrorClass+'">'+ oldText + ".</span>")
+        }else{
+            $('#install-shell').append('<li><span class="'+onErrorClass+'">'+onErrorMessage+'</span></li>')
+        }
         $('#install-shell').parent().scrollTop(900000)
         if(interval)
             clearInterval(globalMessageInterval)

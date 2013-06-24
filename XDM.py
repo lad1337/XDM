@@ -23,6 +23,7 @@
 import sys
 import os
 import time
+import gettext
 # Fix for correct path
 if hasattr(sys, 'frozen'):
     app_path = os.path.abspath(os.path.join(os.path.abspath(sys.executable), '..', '..', 'Resources'))
@@ -31,7 +32,13 @@ if hasattr(sys, 'frozen'):
 else:
     app_path = os.path.dirname(os.path.abspath(__file__))
 os.chdir(app_path)
-sys.path.append(os.path.join(app_path, 'rootLibs'))
+sys.path.insert(1, os.path.join(app_path, 'rootLibs'))
+
+
+#init _ and other i18n functions the real language set based on the config is done in init.py
+
+t = gettext.translation('messages', os.path.join(app_path, 'i18n'), languages=None, fallback=True)
+t.install(1, ('gettext', 'ngettext', 'lgettext', 'lngettext'))
 
 
 import argparse
@@ -48,12 +55,13 @@ from xdm.api import JSONRPCapi
 # import sub api modules
 from xdm.api import system as UNUSED_api_system
 from xdm.api import plugins as UNUSED_api_plugins
+from xdm import core_string_for_i18n
 
 from xdm import common
 from xdm import logger # need this to set the log level
 from xdm import tasks
 from xdm.logger import *
-from xdm.web import WebRoot
+from xdm.web import WebRoot, stateCheck
 from xdm.helper import launchBrowser, daemonize
 
 
@@ -194,7 +202,7 @@ class App():
         userPassDict = {username: password}
         checkpassword = cherrypy.lib.auth_basic.checkpassword_dict(userPassDict)
         conf = {'/': {'tools.auth_basic.on': useAuth,
-                      'tools.auth_basic.realm': 'Gamez',
+                      'tools.auth_basic.realm': 'XDM',
                       'tools.auth_basic.checkpassword': checkpassword,
                       'tools.encode.encoding': 'utf-8'},
                 '/api': {'tools.auth_basic.on': False},
@@ -236,6 +244,7 @@ class App():
         cherrypy.config.update(options_dict)
         cherrypy.config["tools.encode.on"] = True
         cherrypy.config["tools.encode.encoding"] = "utf-8"
+        cherrypy.tools.stateBlock = cherrypy._cptools.HandlerTool(xdm.web.stateCheck)
 
         if common.SYSTEM.c.https:
             log.info("Starting the XDM https web server")
@@ -284,6 +293,9 @@ def main():
             api.start()
     else:
         log.info('Api is OFF')
+
+    common.addState(2)
+    common.removeState(0)
 
     try:
         while True:

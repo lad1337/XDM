@@ -55,19 +55,19 @@ def executeAction(action, callers):
 
 def _callMethod(o, function):
     if type(o) == str:
-        log.error("Error during action call %s by %s" % (function, o))
+        log.error("Error during action call %s by %s. Caller was a string but i expected an object" % (function, o))
         return False
-
     try:
         getattr(o, function.__name__)()
-    except Exception as ex:
-        tb = traceback.format_exc()
-        log.error("Error during action call %s of %s \nError: %s\n\n%s" % (o.name, function.__name__, ex, tb))
+    except:
+        log.error("Error during action call %s of %s" % (o, function.__name__))
 
 
 def shutdown():
-    common.SM.setNewMessage("Shutting down. Bye bye and good luck!")
-    log.info("Shutting down. Bye bye and good luck!")
+    common.SCHEDULER.stopAllTasks()
+    msg = "Shutting down. Bye bye and good luck!"
+    common.SM.setNewMessage(msg)
+    log.info(msg)
     os._exit(0)
 
 

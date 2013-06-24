@@ -18,7 +18,7 @@
                 <li>
                     <a href="#{{plugin.name|idSafe}}" data-toggle="tab" data-instance="{{ plugin.instance }}" data-type="{{ plugin.type }}" data-identifier="{{plugin.identifier}}">
                     {{ plugin.screenName }}{% if plugin.instance != 'Default' and not plugin._type == 'MediaTypeManager'%} ({{ plugin.instance }}){% endif %}
-                    <i class="icon-{%if not plugin.enabled%}off{%endif%} pull-right" style="opacity:0.7;margin-top: 4px;"></i>
+                    <i class="icon-{%if not plugin.enabled%}off{%endif%} pull-right" style="color:#f89406;"></i>
                     </a>
                 </li>
                 {%if loop.last%}
@@ -155,9 +155,9 @@ $(document).ready(function() {
     $('input[type="checkbox"][data-configname="enabled"]').change(function(event){
         var icon = $('.nav.nav-list a[href="#'+$(this).data('belongsto')+'"] i')
         if($(this).prop('checked')){
-            icon.removeClass('icon-off')
+            icon.removeClass('rotateIn').addClass('animated rotateOut')
         }else{
-            icon.addClass('icon-off')
+            icon.removeClass('rotateOut').addClass('animated rotateIn icon-off')
        }
     });
     $("input.newInstance").click(function(){

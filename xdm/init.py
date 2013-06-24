@@ -29,6 +29,7 @@ from logger import *
 from plugins.pluginManager import PluginManager
 from updater import CoreUpdater
 from xdm.plugins.repository import RepoManager
+from xdm.garbage_collector import soFreshAndSoClean
 
 
 def preDB(app_path, datadir):
@@ -84,12 +85,18 @@ def db():
 
 def postDB():
     """mostly plugin and common init"""
-
     common.PM = PluginManager()
     common.PM.cache(debug=common.STARTOPTIONS.pluginImportDebug, systemOnly=True,)
     # load system config !
     common.SYSTEM = common.PM.getSystems('Default')[0] # yeah SYSTEM is a plugin
     # system config loaded
+
+    # init i18n
+    common.SYSTEM._switchLanguage()
+
+    # init updater
+    common.UPDATER = CoreUpdater()
+    common.REPOMANAGER = RepoManager(Repo.select())
 
     if not os.path.isabs(common.SYSTEM.c.https_cert_filepath):
         common.SYSTEM.c.https_cert_filepath = os.path.join(xdm.DATADIR, common.SYSTEM.c.https_cert_filepath)
@@ -101,6 +108,7 @@ def postDB():
     if not common.SYSTEM.c.extra_plugin_path:
         log.info('Setting extra plugin path to %s' % xdm.PLUGININSTALLPATH)
         common.SYSTEM.c.extra_plugin_path = xdm.PLUGININSTALLPATH
+
     if os.path.isdir(common.SYSTEM.c.extra_plugin_path):
         log('Adding eyternal plugin path %s to the python path' % common.SYSTEM.c.extra_plugin_path)
         sys.path.append(common.SYSTEM.c.extra_plugin_path)
@@ -116,9 +124,9 @@ def postDB():
     for plugin in common.PM.getAll():
         log("Plugin %s loaded successfully" % plugin.name)
 
-    # updater
-    common.UPDATER = CoreUpdater()
-    common.REPOMANAGER = RepoManager(Repo.select())
+    # migrate core
+    t = tasks.TaskThread(common.UPDATER.migrate)
+    t.start()
 
 
 def schedule():
@@ -126,12 +134,12 @@ def schedule():
     # download status checker schedule
     rate = common.SYSTEM.c.interval_check * 60
     log.info("Setting up download status checker scheduler every %s seconds" % rate)
-    common.SCHEDULER.addTask(tasks.runChecker, rate, rate)
+    common.SCHEDULER.addTask(tasks.runChecker, rate, rate, 'download status')
 
     # fixed search rate because noobs will set it to something noobish
     rate = 12 * 60 * 60 # this should be 12h
     log.info("Setting up search scheduler every %s seconds" % rate)
-    common.SCHEDULER.addTask(tasks.runSearcher, rate, rate)
+    common.SCHEDULER.addTask(tasks.runSearcher, rate, rate, 'searcher')
 
     # element updater
     # TODO: implement a all Element updater
@@ -143,24 +151,39 @@ def schedule():
     # media adder schedule
     rate = common.SYSTEM.c.interval_mediaadder * 60
     log.info("Setting up mediaadder scheduler every %s seconds" % rate)
-    common.SCHEDULER.addTask(tasks.runMediaAdder, rate, rate)
+    common.SCHEDULER.addTask(tasks.runMediaAdder, rate, rate, 'media adder')
+
+    # news feed schedule
+    if common.SYSTEM.c.show_feed:
+        rate = 4 * 60 * 60
+        log.info("Setting up news feed scheduler every %s seconds" % rate)
+        common.SCHEDULER.addTask(common.NM.cache, rate, 15, 'news feed')
+
+    # plugin repo cacher
+    rate = 60 * 60 * 12
+    log.info("Setting up plugin repo / plugin update scheduler every %s seconds" % rate)
+    common.SCHEDULER.addTask(common.REPOMANAGER.cache, rate, 10, 'repository cache')
+
+    # garbage collector
+    rate = common.SYSTEM.c.interval_clean * 60
+    log.info("Setting up garbage collector scheduler every %s seconds" % rate)
+    common.SCHEDULER.addTask(soFreshAndSoClean, rate, 10, 'garbage collector')
 
     # core update schedule
     rate = common.SYSTEM.c.interval_core_update * 60
     if rate:
         log.info("Setting up core update scheduler every %s seconds" % rate)
-        common.SCHEDULER.addTask(tasks.coreUpdateCheck, rate, 0) # 0 = run now for first time
+        common.SCHEDULER.addTask(tasks.coreUpdateCheck, rate, 5, 'core updater') # 10 = run in 10s for the first time
     else:
         log.info("Core update scheduler should never run on its own, because interval is set to 0")
 
     common.SCHEDULER.startAllTasks()
 
 
+#TODO: this will be moved entirely into schedule as scheduled task
 def runTasks():
     """tasks to run on boot"""
     t = tasks.TaskThread(tasks.removeTempElements)
-    t.start()
-    t = tasks.TaskThread(common.REPOMANAGER.cache)
     t.start()
 
 
@@ -178,6 +201,15 @@ def _checkDefaults(resave=False):
                         {'setter': 'TEMP',        'name': 'Temp',                 'hidden': True},
                         {'setter': 'DOWNLOADING', 'name': 'Downloading',          'hidden': True}
                       ]
+    _('Wanted')
+    _('Snatched')
+    _('Downloaded')
+    _('Completed')
+    _('Post Processing Fail')
+    _('Unknown')
+    _('Deleted')
+    _('Ignore')
+    _('Downloading')
 
     default_repos = [{'name': 'XDM demo',
                       'url': 'https://raw.github.com/lad1337/XDM-main-plugin-repo/master/meta.json',

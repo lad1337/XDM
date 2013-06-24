@@ -28,8 +28,9 @@
 
         <link href="{{webRoot}}/css/ui-darkness/jquery-ui-1.10.1.custom.min.css" rel="stylesheet" media="screen">
         <!-- Bootstrap -->
-        <link href="{{webRoot}}/bootstrap/css/bootstrap-combined.no-icons.min.css" rel="stylesheet" media="screen">
-        <link href="{{webRoot}}/css/fontawesome/css/font-awesome.min.css" rel="stylesheet" media="screen">
+        <link href="{{webRoot}}/bootstrap/css/bootstrap-combined.no-icons.min.css?v={{common.getVersionString()}}" rel="stylesheet" media="screen">
+        <link href="{{webRoot}}/css/fontawesome/css/font-awesome.min.css?v={{common.getVersionString()}}" rel="stylesheet" media="screen">
+        <link href="{{webRoot}}/css/animate.css?v={{common.getVersionString()}}" rel="stylesheet" media="screen">
         <link href="{{webRoot}}/css/main.css?v={{common.getVersionString()}}" rel="stylesheet">      
 
         <script>
@@ -97,7 +98,7 @@
                             {%for message in messages%}
                             <tr class="message {{message.getClass()}}" data-uuid={{message.uuid}}>
                                 <td style="width:229px;">
-                                    <span class="time muted">{{message.createTime|relativeTime}}</span><br/>
+                                    <span class="time muted">{{message.createTime|relativeTime}} {{_('time_ago')}}</span><br/>
                                     <span class="text">{{message.text}}</span>
                                 </td>
                                 <td class="actions">
@@ -139,9 +140,6 @@
                 </div>
             </div>
         
-        
-        
-        
             {% block content %}
             
             {% endblock %}
@@ -180,5 +178,6 @@
         </div>    
         {% block js%}
         {%endblock%}
+        <div class="shell hidden"></div>
     </body>
 </html>

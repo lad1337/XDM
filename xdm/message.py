@@ -190,4 +190,3 @@ class SystemMessageManager(object):
                 out.append(message)
                 self._read_messages.append(index)
         return out
- 

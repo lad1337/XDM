@@ -137,16 +137,18 @@
 
 .de-lad1337-music .Album .songs>ol li{
     /*margin-left: 32px;*/
-    width: 82%;
+    width: 90%;
     height: 0;
     opacity: 0;
     position: relative;
+    list-style: none;
 }
 
 
 .de-lad1337-music .Album.active .songs>ol li{
     height: 1.4em;
     opacity: 1;
+    z-index: 10;
 }
 
 .de-lad1337-music .Album.active{
@@ -162,8 +164,7 @@
 
 
 .de-lad1337-music .Album .songs>ol li .songTitle{
-
-    width: 79%;
+    width: 76%;
     display: inline-block;
     white-space: nowrap;
     text-overflow: ellipsis;

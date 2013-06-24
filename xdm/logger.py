@@ -137,21 +137,27 @@ class LogWrapper():
         tb = traceback.format_exc()
         msg = '%s\nTraceback:\n%s' % (msg, tb)
         self._log(logging.ERROR, msg, censor=censor, **kwargs)
+        return msg
 
     def info(self, msg, censor=None, **kwargs):
         self._log(logging.INFO, msg, censor=censor, **kwargs)
+        return msg
 
     def warning(self, msg, censor=None, **kwargs):
         self._log(logging.WARNING, msg, censor=censor, **kwargs)
+        return msg
 
     def debug(self, msg, censor=None, **kwargs):
         self._log(logging.DEBUG, msg, censor=censor, **kwargs)
+        return msg
 
     def critical(self, msg, censor=None, **kwargs):
         self._log(logging.CRITICAL, msg, censor=censor, **kwargs)
+        return msg
 
     def __call__(self, msg, censor=None, **kwargs):
         self._log(logging.DEBUG, msg, censor=censor, **kwargs)
+        return msg
 
 log = LogWrapper()
 

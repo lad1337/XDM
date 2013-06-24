@@ -27,6 +27,7 @@ from xdm.logger import *
 from xdm.classes import *
 import traceback
 from xdm.plugins.repository import RepoManager
+import threading
 
 
 class AjaxCalls:
@@ -192,7 +193,7 @@ class AjaxCalls:
         common.SM.reset()
         common.SM.setNewMessage('shutdown.py -t NOW')
         t = tasks.TaskThread(actionManager.executeAction, 'shutdown', 'Webgui')
-        t.start()
+        threading.Timer(1, t.start).start ()
         return '<ul id="install-shell" class="shell"></ul>'
 
     @cherrypy.expose

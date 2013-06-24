@@ -40,14 +40,40 @@ from xdm.api import WebApi
 import re
 
 
-class WebRoot:
-    appPath = ''
+env = Environment(loader=FileSystemLoader(os.path.join('html', 'templates')), extensions=['jinja2.ext.i18n'])
+env.install_gettext_callables(_, ngettext, newstyle=True)
+env.filters['idSafe'] = helper.replace_some
+env.filters['statusLabelClass'] = helper.statusLabelClass
+env.filters['vars'] = helper.webVars
+env.filters['relativeTime'] = helper.reltime
 
-    env = Environment(loader=FileSystemLoader(os.path.join('html', 'templates')))
-    env.filters['idSafe'] = helper.replace_some
-    env.filters['statusLabelClass'] = helper.statusLabelClass
-    env.filters['vars'] = helper.webVars
-    env.filters['relativeTime'] = helper.reltime
+
+def stateCheck():
+    if not (xdm.xdm_states[0] in xdm.common.STATES or\
+            xdm.xdm_states[1] in xdm.common.STATES or\
+            xdm.xdm_states[6] in xdm.common.STATES or\
+            xdm.xdm_states[3] in xdm.common.STATES):
+        # allow normal handler to run
+        return False
+    else: #webserver is running but we do somehting that is so important that we dont wan the user to inteact witht he gui
+        messages = ""
+        for msg in common.SM.system_messages:
+            messages += u'%s<br>' % msg[1]
+        cherrypy.response.body = "<html>" \
+                                 "<head><title>Not now</title></head>" \
+                                 "<body>XDM is in a state of '%s' please wait...<br>%s</body>" \
+                                 "</html>" % (common.STATES, messages)
+        try:
+            del cherrypy.response.headers["Content-Length"]
+        except KeyError:
+            pass
+        # suppress normal handler from running
+        return True
+
+
+class WebRoot:
+    _cp_config = {'tools.stateBlock.on': True}
+    appPath = ''
 
     def __init__(self, app_path):
         WebRoot.appPath = app_path
@@ -71,13 +97,16 @@ class WebRoot:
 
     @cherrypy.expose
     def index(self, status_message='', version=''):
-        template = self.env.get_template('index.html')
+        template = env.get_template('index.html')
         return template.render(**self._globals())
 
     @cherrypy.expose
-    def about(self):
-        tasks.coreUpdateCheck()
-        template = self.env.get_template('about.html')
+    def about(self, runTask=None):
+        if runTask is None:
+            tasks.coreUpdateCheck()
+        else:
+            common.SCHEDULER.runTaskNow(runTask)
+        template = env.get_template('about.html')
         return template.render(platform=platform, originalArgs=sys.argv, xdm=xdm, **self._globals())
 
     @cherrypy.expose
@@ -94,17 +123,17 @@ class WebRoot:
         if recache:
             return ''
 
-        template = self.env.get_template('plugins.html')
+        template = env.get_template('plugins.html')
         return template.render(**self._globals())
 
     @cherrypy.expose
     def completed(self):
-        template = self.env.get_template('completed.html')
+        template = env.get_template('completed.html')
         return template.render(**self._globals())
 
     @cherrypy.expose
     def settings(self):
-        template = self.env.get_template('settings.html')
+        template = env.get_template('settings.html')
         return template.render(plugins=common.PM.getAll(True), **self._globals())
 
     @cherrypy.expose
@@ -116,7 +145,7 @@ class WebRoot:
 
     @cherrypy.expose
     def results(self, search_query=''):
-        template = self.env.get_template('results.html')
+        template = env.get_template('results.html')
         templateGlobals = self._globals()
         searchers = templateGlobals['mtms']
 

@@ -53,7 +53,7 @@ class Game(object):
             </div>
             </td>
             <td>{{name}}<!-- and {{this.name}} and {{this.getName()}}-->
-            <br/>Released: {{this.getReleaseDate()|relativeTime}}
+            <br/>{{released}}
             </td>
             <td>{{this.parent.alias}}</td>
         </tr>

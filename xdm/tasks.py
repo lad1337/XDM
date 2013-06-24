@@ -53,9 +53,6 @@ def coreUpdateCheck():
     elif updateResponse.needUpdate is None:
         common.MM.createWarning(updateResponse.message, role="coreUpdate")
 
-    if common.SYSTEM.c.show_feed:
-        common.NM.cache()
-
 
 def coreUpdateDo():
     updateResponse = common.UPDATER.update()
@@ -109,9 +106,9 @@ def commentOnDownload(download):
         if indexer.type != download.indexer or indexer.instance != download.indexer_instance:
             continue
         if indexer.c.comment_on_download and download.status == common.FAILED:
-            indexer.commentOnDownload('Gamez snatched this but it failed to download (automtic notice)', download)
+            indexer.commentOnDownload('XDM snatched this but it failed to download (automtic notice)', download)
         if indexer.c.comment_on_download and download.status in (common.COMPLETED, common.DOWNLOADED, common.PP_FAIL):
-            indexer.commentOnDownload('Gamez snatched this and it downloaded successfully (automtic notice)', download)
+            indexer.commentOnDownload('XDM snatched this and it downloaded successfully (automtic notice)', download)
 
 
 def searchElement(ele):
@@ -120,7 +117,7 @@ def searchElement(ele):
     if ele.manager.c.release_threshold_select:
         if ele.manager.c.release_threshold_select in helper.releaseThresholdDelta:
             _thresholdRD = helper.releaseThresholdDelta[ele.manager.c.release_threshold_select]
-        else: # its not the first option and not a timedelta, so it is the last option which tells us to ignore it completely
+        else: # its not the first option(0) and not a timedelta, so it is the last option which tells us to ignore it completely
             _ignoreRD = True
 
     #TODO: clean this
@@ -136,21 +133,22 @@ def searchElement(ele):
             log(u"%s was released at %s" % (ele, ele.getReleaseDate()))
 
     didSearch = False
+    downloads = []
     for indexer in common.PM.getIndexers(runFor=ele.manager):
         createGenericEvent(ele, 'search', u'Searching %s on %s' % (ele, indexer))
         log.info(u"Init search of %s on %s" % (ele, indexer))
-        downloads = indexer.searchForElement(ele) #intensiv
+        downloads.extend(indexer.searchForElement(ele)) #intensiv
         createGenericEvent(ele, 'result', u'%s found %s results' % (indexer, len(downloads)))
         didSearch = True
 
-        #downloads = _filterBadDownloads(blacklist, whitelist, downloads)
-        downloads = _filterBadDownloads(downloads)
-        if downloads:
-            return snatchOne(ele, downloads)
-        else:
-            log.info(u"We filtered all downloads out for %s" % ele)
     if not didSearch:
         log.warning(u"No Indexer active/available for %s" % ele.manager)
+    else:
+        _downloads = _filterBadDownloads(downloads)
+        if _downloads:
+            return snatchOne(ele, _downloads)
+        else:
+            log.info(u"We filtered all downloads out for %s" % ele)
     return ele.status
 
 
@@ -254,7 +252,7 @@ def runChecker():
                     download.status = common.SNATCHED
                     download.save()
             elif status == common.DOWNLOADING:
-                if element.status != common.DOWNLOADING: # dont reset the downloading status durong download its during download
+                if element.status != common.DOWNLOADING: # dont reset the downloading status during download
                     element.status = common.DOWNLOADING
                     element.save()
                     if download.id:
@@ -299,7 +297,7 @@ def ppElement(element, download, path):
     return False
 
 
-def updateElement(element, force=False):
+def updateElement(element, force=False, downloadImages=True):
     for p in common.PM.getProvider(runFor=element.manager):
         #TODO: make sure we use the updated element after one provider is done
         pID = element.getField('id', p.tag)
@@ -309,8 +307,9 @@ def updateElement(element, force=False):
             #new_e = p.searchForElement(element.getName())
             log.warning('getting an element by name is not implemented can not refresh')
             return None
-        log.debug(u'Getting element with provider id %s on %s' % (pID, p))
-        new_e = p.getElement(pID)
+
+        log(u'Getting %s with provider id %s on %s' % (element, pID, p))
+        new_e = p.getElement(pID, element)
         createGenericEvent(element, 'refreshing', u'Serching for update on %s' % p)
         if new_e:
             log.info(u"%s returned an element" % p)
@@ -320,9 +319,17 @@ def updateElement(element, force=False):
             log.info(u"Found new version of %s" % element)
             for f in list(new_e.fields):
                 element.setField(f.name, f.value, f.provider)
-            element.deleteImages()
-            element.downloadImages()
+            if downloadImages:
+                element.deleteImages()
+                element.downloadImages()
             return
+
+
+def updateAllElements(downloadImages=False):
+    log('updating all elements')
+    for mtm in common.PM.MTM:
+        for element in mtm.getDownloadableElements(True):
+            updateElement(element, downloadImages=downloadImages)
 
 
 def runMediaAdder():
@@ -362,10 +369,12 @@ def runMediaAdder():
 
 
 def removeTempElements():
-    for temp in Element.select().where(Element.status == common.TEMP):
+    common.addState(6)
+    for temp in list(Element.select().where(Element.status == common.TEMP)):
         temp.delete_instance(silent=True)
 
     log.info("Removeing temp elements DONE")
+    common.removeState(6)
 
 
 def cacheRepos():

@@ -147,11 +147,16 @@ def create_https_certificates(ssl_cert, ssl_key):
 
 
 def reltime(date):
+    if type(date).__name__ not in ('date', 'datetime'):
+        return "reltime needs a date or datetime we got: '%s'" % repr(date)
     _now = datetime.now()
-    reltimeString = format_timedelta(date - _now)
-    if date < _now:
-        return u"%s ago" % reltimeString
-    return u"in %s" % reltimeString
+    if common.SYSTEM.c.language_select != 'automatic':
+        return format_timedelta(date - _now, locale=common.SYSTEM.c.language_select)
+    return format_timedelta(date - _now)
+    
+    """if date < _now:
+        return u"%s %s" % (reltimeString, lgettext('time_ago'))
+    return u"%s %s" % (lgettext('time_in_future'), reltimeString)"""
 
 
 #http://code.activestate.com/recipes/576644-diff-two-dictionaries/
