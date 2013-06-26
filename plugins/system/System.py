@@ -25,6 +25,7 @@ import xdm
 from xdm import web
 from babel.core import Locale
 import gettext
+import locale
 
 
 # this class is special because it will be set to SYSTEM in the whole app
@@ -70,16 +71,32 @@ class SystemConfig(System):
 
     def _switchLanguage(self):
         languages = None
-        if self.c.language_select != 'automatic':
+        if self.c.language_select != 'automatic' and self.c.language_select is not None:
             languages = [self.c.language_select]
+
         log('Trying to set language to: "%s"' % languages)
-        t = gettext.translation('messages', os.path.join(xdm.APP_PATH, 'i18n'), languages=languages, class_=None, fallback=bool(not common.STARTOPTIONS.dev))
+        translationPath = os.path.abspath(os.path.join(xdm.APP_PATH, 'i18n'))
+        log.info(u"Using i18n path %s" % translationPath)
+
+        if not os.path.isdir(translationPath):
+            log.error("%s is not a path. where is the i18n folder?" % translationPath)
+            return
+        fallback = common.STARTOPTIONS.dev
+        print 'fallback', fallback
+        try:
+            t = gettext.translation('messages', translationPath, languages=languages, fallback=fallback)
+        except IOError:
+            log.warning("No language file found that matches %s. your locale %s" % (languages, locale.getlocale()))
+            log.info("Trying to install language en_US as fallback")
+            t = gettext.translation('messages', translationPath, languages=['en_US'], fallback=fallback)
+            log.info("Setting language to en_US because of fallback")
+            self.c.language_select = 'en_US'
+
         log.info(u'Instaling language "%s"' % t.info()['language-team'])
-        t.install(1, ('gettext', 'ngettext', 'lgettext', 'lngettext'))
+        t.install(True, ('gettext', 'ngettext', 'lgettext', 'lngettext'))
         # we need to re install the functions becuase they have changed
         # this is a very close binding of a plugin and the core XDM
         # but since this is the SYSTEM plugin i consider this ok
-
         # pylint: disable=E1101, E0602
         xdm.classes.elementWidgetEnvironment.install_gettext_callables(_, ngettext, newstyle=True)
         # pylint: disable=E1101, E0602

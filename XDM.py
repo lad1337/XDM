@@ -31,12 +31,11 @@ if hasattr(sys, 'frozen'):
     sys.path.insert(1, app_path)
 else:
     app_path = os.path.dirname(os.path.abspath(__file__))
+    sys.path.insert(1, os.path.join(app_path, 'rootLibs'))
 os.chdir(app_path)
-sys.path.insert(1, os.path.join(app_path, 'rootLibs'))
 
 
-#init _ and other i18n functions the real language set based on the config is done in init.py
-
+#init _ and other i18n functions the real language set based on the config is done in init.py -> system plugin
 t = gettext.translation('messages', os.path.join(app_path, 'i18n'), languages=None, fallback=True)
 t.install(1, ('gettext', 'ngettext', 'lgettext', 'lngettext'))
 
