@@ -101,6 +101,15 @@ class Common(object):
     NM = NewsManager()
     SCHEDULER = Scheduler()
 
+    def getLocale(self):
+        """get the current local string
+        e.g. en_US
+        e.g. de
+
+        this is either the system language / locale or the user set language or the fallback to en_US
+        """
+        return self.SYSTEM._locale
+
     def addState(self, num):
         self.STATES.append(xdm_states[num])
         self.STATES = list(set(self.STATES))

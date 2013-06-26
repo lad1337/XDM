@@ -23,7 +23,6 @@
 import sys
 import os
 import time
-import gettext
 # Fix for correct path
 if hasattr(sys, 'frozen'):
     app_path = os.path.abspath(os.path.join(os.path.abspath(sys.executable), '..', '..', 'Resources'))
@@ -34,11 +33,12 @@ else:
     sys.path.insert(1, os.path.join(app_path, 'rootLibs'))
 os.chdir(app_path)
 
-
+import locale
+locale.setlocale(locale.LC_ALL, '')
 #init _ and other i18n functions the real language set based on the config is done in init.py -> system plugin
+import gettext
 t = gettext.translation('messages', os.path.join(app_path, 'i18n'), languages=None, fallback=True)
 t.install(1, ('gettext', 'ngettext', 'lgettext', 'lngettext'))
-
 
 import argparse
 import cherrypy

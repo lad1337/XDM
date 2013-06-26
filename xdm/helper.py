@@ -150,14 +150,7 @@ def reltime(date):
     if type(date).__name__ not in ('date', 'datetime'):
         return "reltime needs a date or datetime we got: '%s'" % repr(date)
     _now = datetime.now()
-    if common.SYSTEM.c.language_select != 'automatic':
-        return format_timedelta(date - _now, locale=common.SYSTEM.c.language_select)
-    return format_timedelta(date - _now)
-    
-    """if date < _now:
-        return u"%s %s" % (reltimeString, lgettext('time_ago'))
-    return u"%s %s" % (lgettext('time_in_future'), reltimeString)"""
-
+    return format_timedelta(date - _now, locale=common.getLocale())
 
 #http://code.activestate.com/recipes/576644-diff-two-dictionaries/
 KEYNOTFOUND = '<KEYNOTFOUND>'       # KeyNotFound for dictDiff

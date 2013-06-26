@@ -927,11 +927,11 @@ class MediaTypeManager(Plugin):
 
     def _release_threshold_select(self):
         return {0: "Don't ignore.",
-                1: format_timedelta(helper.releaseThresholdDelta[1]),
-                2: format_timedelta(helper.releaseThresholdDelta[2]),
-                3: format_timedelta(helper.releaseThresholdDelta[3]),
-                4: format_timedelta(helper.releaseThresholdDelta[4]),
-                5: format_timedelta(helper.releaseThresholdDelta[5]),
+                1: format_timedelta(helper.releaseThresholdDelta[1], locale=common.getLocale()),
+                2: format_timedelta(helper.releaseThresholdDelta[2], locale=common.getLocale()),
+                3: format_timedelta(helper.releaseThresholdDelta[3], locale=common.getLocale()),
+                4: format_timedelta(helper.releaseThresholdDelta[4], locale=common.getLocale()),
+                5: format_timedelta(helper.releaseThresholdDelta[5], locale=common.getLocale()),
                 6: 'Completely ignore'}
 
 

@@ -59,6 +59,10 @@ class SystemConfig(System):
     _hidden_config = {'last_known_version': '0.4.18'} #this was introduced in 0.4.19. so in order to run migration for 0.4.19 we have a value of 0.4.18
     """this is the attr for hidden config it can be used just as the _config but is not visable to the user / settings page"""
 
+    def __init__(self, instance='Default'):
+        System.__init__(self, instance=instance)
+        self._setLocale(self.c.language_select)
+
     def _clearAllUnsedConfgs(self):
         amount = common.PM.clearAllUnsedConfgs()
         return (True, {}, '%s configs removed' % amount)
@@ -69,9 +73,16 @@ class SystemConfig(System):
             out[mt.identifier] = str(mt)
         return out
 
+    def _setLocale(self, setting):
+        if setting != 'automatic':
+            self._locale = setting
+        else:
+            self._locale = locale.getlocale(locale.LC_ALL)[0]
+        log("Language setting is '%s' resulting locale: '%s'" % (setting, self._locale))
+
     def _switchLanguage(self):
         languages = None
-        if self.c.language_select != 'automatic' and self.c.language_select is not None:
+        if self.c.language_select != 'automatic':
             languages = [self.c.language_select]
 
         log('Trying to set language to: "%s"' % languages)
@@ -82,17 +93,20 @@ class SystemConfig(System):
             log.error("%s is not a path. where is the i18n folder?" % translationPath)
             return
         fallback = common.STARTOPTIONS.dev
-        print 'fallback', fallback
         try:
             t = gettext.translation('messages', translationPath, languages=languages, fallback=fallback)
         except IOError:
             log.warning("No language file found that matches %s. your locale %s" % (languages, locale.getlocale()))
             log.info("Trying to install language en_US as fallback")
-            t = gettext.translation('messages', translationPath, languages=['en_US'], fallback=fallback)
+            t = gettext.translation('messages', translationPath, languages=['en_US'], fallback=True)
             log.info("Setting language to en_US because of fallback")
             self.c.language_select = 'en_US'
 
-        log.info(u'Instaling language "%s"' % t.info()['language-team'])
+        if isinstance(t, gettext.GNUTranslations):
+            log.info(u'Instaling language "%s"' % t.info()['language-team'])
+        else:
+            log.warning(u'Installing a NULL translator because we could not find any matching .mo files not even for en_US :(')
+        self._setLocale(self.c.language_select)
         t.install(True, ('gettext', 'ngettext', 'lgettext', 'lngettext'))
         # we need to re install the functions becuase they have changed
         # this is a very close binding of a plugin and the core XDM
