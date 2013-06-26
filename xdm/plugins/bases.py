@@ -847,6 +847,8 @@ class MediaTypeManager(Plugin):
     def getFn(self, eType, fnName):
         if eType in self.s and fnName in self.s[eType]['class'].__dict__:
             return self.s[eType]['class'].__dict__[fnName]
+        elif eType == self.type and fnName in self.__class__.__dict__:
+            return self.__class__.__dict__[fnName]
         else:
             return None
 
@@ -934,5 +936,7 @@ class MediaTypeManager(Plugin):
                 5: format_timedelta(helper.releaseThresholdDelta[5], locale=common.getLocale()),
                 6: 'Completely ignore'}
 
+    def getTemplate(self):
+        return "{{children}}"
 
 __all__ = ['System', 'PostProcessor', 'Provider', 'Indexer', 'Notifier', 'Downloader', 'MediaTypeManager', 'Element', 'DownloadType', 'DownloadFilter', 'SearchTermFilter', 'MediaAdder']

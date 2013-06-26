@@ -82,7 +82,6 @@ def reboot():
         popen_list = [sys.executable, os.path.normpath(os.path.abspath(sys.argv[0]))]
     elif install_type == xdm.updater.install_type_exe:
         if hasattr(sys, 'frozen'):
-            # c:\dir\to\updater.exe 12345 c:\dir\to\sickbeard.exe
             popen_list = [os.path.join(xdm.APP_PATH, 'updater.exe'), str(os.getpid()), sys.executable]
         else:
             log(u"Unknown XDM launch method, please file a bug report about this")

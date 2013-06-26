@@ -42,6 +42,7 @@ from jinja2.loaders import FileSystemLoader, DictLoader
 elementWidgetEnvironment = Environment(loader=FileSystemLoader(os.path.join('html', 'templates', 'widget')), extensions=['jinja2.ext.i18n'])
 elementWidgetEnvironment.install_gettext_callables(_, ngettext, newstyle=True)
 elementWidgetEnvironment.filters['relativeTime'] = helper.reltime
+elementWidgetEnvironment.filters['idSafe'] = helper.replace_some
 
 
 class BaseModel(Model):
@@ -373,7 +374,7 @@ class Element(BaseModel):
         env = Environment(loader=DictLoader({'this': tpl}), extensions=['jinja2.ext.i18n'])
         env.install_gettext_callables(_, ngettext, newstyle=True)
         env.filters['relativeTime'] = helper.reltime
-        elementWidgetEnvironment
+        env.filters['idSafe'] = helper.replace_some
         elementTemplate = env.get_template('this')
         actionTemplate = None
         infoTemplate = None

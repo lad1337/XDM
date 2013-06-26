@@ -40,23 +40,19 @@ class Game(object):
         # {{this.image}} will return the local src
         # {{this.getField('image')}} will return the image obj. str(Image) is the local src
         return """
-        <tr class="game">
-            <td>{{actionButtons}}<br/>{{infoButtons}}<br/>{{statusSelect}}</td>
-            <td style="width:200px;height:282px;position:relative;" class="coverContainer">
-            <div class="cover">
-                <div class="back">
-                    <img class="back" src="{{this.back_image}}" width=200/>
-                </div>
-                <div class="front">
-                    <img class="front" src="{{this.front_image}}" width=200/>
+        <li class="">
+            <div class="game thumbnail">
+                <img class="front" src="{{this.front_image}}" width=200/>
+                <div class="caption">
+                    <h3>{{name}}</h3>
+                    <p>{{released}}</p>
+                    <p>
+                        <span>{{actionButtons}}</span>
+                        <span>{{infoButtons}}</span>{{statusSelect}}
+                    </p>
                 </div>
             </div>
-            </td>
-            <td>{{name}}<!-- and {{this.name}} and {{this.getName()}}-->
-            <br/>{{released}}
-            </td>
-            <td>{{this.parent.alias}}</td>
-        </tr>
+        </li>
         """
 
     """def asdadagetSearchTpl(self):
@@ -76,16 +72,19 @@ class Platform(object):
     name = ''
     alias = ''
     _orderBy = 'alias'
+
     def getTemplate(self):
         return """
-        <div class="platform">
-            <h3 style="display:none;">{{this.name}}</h3>
-            <table>
-            <tbody>
-            {{children}}
-            </tbody>
-            </table>
-        </div>
+        <li class="platform">
+            <a href="#{{this.name|idSafe}}" data-toggle="tab">{{this.name}}</a>
+            <div class="tab-pane hidden" id="{{this.name|idSafe}}">
+                <div class="row-fluid">
+                    <ul class="thumbnails">
+                        {{children}}
+                    </ul>
+                </div>
+            </div>
+        </li>
         """
 
     def getName(self):
@@ -137,5 +136,17 @@ class Games(MediaTypeManager):
     def headInject(self):
         return """
         <link rel="stylesheet" href="{{webRoot}}/Games/style.css">
+        <script src="{{webRoot}}/Games/script.js"></script>
         """
 
+    def getTemplate(self):
+        return """
+        <div class="tabbable tabs-left">
+            <ul class="nav nav-tabs">
+                {{children}}
+            </ul>
+                
+            <div class="tab-content">
+            </div>
+        </div>
+        """

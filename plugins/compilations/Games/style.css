@@ -1,42 +1,10 @@
-.coverContainer {
-    perspective: 1200;
-    -webkit-perspective: 1200;
+
+.de-lad1337-games .game{
+    background: #fff;
+    height: 470px;
 }
-.game .cover {
-    top: 0;
-}
-.game .cover, .game .cover *{
-    transform-style: preserve-3d;
-    -webkit-transform-style: preserve-3d;
-    -webkit-transition: all 1s ease-in-out;
-    -moz-transition: all 1s ease-in-out;
-    -o-transition: all 1s ease-in-out;
-    transition: all 1s ease-in-out;
-}
-.game .cover,.game .cover>div {
-    position:absolute;
-    width: 200px;
-    height: 282px;
-    overflow: hidden;
-}
-.game .coverContainer:hover .cover{
-    transform: rotateY(180deg);
-    -webkit-transform: rotateY(180deg);
-}
-.game img.back{
-    -moz-transform: scaleX(-1);
-    -o-transform: scaleX(-1);
-    -webkit-transform: scaleX(-1);
-    transform: scaleX(-1);
-}
-.game .coverContainer .front{
-    -webkit-transition: opacity 0s ease-in-out;
-    -moz-transition: opacity 0s ease-in-out;
-    -o-transition: opacity 0s ease-in-out;
-    transition: opacity 0s ease-in-out;
-    transition-delay: 0.5s;
-    -webkit-transition-delay: 0.5s;
-}
-.game .coverContainer:hover .front{
-    opacity: 0;
+
+.de-lad1337-games .tab-pane .span4{
+    margin-left: 0;
+    margin-right: 1.4%;
 }
