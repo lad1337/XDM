@@ -885,26 +885,26 @@ class MediaTypeManager(Plugin):
             status = common.getHomeStatuses()
 
         if root is None:
-            log('init paint on default root %s %s' % (self.root, self.root.id))
+            log('init paint on default root %s' % self.root)
             return self.root.paint(status=status)
         else:
-            log('init paint on given root %s %s' % (root, root.id))
+            log('init paint on given root %s' % root)
             return root.paint(search=True)
 
     def search(self, search_query):
         log.info('Init search on %s for %s' % (self, search_query))
         self.searcher = None
         #xdm.DATABASE.set_autocommit(False)
-        out = None
+        rootElement = None
         for provider in common.PM.P:
             if not provider.runFor(self) or self.identifier not in provider.types:
                 continue
             self.searcher = provider
-            out = provider.searchForElement(term=search_query)
+            rootElement = provider.searchForElement(term=search_query)
         #xdm.DATABASE.commit()
         #xdm.DATABASE.set_autocommit(True)
         self.searcher = None
-        return out
+        return rootElement
 
     def makeReal(self, element):
         log.warning('Default makereal/save method called but the media type should have implemented this')
@@ -937,6 +937,9 @@ class MediaTypeManager(Plugin):
                 6: 'Completely ignore'}
 
     def getTemplate(self):
-        return "{{children}}"
+        if self.leaf:
+            return helper.getLeafTpl()
+        else:
+            return helper.getContainerTpl()
 
 __all__ = ['System', 'PostProcessor', 'Provider', 'Indexer', 'Notifier', 'Downloader', 'MediaTypeManager', 'Element', 'DownloadType', 'DownloadFilter', 'SearchTermFilter', 'MediaAdder']
