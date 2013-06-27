@@ -296,6 +296,10 @@ footer a:hover{
     width: 39px;
 }
 
+.icon-buttons.btn-group-vertical a{
+    width: 10px;
+}
+
 td.nice-time{
     width: 28%;
 }
