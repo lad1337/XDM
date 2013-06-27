@@ -929,7 +929,7 @@ class Image(BaseModel):
     def cacheImage(self):
         if not self.url:
             return
-        log("Downloading image %s" % self.url)
+        log("Downloading image: %s %s" % (self.name, self.url))
         try:
             r = requests.get(self.url)
         except requests.exceptions.MissingSchema:
