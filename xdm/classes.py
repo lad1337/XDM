@@ -39,10 +39,17 @@ from jinja2.loaders import FileSystemLoader, DictLoader
 
 #bcc = FileSystemBytecodeCache(pattern='%s.cache')
 #, bytecode_cache=bcc
-elementWidgetEnvironment = Environment(loader=FileSystemLoader(os.path.join('html', 'templates', 'widget')), extensions=['jinja2.ext.i18n'])
+
+WIDGET_PATH = os.path.join('html', 'templates', 'widget')
+elementWidgetEnvironment = Environment(loader=FileSystemLoader(WIDGET_PATH), extensions=['jinja2.ext.i18n'])
 elementWidgetEnvironment.install_gettext_callables(_, ngettext, newstyle=True)
 elementWidgetEnvironment.filters['relativeTime'] = helper.reltime
 elementWidgetEnvironment.filters['idSafe'] = helper.replace_some
+
+WIDGETS = []
+for root, folders, files in os.walk(WIDGET_PATH):
+    for curFile in files:
+        WIDGETS.append(os.path.basename(curFile.split('.')[0]))
 
 
 class BaseModel(Model):
@@ -69,7 +76,6 @@ class BaseModel(Model):
             return False # False like: dude stop !
         cls._meta.database.execute_sql('ALTER TABLE %s ADD COLUMN %s' % (table, field))
         return True
-
 
     @classmethod
     def updateTable(cls):
@@ -369,6 +375,7 @@ class Element(BaseModel):
             tpl = self.getSearchTemplate()
         else:
             tpl = self.getTemplate()
+        #print "template for %s is #####:\n%s\n" % (self, tpl)
 
         webRoot = common.SYSTEM.c.webRoot
         env = Environment(loader=DictLoader({'this': tpl}), extensions=['jinja2.ext.i18n'])
@@ -376,60 +383,37 @@ class Element(BaseModel):
         env.filters['relativeTime'] = helper.reltime
         env.filters['idSafe'] = helper.replace_some
         elementTemplate = env.get_template('this')
-        actionTemplate = None
-        infoTemplate = None
+
+        widgets_html = {}
         if not search:
-            if '{{actionButtons}}' in tpl:
-                actionTemplate = elementWidgetEnvironment.get_template('actions.html')
-            elif '{{iconActionButtons}}' in tpl:
-                actionTemplate = elementWidgetEnvironment.get_template('actionsIcons.html')
+            for widget in WIDGETS:
+                if "{{%s}}" % widget in tpl:
+                    curTemplate = elementWidgetEnvironment.get_template('%s.html' % widget)
+                    widgets_html[widget] = curTemplate.render(this=self, globalStatus=Status.select(), webRoot=webRoot)
+        else:
+            useTextVersion = "{{actionButtons}}" in tpl
+            if useTextVersion:
+                addTemplate = elementWidgetEnvironment.get_template('addButton.html')
+            else:
+                addTemplate = elementWidgetEnvironment.get_template('addButtonIcon.html')
+            addHtml = addTemplate.render(this=self, globalStatus=Status.select(), webRoot=webRoot)
+            if useTextVersion:
+                widgets_html['actionButtons'] = addHtml
+            else:
+                widgets_html['actionButtonsIcons'] = addHtml
 
-            if '{{infoButtons}}' in tpl:
-                infoTemplate = elementWidgetEnvironment.get_template('info.html')
-            elif '{{iconInfoButtons}}' in tpl:
-                infoTemplate = elementWidgetEnvironment.get_template('infoIcons.html')
-
-            statusTemplate = elementWidgetEnvironment.get_template('status.html')
-            statusHtml = statusTemplate.render(this=self, globalStatus=Status.select(), webRoot=webRoot)
-        else:
-            actionTemplate = elementWidgetEnvironment.get_template('actionsAdd.html')
-            statusHtml = ''
-        # render action buttons
-        if actionTemplate is not None:
-            actionsHtml = actionTemplate.render(this=self, webRoot=webRoot)
-        else:
-            actionsHtml = ''
-        # render info buttons
-        if infoTemplate is not None:
-            infoHtml = infoTemplate.render(this=self)
-        else:
-            infoHtml = ''
+        #Static infos / render stuff
         # status class
         statusCssClass = 'status-any status-%s' % self.status.name.lower()
-        # downloadbar
-        downloadBarHtml = ''
-        if '{{downloadProgressBar}}' in tpl:
-            downloadBarTemplate = elementWidgetEnvironment.get_template('downloadBar.html')
-            downloadBarHtml = downloadBarTemplate.render(this=self, webRoot=webRoot)
-
-        releasedHtml = ''
-        if '{{released}}' in tpl:
-            releasedTemplate = elementWidgetEnvironment.get_template('released.html')
-            releasedHtml = releasedTemplate.render(this=self)
+        # acc the field name value paires to the widgets
+        widgets_html.update(self.buildFieldDict())
 
         return elementTemplate.render(children='{{children}}',
-                                      actionButtons=actionsHtml,
-                                      iconActionButtons=actionsHtml,
-                                      infoButtons=infoHtml,
-                                      iconInfoButtons=infoHtml,
-                                      statusSelect=statusHtml,
                                       this=self,
                                       statusCssClass=statusCssClass,
                                       loopIndex=curIndex,
-                                      downloadProgressBar=downloadBarHtml,
-                                      released=releasedHtml,
                                       webRoot=webRoot,
-                                      **self.buildFieldDict())
+                                      **widgets_html)
 
     def buildFieldDict(self):
         out = {}
