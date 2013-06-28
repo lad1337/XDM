@@ -45,6 +45,8 @@ elementWidgetEnvironment = Environment(loader=FileSystemLoader(WIDGET_PATH), ext
 elementWidgetEnvironment.install_gettext_callables(_, ngettext, newstyle=True)
 elementWidgetEnvironment.filters['relativeTime'] = helper.reltime
 elementWidgetEnvironment.filters['idSafe'] = helper.replace_some
+elementWidgetEnvironment.filters['derefMe'] = helper.dereferMe
+elementWidgetEnvironment.filters['derefMeText'] = helper.dereferMeText
 
 WIDGETS = []
 for root, folders, files in os.walk(WIDGET_PATH):
@@ -377,11 +379,14 @@ class Element(BaseModel):
             tpl = self.getTemplate()
         #print "template for %s is #####:\n%s\n" % (self, tpl)
 
+        #TODO: find a way to not initialise a new Environment every time !
         webRoot = common.SYSTEM.c.webRoot
         env = Environment(loader=DictLoader({'this': tpl}), extensions=['jinja2.ext.i18n'])
         env.install_gettext_callables(_, ngettext, newstyle=True)
         env.filters['relativeTime'] = helper.reltime
         env.filters['idSafe'] = helper.replace_some
+        env.filters['derefMe'] = helper.dereferMe
+        env.filters['derefMeText'] = helper.dereferMeText
         elementTemplate = env.get_template('this')
 
         widgets_html = {}

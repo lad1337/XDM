@@ -47,7 +47,7 @@
                     {{plugin.version}}
                 </td>
                 <td>
-                    <p>{{plugin.config_meta['plugin_desc']|striptags|urlize}}</p>
+                    <p>{{plugin.config_meta['plugin_desc']|striptags|urlize|dereferMeText}}</p>
                     <span class="muted" style="font-size:90%;">
                         {{plugin.get_plugin_isntall_path().replace('/','/&shy;')}}
                     </span>
