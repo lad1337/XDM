@@ -62,6 +62,10 @@ jQuery.get( webRoot+'/ajax/search', data_{{mt.instance}}, function(res){
         console.log(error)
     }
     
+}).error(function() {
+    var p = $('#{{mt.instance}}-current')
+    $('.progress', p).addClass('progress-danger').removeClass('active');
+    $('.progress span' ,p).html('Error during search please see the log.');
 });
 
 var parent_{{mt.instance}} = $('#{{mt.instance}}-current');
