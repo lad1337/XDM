@@ -98,16 +98,20 @@ class TheGamesDB(Provider):
         g.setField('front_image', self._boxartUrl(imagesTag, platformIDTag.text, base_url, 'front'), self.tag)
         g.setField('fanart_image', self._fanartUrl(imagesTag, base_url, 'original'), self.tag)
         g.setField('genre', self._genresStr(genresTag), self.tag)
-        try:
-            g.setField('release_date', datetime.datetime.strptime(release_date.text, "%m/%d/%Y"), self.tag)
-        except ValueError:
-            ddd = None
-            if release_date is not None:
-                ddd = dateParser(release_date.text)
-            if ddd is not None and hasattr(ddd, 'year') and hasattr(ddd, 'month') and hasattr(ddd, 'day'):
-                g.setField('release_date', datetime.datetime(ddd.year, ddd.month, ddd.day), self.tag)
-            else:
-                g.setField('release_date', datetime.datetime.now(), self.tag)
+
+        if release_date is not None:
+            try:
+                g.setField('release_date', datetime.datetime.strptime(release_date.text, "%m/%d/%Y"), self.tag)
+            except ValueError:
+                ddd = None
+                if release_date is not None:
+                    ddd = dateParser(release_date.text)
+                if ddd is not None and hasattr(ddd, 'year') and hasattr(ddd, 'month') and hasattr(ddd, 'day'):
+                    g.setField('release_date', datetime.datetime(ddd.year, ddd.month, ddd.day), self.tag)
+                else:
+                    g.setField('release_date', datetime.datetime.now(), self.tag)
+        else:
+            g.setField('release_date', datetime.datetime.now(), self.tag)
 
         if trailer is not None:
             #http://stackoverflow.com/questions/2639582/python-small-regex-problem
