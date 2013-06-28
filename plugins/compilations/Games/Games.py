@@ -43,7 +43,7 @@ class Game(object):
         # {{this.getField('image')}} will return the image obj. str(Image) is the local src
         return """
         <li class="span{{this.manager.c.row_width_select}}">
-            <div class="game thumbnail{%if this.manager.c.fanart_as_background and this.fanart_image%} hasFanart" style="background-image: url('{{this.fanart_image}}');"{%else%}"{%endif%}>
+            <div class="game {{statusCssClass}} thumbnail{%if this.manager.c.fanart_as_background and this.fanart_image%} hasFanart" style="background-image: url('{{this.fanart_image}}');"{%else%}"{%endif%}>
                 <img class="front" src="{{this.front_image}}"/>
                 <div class="caption">
                     <h4>{{name}}</h4>
@@ -54,6 +54,9 @@ class Game(object):
                     {%endif%}
                     <span>{{actionButtonsIcons}}&nbsp;</span>
                     <span>{{infoButtonsIcons}}</span>
+                </div>
+                <div class="progressbar-container">
+                    {{downloadProgressBar}}
                 </div>
             </div>
         </li>

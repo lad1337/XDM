@@ -21,9 +21,8 @@
 }
 
 
-.de-lad1337-games .tab-pane li{
+.de-lad1337-games .thumbnails>.tab-pane li{
     margin-left: 0;
-    margin-bottom: 15px;
 }
 
 .de-lad1337-games .tab-pane li.span4,
@@ -55,6 +54,7 @@
     right: 5px;
     font-size: 1.3em;
 }
+
 .de-lad1337-games .hasFanart h4,
 .de-lad1337-games .hasFanart .releaseContainer{
     color: #fff;
@@ -63,4 +63,13 @@
     1px -1px 1px #000,
     -1px 1px 1px #000,
     1px 1px 1px #000; 
+}
+
+.de-lad1337-games .progressbar-container{
+    position: absolute;
+    width: -firefox-calc(100% - 8px);
+    width: -webkit-calc(100% - 8px);
+    width: -o-calc(100% - 8px);
+    width: calc(100% - 8px);
+    bottom: 5px;
 }
