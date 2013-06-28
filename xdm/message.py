@@ -96,9 +96,9 @@ class MessageManager(object):
         return sorted(out, key=attrgetter('createTime'))
 
     def closeMessage(self, uuid):
-        m = self.messages[uuid]
-        if m is None:
+        if uuid not in self.messages:
             return
+        m = self.messages[uuid]
         if m.confirm is None and m.deny is None:
             self._removeMessage(uuid)
         else:
