@@ -385,27 +385,21 @@ class Element(BaseModel):
         elementTemplate = env.get_template('this')
 
         widgets_html = {}
-        if not search:
-            for widget in WIDGETS:
+        useInSearch = {'actionButtons': 'addButton', 'actionButtonsIcons': 'addButtonIcon', 'released': 'released'}
+
+        for widget in WIDGETS:
+            if (widget in useInSearch and search) or not search:
                 if "{{%s}}" % widget in tpl:
-                    curTemplate = elementWidgetEnvironment.get_template('%s.html' % widget)
+                    templateName = '%s.html' % widget
+                    if search:
+                        templateName = '%s.html' % useInSearch[widget]
+                    curTemplate = elementWidgetEnvironment.get_template(templateName)
                     widgets_html[widget] = curTemplate.render(this=self, globalStatus=Status.select(), webRoot=webRoot)
-        else:
-            useTextVersion = "{{actionButtons}}" in tpl
-            if useTextVersion:
-                addTemplate = elementWidgetEnvironment.get_template('addButton.html')
-            else:
-                addTemplate = elementWidgetEnvironment.get_template('addButtonIcon.html')
-            addHtml = addTemplate.render(this=self, globalStatus=Status.select(), webRoot=webRoot)
-            if useTextVersion:
-                widgets_html['actionButtons'] = addHtml
-            else:
-                widgets_html['actionButtonsIcons'] = addHtml
 
         #Static infos / render stuff
         # status class
         statusCssClass = 'status-any status-%s' % self.status.name.lower()
-        # acc the field name value paires to the widgets
+        # add the field values to the widgets dict. this makes the <field_name> available as {{<field_name>}} in the templates
         widgets_html.update(self.buildFieldDict())
 
         return elementTemplate.render(children='{{children}}',
