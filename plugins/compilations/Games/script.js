@@ -12,5 +12,9 @@ function de_lad1337_games_init(){
     });
     
     $(".de-lad1337-games a.trailer").YouTubePopup({'clickOutsideClose':true, 'hideTitleBar':true});
+    
+    if(!$('.de-lad1337-games li.platform.active').length){
+        $('.de-lad1337-games li.platform:first a').tab('show');
+    }
      
 }

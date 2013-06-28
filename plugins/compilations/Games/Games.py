@@ -47,7 +47,8 @@ class Game(object):
                 <img class="front" src="{{this.front_image}}"/>
                 <div class="caption">
                     <h4>{{name}}</h4>
-                    <div class="releaseContainer">{{released}}{{statusSelect}}</div>
+                    <span class="releaseContainer">{{released}}</span>{{statusSelect}}
+                    <div></div>
                     {%if this.trailer%}
                     <a href="http://youtube.com/watch?v={{this.trailer}}" class="trailer"><i class="icon-film"></i></a>
                     {%endif%}
