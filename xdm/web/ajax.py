@@ -65,14 +65,14 @@ class AjaxCalls:
         return json.dumps({'result': status, 'data': data, 'msg': msg})
 
     @cherrypy.expose
-    def search(self, mt, search_query):
+    def search(self, mt, search_query, ignorePrevious=False):
         mtm = common.PM.getMediaTypeManager(mt)[0]
         oldS = None
         for s in Element.select().where(Element.status == common.TEMP, Element.type == mtm.s['root']):
             if s.getField('term') == search_query:
                 oldS = s
                 break
-        else:
+        if oldS is None or ignorePrevious:
             return mtm.paint(mtm.search(search_query))
         return mtm.paint(oldS)
 

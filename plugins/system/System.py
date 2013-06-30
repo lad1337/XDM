@@ -54,8 +54,10 @@ class SystemConfig(System):
                'show_feed': True,
                'api_active': True,
                'api_key': '',
-               'language_select': 'automatic'
+               'language_select': 'automatic',
+               'use_derefer_me': True
                }
+
     _hidden_config = {'last_known_version': '0.4.18'} #this was introduced in 0.4.19. so in order to run migration for 0.4.19 we have a value of 0.4.18
     """this is the attr for hidden config it can be used just as the _config but is not visable to the user / settings page"""
 
@@ -140,6 +142,7 @@ class SystemConfig(System):
                     'plugin_desc': 'System wide configurations',
                     'defaut_mt_select': {'human': 'Default MediaType'},
                     'dont_open_browser': {'human': 'Dont open the browser on start'},
-                    'language_select': {'human': 'XDM language', 'on_change_actions': [_switchLanguage]}
+                    'language_select': {'human': 'XDM language', 'on_change_actions': [_switchLanguage]},
+                    'use_derefer_me': {'human': 'Use http://derefer.me/ for external links', 'desc': 'Using this makes XDM safer but a little slower (not noticeable) to render pages.'}
                     }
     single = True

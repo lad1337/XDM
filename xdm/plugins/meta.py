@@ -132,7 +132,9 @@ def pluginMethodWrapper(caller_name, run, alternative):
         try:
             return run(*args, **kwargs)
         except Exception as ex:
+            print ex, args, kwargs
             tb = traceback.format_exc()
+            print tb
             out = alternative(*args, **kwargs)
             try:
                 log.error("Error during %s of %s \nError: %s\n\n%s\nNew value:%s" % (run.__name__, caller_name, ex, tb, out), traceback=tb, new_out=out, exception=ex)

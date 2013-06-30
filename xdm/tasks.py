@@ -85,9 +85,9 @@ def notify(element):
     for notifier in common.PM.N:
         createGenericEvent(element, 'notifier', u'Sending notification with %s on status %s' % (notifier, element.status))
         if notifier.c.on_snatch and element.status == common.SNATCHED:
-            notifier.sendMessage(u"%s has been snatched" % element.getName(), element)
+            notifier.sendMessage(u"%s: %s has been snatched" % (element.manager.type, element.getName()), element)
         if notifier.c.on_complete and element.status in (common.COMPLETED, common.DOWNLOADED, common.PP_FAIL):
-            notifier.sendMessage(u"%s is now %s" % (element, element.status), element)
+            notifier.sendMessage(u"%s: %s is now %s" % (element.manager.type, element.getName(), element.status), element)
 
 
 def createGenericEvent(ele, event_type, event_msg):

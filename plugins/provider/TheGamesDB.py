@@ -24,6 +24,8 @@ from xdm.plugins import *
 import datetime
 import xml.etree.ElementTree as ET
 from lib import requests
+import re
+from lib.dateutil.parser import parser as dateParser
 
 
 class TheGamesDB(Provider):
@@ -45,6 +47,19 @@ class TheGamesDB(Provider):
                         return base_url + curImage.text
 
         return base_url + "_platformviewcache/platform/boxart/" + platformID + "-1.jpg"
+
+    def _fanartUrl(self, tag, base_url, type='original'):
+        if tag is not None:
+            fanartTag = tag.find('fanart')
+            if fanartTag is not None:
+                if type == 'original':
+                    imageSiteTag = fanartTag.find('original')
+                else:
+                    imageSiteTag = fanartTag.find('thumb')
+                if imageSiteTag is not None:
+                    return base_url + imageSiteTag.text
+        #print "could not find a fanart"
+        return ""
 
     def _genresStr(self, tag):
         if tag is None:
@@ -81,13 +96,32 @@ class TheGamesDB(Provider):
         g.setField('id', int(idTag.text), self.tag)
         g.setField('name', titleTag.text, self.tag)
         g.setField('front_image', self._boxartUrl(imagesTag, platformIDTag.text, base_url, 'front'), self.tag)
-        g.setField('back_image', self._boxartUrl(imagesTag, platformIDTag.text, base_url, 'back'), self.tag)
+        g.setField('fanart_image', self._fanartUrl(imagesTag, base_url, 'original'), self.tag)
         g.setField('genre', self._genresStr(genresTag), self.tag)
-        g.setField('release_date', datetime.datetime.strptime(release_date.text, "%m/%d/%Y"), self.tag)
+
+        if release_date is not None:
+            try:
+                g.setField('release_date', datetime.datetime.strptime(release_date.text, "%m/%d/%Y"), self.tag)
+            except ValueError:
+                ddd = None
+                if release_date is not None:
+                    ddd = dateParser(release_date.text)
+                if ddd is not None and hasattr(ddd, 'year') and hasattr(ddd, 'month') and hasattr(ddd, 'day'):
+                    g.setField('release_date', datetime.datetime(ddd.year, ddd.month, ddd.day), self.tag)
+                else:
+                    g.setField('release_date', datetime.datetime.now(), self.tag)
+        else:
+            g.setField('release_date', datetime.datetime.now(), self.tag)
+
+        if trailer is not None:
+            #http://stackoverflow.com/questions/2639582/python-small-regex-problem
+            yid = re.search(r'(?<=\?v\=)[\w-]+', trailer.text) #the games db uses youtube urls
+            g.setField('trailer', yid.group(0), self.tag)
+        else:
+            g.setField('trailer', '', self.tag)
 
         if int(platformIDTag.text) not in self._pCache:
-            mts = MediaType.select().where(MediaType.identifier == 'de.lad1337.games')
-            q = Element.select().where(Element.mediaType << mts, Element.type == 'Platform')
+            q = Element.select().where(Element.mediaType == rootElement.mediaType, Element.type == 'Platform')
             for e in q:
                 if e.getField('id', self.tag) == int(platformIDTag.text):
                     platform = e.copy()
@@ -96,6 +130,7 @@ class TheGamesDB(Provider):
                     self._pCache[int(platformIDTag.text)] = platform
                     g.parent = platform
                     g.saveTemp()
+                    self.progress.addItem()
                     break
             else:
                 return None
@@ -135,7 +170,7 @@ class TheGamesDB(Provider):
         for curGame in root.getiterator('Game'):
             self._createGameFromTag(curGame, base_url, rootElement)
 
-        log("%s found %s games" % (self.name, len(list(rootElement.children))))
+        log("%s found %s games" % (self.name, self.progress.count))
 
         return rootElement
 

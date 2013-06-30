@@ -56,8 +56,8 @@ class Movie(object):
                 <h4>{{this.getName()}}</h4>
                 <i class="icon-remove btn btn-mini"></i>
                 <div class="buttons">
-                    {{iconActionButtons}}
-                    {{iconInfoButtons}}
+                    {{actionButtonsIcons}}
+                    {{infoButtonsIcons}}
                     <div class="progressbar-container">
                         {{downloadProgressBar}}
                     </div>

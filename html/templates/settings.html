@@ -43,7 +43,7 @@
                 <div style="display: none;">
                 {{plugin.getConfigHtml()}}
                 </div>
-                <p class="muted">{{plugin['config_meta']['plugin_desc']|striptags|urlize}}</p>
+                <p class="muted">{{plugin['config_meta']['plugin_desc']|striptags|urlize|dereferMeText}}</p>
                 <div class="plugin {{ plugin._type }}" id="{{ plugin.name.replace(' ', '_').replace('(', '').replace(')', '') }}_content">
                 {% for config in plugin.c.configs %}
                 {% if plugin['config_meta'][config.name]['on_live_change'] %}
@@ -54,7 +54,12 @@
                 
                 {% else %}
                 <div class="control-group{% if plugin['config_meta'][config.name]['human'] %} human{% endif %}{% if 'filepath' in config.name %} filepath{%elif 'path' in config.name%} path{% endif %}">
-                    <label class="control-label" title="{{plugin['config_meta'][config.name]['desc']}}">{% if plugin['config_meta'][config.name]['human'] %}{{ plugin['config_meta'][config.name]['human'] }}{% else %}{{ config.name.replace("_", " ") }}{% endif %}</label>
+                    <label class="control-label" title="{{plugin['config_meta'][config.name]['desc']}}">
+                    {% if plugin['config_meta'][config.name]['human'] %}{{ plugin['config_meta'][config.name]['human']|striptags|urlize|dereferMeText }}
+                    {% else %}
+                    {{ config.name.replace("_", " ") }}
+                    {% endif %}
+                    </label>
                     <div class="controls">
                         {% if 'select' in config.name %}
                         <select name="{{ plugin.type }}-{{ plugin.instance }}-{{ config.name }}" data-configname="{{config.name}}" title="{{plugin['config_meta'][config.name]['desc']}}">
