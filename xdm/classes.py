@@ -39,9 +39,19 @@ from jinja2.loaders import FileSystemLoader, DictLoader
 
 #bcc = FileSystemBytecodeCache(pattern='%s.cache')
 #, bytecode_cache=bcc
-elementWidgetEnvironment = Environment(loader=FileSystemLoader(os.path.join('html', 'templates', 'widget')), extensions=['jinja2.ext.i18n'])
+
+WIDGET_PATH = os.path.join('html', 'templates', 'widget')
+elementWidgetEnvironment = Environment(loader=FileSystemLoader(WIDGET_PATH), extensions=['jinja2.ext.i18n'])
 elementWidgetEnvironment.install_gettext_callables(_, ngettext, newstyle=True)
 elementWidgetEnvironment.filters['relativeTime'] = helper.reltime
+elementWidgetEnvironment.filters['idSafe'] = helper.replace_some
+elementWidgetEnvironment.filters['derefMe'] = helper.dereferMe
+elementWidgetEnvironment.filters['derefMeText'] = helper.dereferMeText
+
+WIDGETS = []
+for root, folders, files in os.walk(WIDGET_PATH):
+    for curFile in files:
+        WIDGETS.append(os.path.basename(curFile.split('.')[0]))
 
 
 class BaseModel(Model):
@@ -68,7 +78,6 @@ class BaseModel(Model):
             return False # False like: dude stop !
         cls._meta.database.execute_sql('ALTER TABLE %s ADD COLUMN %s' % (table, field))
         return True
-
 
     @classmethod
     def updateTable(cls):
@@ -368,67 +377,42 @@ class Element(BaseModel):
             tpl = self.getSearchTemplate()
         else:
             tpl = self.getTemplate()
+        #print "template for %s is #####:\n%s\n" % (self, tpl)
 
+        #TODO: find a way to not initialise a new Environment every time !
         webRoot = common.SYSTEM.c.webRoot
         env = Environment(loader=DictLoader({'this': tpl}), extensions=['jinja2.ext.i18n'])
         env.install_gettext_callables(_, ngettext, newstyle=True)
         env.filters['relativeTime'] = helper.reltime
-        elementWidgetEnvironment
+        env.filters['idSafe'] = helper.replace_some
+        env.filters['derefMe'] = helper.dereferMe
+        env.filters['derefMeText'] = helper.dereferMeText
         elementTemplate = env.get_template('this')
-        actionTemplate = None
-        infoTemplate = None
-        if not search:
-            if '{{actionButtons}}' in tpl:
-                actionTemplate = elementWidgetEnvironment.get_template('actions.html')
-            elif '{{iconActionButtons}}' in tpl:
-                actionTemplate = elementWidgetEnvironment.get_template('actionsIcons.html')
 
-            if '{{infoButtons}}' in tpl:
-                infoTemplate = elementWidgetEnvironment.get_template('info.html')
-            elif '{{iconInfoButtons}}' in tpl:
-                infoTemplate = elementWidgetEnvironment.get_template('infoIcons.html')
+        widgets_html = {}
+        useInSearch = {'actionButtons': 'addButton', 'actionButtonsIcons': 'addButtonIcon', 'released': 'released'}
 
-            statusTemplate = elementWidgetEnvironment.get_template('status.html')
-            statusHtml = statusTemplate.render(this=self, globalStatus=Status.select(), webRoot=webRoot)
-        else:
-            actionTemplate = elementWidgetEnvironment.get_template('actionsAdd.html')
-            statusHtml = ''
-        # render action buttons
-        if actionTemplate is not None:
-            actionsHtml = actionTemplate.render(this=self, webRoot=webRoot)
-        else:
-            actionsHtml = ''
-        # render info buttons
-        if infoTemplate is not None:
-            infoHtml = infoTemplate.render(this=self)
-        else:
-            infoHtml = ''
+        for widget in WIDGETS:
+            if (widget in useInSearch and search) or not search:
+                if "{{%s}}" % widget in tpl:
+                    templateName = '%s.html' % widget
+                    if search:
+                        templateName = '%s.html' % useInSearch[widget]
+                    curTemplate = elementWidgetEnvironment.get_template(templateName)
+                    widgets_html[widget] = curTemplate.render(this=self, globalStatus=Status.select(), webRoot=webRoot)
+
+        #Static infos / render stuff
         # status class
         statusCssClass = 'status-any status-%s' % self.status.name.lower()
-        # downloadbar
-        downloadBarHtml = ''
-        if '{{downloadProgressBar}}' in tpl:
-            downloadBarTemplate = elementWidgetEnvironment.get_template('downloadBar.html')
-            downloadBarHtml = downloadBarTemplate.render(this=self, webRoot=webRoot)
-
-        releasedHtml = ''
-        if '{{released}}' in tpl:
-            releasedTemplate = elementWidgetEnvironment.get_template('released.html')
-            releasedHtml = releasedTemplate.render(this=self)
+        # add the field values to the widgets dict. this makes the <field_name> available as {{<field_name>}} in the templates
+        widgets_html.update(self.buildFieldDict())
 
         return elementTemplate.render(children='{{children}}',
-                                      actionButtons=actionsHtml,
-                                      iconActionButtons=actionsHtml,
-                                      infoButtons=infoHtml,
-                                      iconInfoButtons=infoHtml,
-                                      statusSelect=statusHtml,
                                       this=self,
                                       statusCssClass=statusCssClass,
                                       loopIndex=curIndex,
-                                      downloadProgressBar=downloadBarHtml,
-                                      released=releasedHtml,
                                       webRoot=webRoot,
-                                      **self.buildFieldDict())
+                                      **widgets_html)
 
     def buildFieldDict(self):
         out = {}
@@ -944,7 +928,7 @@ class Image(BaseModel):
     def cacheImage(self):
         if not self.url:
             return
-        log("Downloading image %s" % self.url)
+        log("Downloading image: %s %s" % (self.name, self.url))
         try:
             r = requests.get(self.url)
         except requests.exceptions.MissingSchema:

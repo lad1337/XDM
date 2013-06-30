@@ -20,6 +20,7 @@
 #along with this program.  If not, see http://www.gnu.org/licenses/.
 
 from xdm.plugins import *
+from xdm import helper
 
 
 class Game(object):
@@ -27,8 +28,9 @@ class Game(object):
     genres = ''
     describtion = ''
     front_image = ''
-    back_image = ''
+    trailer = ''
     release_date = ''
+    fanart_image = ''
 
     _orderBy = 'name'
 
@@ -40,27 +42,25 @@ class Game(object):
         # {{this.image}} will return the local src
         # {{this.getField('image')}} will return the image obj. str(Image) is the local src
         return """
-        <tr class="game">
-            <td>{{actionButtons}}<br/>{{infoButtons}}<br/>{{statusSelect}}</td>
-            <td style="width:200px;height:282px;position:relative;" class="coverContainer">
-            <div class="cover">
-                <div class="back">
-                    <img class="back" src="{{this.back_image}}" width=200/>
+        <li class="span{{this.manager.c.row_width_select}}">
+            <div class="game {{statusCssClass}} thumbnail{%if this.manager.c.fanart_as_background and this.fanart_image%} hasFanart" style="background-image: url('{{this.fanart_image}}');"{%else%}"{%endif%}>
+                <img class="front" src="{{this.front_image}}"/>
+                <div class="caption">
+                    <h4>{{name}}</h4>
+                    <span class="releaseContainer">{{released}}</span>{{statusSelect}}
+                    <div></div>
+                    {%if this.trailer%}
+                    <a href="http://youtube.com/watch?v={{this.trailer}}" class="trailer"><i class="icon-film"></i></a>
+                    {%endif%}
+                    <span>{{actionButtonsIcons}}&nbsp;</span>
+                    <span>{{infoButtonsIcons}}</span>
                 </div>
-                <div class="front">
-                    <img class="front" src="{{this.front_image}}" width=200/>
+                <div class="progressbar-container">
+                    {{downloadProgressBar}}
                 </div>
             </div>
-            </td>
-            <td>{{name}}<!-- and {{this.name}} and {{this.getName()}}-->
-            <br/>{{released}}
-            </td>
-            <td>{{this.parent.alias}}</td>
-        </tr>
+        </li>
         """
-
-    """def asdadagetSearchTpl(self):
-        return self.parent.paint(single=True).replace('{{children}}', self.getTpl())"""
 
     def getSearchTerms(self):
         return [self.name]
@@ -76,25 +76,38 @@ class Platform(object):
     name = ''
     alias = ''
     _orderBy = 'alias'
+
     def getTemplate(self):
+        activeString = ''
+        # pylint: disable=E1101, E0602
+        if self.manager.c.default_platform_select == self.alias:
+            activeString = ' active'
         return """
-        <div class="platform">
-            <h3 style="display:none;">{{this.name}}</h3>
-            <table>
-            <tbody>
-            {{children}}
-            </tbody>
-            </table>
-        </div>
-        """
+        <li class="platform%s">
+            <a href="#{{this.name|idSafe}}" data-toggle="tab">{{this.name}}</a>
+            <div class="tab-pane fade in hidden%s" id="{{this.name|idSafe}}">
+                <div class="row-fluid">
+                    <ul class="thumbnails">
+                        {{children}}
+                    </ul>
+                </div>
+            </div>
+        </li>
+        """ % (activeString, activeString)
 
     def getName(self):
         return '%s' % self.alias
 
 
 class Games(MediaTypeManager):
-    _config = {'enabled': True}
-    config_meta = {'plugin_desc': 'Games support. For, Wii, Wii U, Xbox 360, PS3 and PC'}
+    _config = {'enabled': True,
+               'default_platform_select': '',
+               'fanart_as_background': False,
+               'row_width_select': 4}
+    config_meta = {'plugin_desc': 'Games support. For, Wii, Wii U, Xbox 360, PS3 and PC',
+                   'default_platform_select': {'human': 'Default active platform'},
+                   'fanart_as_background': {'desc': 'If we have a fanart image use it as the background for the game tile.'},
+                   'row_width_select': {'human': 'Number of tiles in a row'}}
     order = (Platform, Game)
     download = Game
     #TODO: implement that stuff or dont ... donno
@@ -120,6 +133,17 @@ class Games(MediaTypeManager):
                                  {'tgdb':{'name': 'PC', 'alias': 'PC', 'id': 1}},
                                  {'tgdb':{'name': 'Nintendo Wii U', 'alias': 'WiiU', 'id': 38}}]
 
+    def _default_platform_select(self):
+        out = {}
+        for platform in Element.select().where(Element.mediaType == self.mt, Element.type == 'Platform'):
+            out[platform.alias] = platform.name
+        return out
+
+    def _row_width_select(self):
+        # dont be confused its the bootstrap grid thing
+        return {3: 4, 4: 3, 6: 2}
+
+
     def makeReal(self, game):
         oldPlatform = game.parent
         for platform in Element.select().where(Element.type == oldPlatform.type, Element.mediaType == self.mt):
@@ -137,5 +161,16 @@ class Games(MediaTypeManager):
     def headInject(self):
         return """
         <link rel="stylesheet" href="{{webRoot}}/Games/style.css">
+        <script src="{{webRoot}}/Games/script.js"></script>
         """
 
+    def getTemplate(self):
+        return """
+        <div class="tabbable tabs-left">
+            <ul class="nav nav-tabs">
+                {{children}}
+            </ul>
+            <div class="tab-content">
+            </div>
+        </div>
+        """

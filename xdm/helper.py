@@ -37,6 +37,7 @@ import base64
 import random
 import hashlib
 from babel.dates import format_timedelta
+from encodings import base64_codec
 
 
 def getSystemDataDir(progdir):
@@ -232,6 +233,21 @@ def webVars(obj):
 def generateApiKey():
     return base64.b64encode(hashlib.sha256( str(random.getrandbits(256)) ).digest(), random.choice(['rA','aZ','gQ','hH','hG','aR','DD'])).rstrip('==')
 
+
+def dereferMe(url):
+    if common.SYSTEM.c.use_derefer_me:
+        return "http://base64.derefer.me/?%s" % base64.b64encode(url)
+    return url
+
+
+def dereferMeText(html):
+    if not common.SYSTEM.c.use_derefer_me:
+        return html
+    urls = re.findall(r'href=[\'"]?([^\'" >]+)', html)
+    for url in urls:
+        html = re.sub(r'href=([\'"]?)%s' % url, r'href=\1%s\1' % dereferMe(url), html)
+        #html = html.replace(url, dereferMe(url), 1)
+    return html
 
 releaseThresholdDelta = {1: timedelta(days=1),
                         2: timedelta(days=2),

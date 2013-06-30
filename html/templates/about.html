@@ -26,11 +26,15 @@ $(document).ready(function() {
     <img src="{{webRoot}}/img/xdm-logo.svg" style="width:70%;display: inline-block;" />
 </p>
 <div class="well" style="position:relative;">
-    <a href="https://github.com/lad1337/XDM"><img style="position: absolute; top: -1px; right: -2px; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_gray_6d6d6d.png" alt="Fork me on GitHub"></a>
+    <a href="{{'https://github.com/lad1337/XDM'|dereferMe}}"><img style="position: absolute; top: -1px; right: -2px; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_gray_6d6d6d.png" alt="Fork me on GitHub"></a>
     <div class="row-fluid">
         <h3>About</h3>
         <p>
         Thank you for using XDM: eXtendable Download Manager!
+        </p>
+        <p>
+            If you have any issues please dont refrain from creating an issue on <a href="{{'https://github.com/lad1337/XDM/issues'|dereferMe}}">Github</a><br/>
+            For small question try #XDM on irc.freenode.net.
         </p>
         <h4>Version: {{common.getVersionHuman()}}</h4>
         {% if common.UPDATER.info.needUpdate %}
@@ -164,7 +168,7 @@ $(document).ready(function() {
                 <tbody>
                     {%for task in common.SCHEDULER.getTasks()%}
                     <tr>
-                        <td>{{task.name}}</td>
+                        <td style="text-transform: capitalize;">{{task.name}}</td>
                         <td>{{task.getLoopDelay()}}s</td>
                         <td title="{{task.getLastRun()}}">{%if task.getLastRun()%}{{task.getLastRun()|relativeTime}}{%else%}never{%endif%}</td>
                         <td>{{task.getNextRunDatetime()|relativeTime}}</td>

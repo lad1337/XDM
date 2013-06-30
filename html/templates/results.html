@@ -10,12 +10,12 @@
     <div class="nav-pills" data-toggle="buttons-radio">
         {% if search_query %}
         <div class="btn-group">
-            <a href="#{{mt.instance}}-current" data-toggle="tab" class="btn btn-success active ">{{search_query}}</a>
+            <a href="#{{mt.instance}}-current" data-toggle="tab" class="btn btn-success active">{{search_query}}</a>
         </div>
         {% endif %}
         {% for oldRoot in mt.getSearches() %}
         <div class="input-append">
-            <a href="#{{mt.instance}}-{{oldRoot.id}}" data-toggle="tab" class="btn" data-id="{{oldRoot.id}}">{{oldRoot.term}}</a>
+            <a href="#{{mt.instance}}-{{oldRoot.id}}" data-toggle="tab" class="btn" data-id="{{oldRoot.id}}" data-instance="{{mt.instance}}">{{oldRoot.term}}</a>
             <a class="add-on btn" href="javascript:void(0)" onclick="ajaxDeleteElement('{{oldRoot.id}}', $(this).parent());return false;"><i class="icon-remove"></i></a>
         </div>
         {% endfor %}
@@ -56,6 +56,16 @@ jQuery.get( webRoot+'/ajax/search', data_{{mt.instance}}, function(res){
     $('.searchTabPaneInner', p).html(res)
     $('.progress', p).hide("slide", { direction: "up" }, 500)
     $('.searchTabPaneInner', p).show("slide", { direction: "up" }, 500)
+    try{
+        {{mt.instance}}_init();
+    }catch(error){
+        console.log(error)
+    }
+    
+}).error(function() {
+    var p = $('#{{mt.instance}}-current')
+    $('.progress', p).addClass('progress-danger').removeClass('active');
+    $('.progress span' ,p).html('Error during search please see the log.');
 });
 
 var parent_{{mt.instance}} = $('#{{mt.instance}}-current');
@@ -113,6 +123,13 @@ $(document).ready(function() {
                 $('.searchTabPaneInner', tab).html(res)
                 $('.progress', tab).hide("slide", { direction: "up" }, 500)
                 $('.searchTabPaneInner', tab).show("slide", { direction: "up" }, 500)
+                var fnName = t.data('instance')+"_init"
+                var fn = window[fnName];
+                console.log(fnName, window[fnName])
+                if(typeof fn === 'function') {
+                    fn();
+                }
+
             });
       })
 });

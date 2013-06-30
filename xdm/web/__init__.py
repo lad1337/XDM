@@ -46,6 +46,8 @@ env.filters['idSafe'] = helper.replace_some
 env.filters['statusLabelClass'] = helper.statusLabelClass
 env.filters['vars'] = helper.webVars
 env.filters['relativeTime'] = helper.reltime
+env.filters['dereferMe'] = helper.dereferMe
+env.filters['dereferMeText'] = helper.dereferMeText
 
 
 def stateCheck():
