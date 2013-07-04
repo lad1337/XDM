@@ -393,7 +393,7 @@ class Plugin(object):
         return int(self.version.split('.')[0])
     major_version = property(_get_major_version)
 
-    def createRepoJSON(self):
+    def createRepoJSON(self, notJSON=False):
         desc = "Please write a description for me in config_meta['plugin_desc']"
         if 'plugin_desc' in self.config_meta:
             desc = self.config_meta['plugin_desc']
@@ -412,6 +412,8 @@ class Plugin(object):
                                         ("download_url", "##enter the url to the zip file here !##")])
 
         out = {self.identifier: [data]}
+        if notJSON:
+            return out
         return json.dumps(out, indent=4, sort_keys=False)
 
 

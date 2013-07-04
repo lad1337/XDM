@@ -139,7 +139,7 @@ class RepoManager(object):
             self.setNewMessage('info', 'Recaching repos done. (please refresh page)')
         self.setNewMessage('info', 'Done!')
 
-    def install(self, identifier):
+    def install(self, identifier, doCleanUp=True):
         self._prepareIntall()
         self.install_messages = [('info', 'install.py -i %s' % identifier)]
         self.setNewMessage('info', 'Getting download URL')
@@ -208,14 +208,18 @@ class RepoManager(object):
 
         if install_result:
             self.setNewMessage('info', 'Installation successful')
-            self.setNewMessage('info', 'Recaching plugins...')
-            actionManager.executeAction('recachePlugins', ['RepoManager'])
-            self.setNewMessage('info', 'Recaching pugins done.')
-            self.setNewMessage('info', 'Recaching repos...')
-            self.cache()
-            self.setNewMessage('info', 'Recaching repos done. (please refresh page)')
+            if doCleanUp:
+                self.doCleanUp()
         else:
             self.setNewMessage('error', 'Installation unsuccessful')
+        self.setNewMessage('info', ' ')
+
+    def doCleanUp(self):
+        self.setNewMessage('info', 'Recaching plugins...')
+        actionManager.executeAction('recachePlugins', ['RepoManager'])
+        self.setNewMessage('info', 'Recaching pugins done.')
+        self.setNewMessage('info', 'Recaching repos...')
+        self.cache()
 
         self.setNewMessage('info', 'Done!')
 

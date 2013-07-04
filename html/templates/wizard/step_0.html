@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% set title = 'XDM setup wizard' -%}
+{% set active_page = 'wizard' -%}
+
+{% block headInject %}
+<!--  wizard stuff start -->
+<script src="{{webRoot}}/js/settings.js?v={{common.getVersionString()}}"></script>
+<script src="{{webRoot}}/js/managePlugins.js?v={{common.getVersionString()}}"></script>
+<link href="{{webRoot}}/css/wizard.css?v={{common.getVersionString()}}" rel="stylesheet">
+<script src="{{webRoot}}/js/wizard.js?v={{common.getVersionString()}}"></script>
+<!--  wizard stuff end -->
+{% endblock %}
+
+
+{% block content%}
+
+<div class="hero-unit">
+  <h1>Welcome to <img src="{{webRoot}}/img/xdm-logo.svg"/></h1>
+  <p>This setup wizard will help you configure basics and get plugins.</p>
+  <p>
+    <span>I want to know.</span>
+    <a href="{{webRoot}}/wizard/{{nextStep}}" class="btn btn-primary" data-next data-step="{{nextStep}}">Next <i class="icon-long-arrow-right"></i></a>
+  </p>
+  <p>
+    <span>I know what i am doing.</span>
+    <a href="{{webRoot}}/wizard/skip" class="btn btn-warning">Skip</a>
+  </p>
+</div>
+<div class="clearfix"></div>
+
+{% endblock %}
+

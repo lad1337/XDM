@@ -3,7 +3,7 @@
 *.log*
 images/*
 temp/*
-extraPlugins/*
+plugins/*
 *pylintOutput*
 server.crt
 server.key

@@ -42,7 +42,7 @@ class PluginManager(object):
     pylintScoreError = 4
     """send an error when score is bellow or equal this"""
 
-    def __init__(self, path='plugins'):
+    def __init__(self, path='corePlugins'):
         self._caching = threading.Semaphore()
         self.path = path
         self.clearCache()
@@ -81,11 +81,13 @@ class PluginManager(object):
         self._mt_cache = {}
         self._cache = {}
 
-    def cache(self, reloadModules=False, debug=False, systemOnly=False, clearUnsedConfgs=False, calculateScore=True):
-        self._cachePlugins(reloadModules, debug, systemOnly, clearUnsedConfgs, calculateScore)
+    def cache(self, reloadModules=False, debug=False, systemOnly=False, clearUnsedConfgs=False, calculateScore=True, extra_plugin_path=None):
+        if extra_plugin_path is None and common.SYSTEM is not None:
+            extra_plugin_path = common.SYSTEM.c.extra_plugin_path
+        self._cachePlugins(reloadModules, debug, systemOnly, clearUnsedConfgs, calculateScore, extra_plugin_path)
         self._checkElementFields()
 
-    def _cachePlugins(self, reloadModules=False, debug=False, systemOnly=False, clearUnsedConfgs=False, calculateScore=True):
+    def _cachePlugins(self, reloadModules=False, debug=False, systemOnly=False, clearUnsedConfgs=False, calculateScore=True, extra_plugin_path=None):
         """collects available plugins and saved it in self._cache
 
         systemOnly
@@ -112,8 +114,9 @@ class PluginManager(object):
             for cur_plugin_type in classes: #for plugin types
                 cur_plugin_type_name = cur_plugin_type.__name__
                 cur_classes = self.find_subclasses(cur_plugin_type, reloadModules, debug=debug)
-                if not systemOnly and os.path.isdir(common.SYSTEM.c.extra_plugin_path):
+                if extra_plugin_path is None and common.SYSTEM is not None:
                     extra_plugin_path = common.SYSTEM.c.extra_plugin_path
+                if not systemOnly and extra_plugin_path is not None and os.path.isdir(extra_plugin_path):
                     if debug:
                         print '###### extra path %s #######' % extra_plugin_path
                     cur_classes.extend(self.find_subclasses(cur_plugin_type, reloadModules, debug=debug, path=extra_plugin_path))
@@ -271,9 +274,9 @@ class PluginManager(object):
         return self._getAny(plugins.Notifier, i, returnAll)
     N = property(getNotifiers)
 
-    def getSystems(self, i='', returnAll=False):
+    def getSystem(self, i='', returnAll=False):
         return self._getAny(plugins.System, i, returnAll)
-    S = property(getSystems)
+    S = property(getSystem)
 
     def getMediaTypeManager(self, i='', returnAll=False):
         return self._getAny(plugins.MediaTypeManager, i, returnAll)
@@ -284,7 +287,7 @@ class PluginManager(object):
     MA = property(getMediaAdder)
 
     def getAll(self, returnAll=False, instance=""):
-        return self.getSystems(returnAll=returnAll, i=instance) +\
+        return self.getSystem(returnAll=returnAll, i=instance) +\
                 self.getIndexers(returnAll=returnAll, i=instance) +\
                 self.getDownloaders(returnAll=returnAll, i=instance) +\
                 self.getDownloadFilters(returnAll=returnAll, i=instance) +\
@@ -325,6 +328,7 @@ class PluginManager(object):
         @rtype: list
         @return: a list if classes that are subclasses of cls
         """
+
         externalPath = True
         if not path:
             path = self.path
@@ -343,7 +347,7 @@ class PluginManager(object):
                 module = __import__(modulename)
             except Exception as ex:# catch everything we dont know what kind of error a plugin might have
                 tb = traceback.format_exc()
-                log.error("Error during importing of %s \nError: %s\n\n%s" % (modulename, ex, tb), traceback=tb, exception=ex)
+                log.error("Error during importing of %s" % modulename, traceback=tb, exception=ex)
                 return
 
             #walk the dictionaries to get to the last one
@@ -388,7 +392,11 @@ class PluginManager(object):
                 if name.endswith(".py") and not name.startswith("__"):
                     cur_path = os.path.join(root, name)
                     if externalPath:
-                        modulename = cur_path.rsplit('.', 1)[0].replace('%s%s' % (common.SYSTEM.c.extra_plugin_path, os.sep), '').replace(os.sep, '.').replace('pluginRootLibarys.', '')
+                        if path.endswith(os.sep):
+                            removePath = path
+                        else:
+                            removePath = '%s%s' % (path, os.sep)
+                        modulename = cur_path.rsplit('.', 1)[0].replace(removePath, '').replace(os.sep, '.').replace('pluginRootLibarys.', '')
                     else:
                         modulename = cur_path.rsplit('.', 1)[0].replace(os.sep, '.').replace('pluginRootLibarys.', '')
                     look_for_subclass(modulename, cur_path)

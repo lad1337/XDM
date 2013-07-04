@@ -30,7 +30,7 @@ import locale
 
 # this class is special because it will be set to SYSTEM in the whole app
 class SystemConfig(System):
-    version = "0.21"
+    version = "0.22"
     _config = {'login_user': '',
                'login_password': '',
                'port': 8085,
@@ -58,7 +58,9 @@ class SystemConfig(System):
                'use_derefer_me': True
                }
 
-    _hidden_config = {'last_known_version': '0.4.18'} #this was introduced in 0.4.19. so in order to run migration for 0.4.19 we have a value of 0.4.18
+    _hidden_config = {'last_known_version': '0.4.18', #this was introduced in 0.4.19. so in order to run migration for 0.4.19 we have a value of 0.4.18
+                      'setup_wizard_step': 0 # starting point of wizard step, when the wizard only has like 5 steps but a later has an additional step 6 it should start at that step 
+                      }
     """this is the attr for hidden config it can be used just as the _config but is not visable to the user / settings page"""
 
     def __init__(self, instance='Default'):
@@ -72,7 +74,7 @@ class SystemConfig(System):
     def _defaut_mt_select(self):
         out = {}
         for mt in common.PM.MTM:
-            out[mt.identifier] = str(mt)
+            out[mt.identifier] = unicode(mt)
         return out
 
     def _setLocale(self, setting):

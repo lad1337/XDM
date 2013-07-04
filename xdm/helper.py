@@ -249,6 +249,16 @@ def dereferMeText(html):
         #html = html.replace(url, dereferMe(url), 1)
     return html
 
+
+def guiGlobals(self):
+    return {'mtms': common.PM.MTM,
+            'system': common.SYSTEM,
+            'PM': common.PM,
+            'common': common,
+            'messages': common.MM.getMessages(),
+            'webRoot': common.SYSTEM.c.webRoot}
+
+
 releaseThresholdDelta = {1: timedelta(days=1),
                         2: timedelta(days=2),
                         3: timedelta(days=7), # a week

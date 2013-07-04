@@ -60,7 +60,7 @@ from xdm import common
 from xdm import logger # need this to set the log level
 from xdm import tasks
 from xdm.logger import *
-from xdm.web import WebRoot, stateCheck
+from xdm.web import WebRoot
 from xdm.helper import launchBrowser, daemonize
 
 
@@ -213,6 +213,7 @@ class App():
                 '/favicon.ico': {'tools.staticfile.on': True, 'tools.staticfile.filename': os.path.join(images_path, 'favicon.ico')}
                }
         conf.update(self.pluginResPaths)
+        common.PUBLIC_PATHS = conf.keys()
 
         if common.SYSTEM.c.webRoot: # if this is always set even when False then https does not work
             options_dict = {'global': {'tools.proxy.on': True}}
