@@ -45,6 +45,8 @@ class RepoManager(object):
         self.last_cache = None
         self.updateable_plugins = {}
         self.install_messages = []
+        self.lastDownload = ''
+        self._read_messages = []
 
     def cache(self):
         self.caching = True
@@ -99,7 +101,6 @@ class RepoManager(object):
 
     def _prepareIntall(self):
         self._read_messages = []
-        helper.cleanTempFolder()
 
     def deinstall(self, identifier):
         self._read_messages = []
@@ -141,14 +142,15 @@ class RepoManager(object):
 
     def install(self, identifier, doCleanUp=True):
         self._prepareIntall()
+
         self.install_messages = [('info', 'install.py -i %s' % identifier)]
         self.setNewMessage('info', 'Getting download URL')
 
         plugin_to_update = None
         for repo in self.repos:
-            for repo_plugin in repo.getPlugins():
-                if repo_plugin.identifier == identifier:
-                    plugin_to_update = repo_plugin
+            for _repo_plugin in repo.getPlugins():
+                if _repo_plugin.identifier == identifier:
+                    plugin_to_update = _repo_plugin
                     break
 
         if plugin_to_update is None:
@@ -187,7 +189,7 @@ class RepoManager(object):
             self.setNewMessage('info', 'to %s' % new_path)
             os.rename(old_plugin_path, new_path)
 
-        if repo_plugin.format == 'zip':
+        if plugin_to_update.format == 'zip':
             downloader = ZipPluginInstaller()
         else:
             self.setNewMessage('error', 'Format %s is not supported. sorry' % plugin_to_update.format)
@@ -197,7 +199,15 @@ class RepoManager(object):
         install_path = common.SYSTEM.c.extra_plugin_path
 
         self.setNewMessage('info', 'Installing into %s' % install_path)
-        self.setNewMessage('info', 'Starting download. please wait...')
+
+        if self.lastDownload != plugin_to_update.download_url:
+            log('old: "%s" is not new: "%s", cleaning temp folder (%s) downloading new url and setting old to nothing.' % (self.lastDownload, plugin_to_update.download_url, xdm.TEMPPATH))
+            helper.cleanTempFolder()
+            self.lastDownload = ''
+            self.setNewMessage('info', 'Downloading, please wait...')
+        else:
+            self.setNewMessage('info', 'Downloaded this file already.')
+
         install_result = False
         try:
             install_result = downloader.install(self, plugin_to_update, install_path)
@@ -220,7 +230,7 @@ class RepoManager(object):
         self.setNewMessage('info', 'Recaching pugins done.')
         self.setNewMessage('info', 'Recaching repos...')
         self.cache()
-
+        self.lastDownload = ''
         self.setNewMessage('info', 'Done!')
 
     def getLastInstallMessages(self):
@@ -232,6 +242,7 @@ class RepoManager(object):
         return out
 
     def setNewMessage(self, lvl, msg):
+        log("%s: %s" % (lvl, msg))
         self.install_messages.append((lvl, msg))
 
     def setFolderUpAsModule(self, path):
@@ -254,19 +265,22 @@ class ZipPluginInstaller():
         return not self._resolved(os.path.join(base, path)).startswith(base)
 
     def install(self, manager, repo_plugin, install_path):
-        r = requests.get(repo_plugin.download_url)
-        manager.setNewMessage('info', 'Download done.')
-        z = zipfile.ZipFile(StringIO.StringIO(r.content))
+        if manager.lastDownload != repo_plugin.download_url:
+            r = requests.get(repo_plugin.download_url)
+            manager.lastDownload = repo_plugin.download_url
+            manager.setNewMessage('info', 'Download done.')
+            z = zipfile.ZipFile(StringIO.StringIO(r.content))
 
-        base = self._resolved(".")
-        for memberPath in z.namelist():
-            if self._badpath(memberPath, base):
-                manager.setNewMessage('error', 'Security error. Path of file is absolute or contains ".." !')
-                manager.setNewMessage('error', 'Please report this repository !')
-                return False
+            base = self._resolved(".")
+            for memberPath in z.namelist():
+                if self._badpath(memberPath, base):
+                    manager.setNewMessage('error', 'Security error. Path of file is absolute or contains ".." !')
+                    manager.setNewMessage('error', 'Please report this repository !')
+                    return False
+            manager.setNewMessage('info', 'Extrating...')
+            z.extractall(xdm.TEMPPATH)
+            manager.setNewMessage('info', 'Extration done.')
 
-        z.extractall(xdm.TEMPPATH)
-        manager.setNewMessage('info', 'Extration done.')
         plugin_folder = ''
         for root, dirs, files in os.walk(xdm.TEMPPATH):
             for cur_dir in dirs:
@@ -279,7 +293,7 @@ class ZipPluginInstaller():
                 break
         else:
             manager.setNewMessage('error', 'Could not find the extracted plugin')
-            manager.setNewMessage('error', '"name" field must match folder name!')
+            manager.setNewMessage('error', 'name "%s" field must match folder name, no folder with that name found' % repo_plugin.name)
             return False
 
         manager.setNewMessage('info', 'Copying files to:')

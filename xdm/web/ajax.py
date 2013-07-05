@@ -158,13 +158,17 @@ class AjaxCalls:
 
     @cherrypy.expose
     def installPlugins(self, **kwargs):
+        _keys = sorted([int(x) for x in kwargs.keys()])
+        _identifiers = [kwargs[str(key)] for key in _keys]
+
+        log("Batch plugin install identifiers: %s" % _identifiers)
 
         def installAllPlugins(identifiers):
-            for index, identifier in identifiers.items():
+            for identifier in identifiers:
                 common.REPOMANAGER.install(identifier, doCleanUp=False)
             common.REPOMANAGER.doCleanUp()
 
-        t = tasks.TaskThread(installAllPlugins, kwargs)
+        t = tasks.TaskThread(installAllPlugins, _identifiers)
         t.start()
         return '<ul id="install-shell" class="shell"></ul>'
 
