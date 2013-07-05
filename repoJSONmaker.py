@@ -62,15 +62,19 @@ jsons = {
 common.PM.cache(extra_plugin_path=options.path)
 
 for plugin in common.PM.getAll(returnAll=True):
-    print "checking %s" % plugin
-    
+    #print "checking %s" % plugin
     if not plugin.get_plugin_isntall_path().startswith(options.path):
-        print "%s not in the path you want to use plugin path:%s" % (plugin, plugin.get_plugin_isntall_path())
+        #print "%s not in the path you want to use plugin path:%s" % (plugin, plugin.get_plugin_isntall_path())
         continue
 
     if not plugin.identifier:
-        print 'sorry but %s has no identifier' % plugin
+        print 'WARNING: %s has no identifier' % plugin
         continue
+
+    if os.path.basename(plugin.get_plugin_isntall_path()) != plugin.screenName:
+        print 'WARNING: %s should be in a folder named "%s" not in "%s"' % (plugin, plugin.screenName, os.path.basename(plugin.get_plugin_isntall_path()))
+        continue
+
     info = plugin.createRepoJSON(True)[plugin.identifier]
     info[0]['download_url'] = options.download_url
     jsons['plugins'][plugin.identifier] = info
