@@ -428,7 +428,7 @@ function messageScrobbler(functionUrl, interval, onErrorClass, onErrorMessage){
         console.log($('#install-shell li:last-child').text(), onErrorMessage)
         var oldText = $('#install-shell li:last-child').text();
         if(oldText.substring(0, onErrorMessage.length) === onErrorMessage){
-            $('#install-shell li:last-child').html( '<span class="'+onErrorClass+'">'+ oldText + ".</span>")
+            $('#install-shell li:last-child').html( '<span class="'+onErrorClass+'">'+ oldText + "&shy;.</span>")
         }else{
             $('#install-shell').append('<li><span class="'+onErrorClass+'">'+onErrorMessage+'</span></li>')
         }

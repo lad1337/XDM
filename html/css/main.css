@@ -35,6 +35,11 @@ body{
     background: url(../img/shattered.png) fixed;
 }
 
+
+body.no-tooltip .tooltip{
+    display: none !important;
+}
+
 .navbar .nav a{
     /*font-family: TypeOneRegular;*/x
 }
