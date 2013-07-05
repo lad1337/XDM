@@ -61,8 +61,11 @@ jsons = {
 
 common.PM.cache(extra_plugin_path=options.path)
 
-for plugin in common.PM.getAll():
+for plugin in common.PM.getAll(returnAll=True):
+    print "checking %s" % plugin
+    
     if not plugin.get_plugin_isntall_path().startswith(options.path):
+        print "%s not in the path you want to use plugin path:%s" % (plugin, plugin.get_plugin_isntall_path())
         continue
 
     if not plugin.identifier:
