@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% set title = 'XDM setup wizard' -%}
+{% set active_page = 'settings' -%}
+
+{% block headInject %}
+<!--  wizard stuff start -->
+<script src="{{webRoot}}/js/settings.js?v={{common.getVersionString()}}"></script>
+<script src="{{webRoot}}/js/managePlugins.js?v={{common.getVersionString()}}"></script>
+<link href="{{webRoot}}/css/wizard.css?v={{common.getVersionString()}}" rel="stylesheet">
+<script src="{{webRoot}}/js/wizard.js?v={{common.getVersionString()}}"></script>
+<!--  wizard stuff end -->
+{% endblock %}
+
+
+{% block content%}
+<div class="wizard-main well">
+    <h1>Plugin settings</h1>
+    <div class="alert alert-success">
+        You should configure your Indexer, Providers and Downloader(s) now, but you can always do this later on the Settings page.<br>
+    </div>
+    
+    <div id="settings-in-here">
+    </div>
+    
+    <div class="alert alert-info">
+        <dl class="dl-horizontal">
+            <dt>Hint 1</dt>
+            <dd>All settings are saved at once, no need to to click save more often (in theory).</dd>
+            <dt>Hint 2</dt>
+            <dd>Most plugins support multiple <em>Instances</em>, you can use one plugin with multiple configurations.</dd>
+            <dt>Hint 3</dt>
+            <dd>Drag and drop plugins in the list on the left to define the order they are run.</dd>
+        </dl>
+    </div>
+</div>
+
+
+<p class="clearfix text-center">
+    <a href="{{webRoot}}/wizard/{{prevStep}}" class="btn btn-primary pull-left" data-prev data-step="{{prevStep}}">
+      <i class="icon-long-arrow-left"></i> Previous
+    </a>
+    
+    <span>Step {{step}}/{{maxStep}}</span>
+    
+    <a href="{{webRoot}}/wizard/{{nextStep}}" class="btn btn-primary pull-right" data-next data-step="{{nextStep}}">
+      Next <i class="icon-long-arrow-right"></i>
+    </a>
+    <div class="clearfix"></div>
+</p>
+
+{% endblock %}

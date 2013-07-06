@@ -140,30 +140,33 @@
                 </div>                
             </div>
         
+            <div id="content">
             {% block content %}
 
             {% endblock %}
+            </div>
 
             <footer>
-                {% block footer%}
-                <a href="{{webRoot}}/about">About</a> - 
-                <a href="javascript:void(0)" onClick="rebootModal();return false;">Reboot</a> - 
-                <a href="javascript:void(0)" onClick="shutdownModal();return false;" >Shutdown</a> -
-                <a href="{{'https://github.com/lad1337/XDM'|dereferMe}}"><i class="icon-github-sign"></i></a> - 
-                <a href="{{'https://twitter.com/XDM_APP'|dereferMe}}"><i class="icon-twitter-sign"></i></a>
-                {% if system.c.show_feed%}
-                
-                 - <i class="icon-rss-sign"></i>
+                <!-- if you wonder why there are so many empy comments: they are used to have no whitespace between the a and span but still have a readable source code. idea is from http://stackoverflow.com/a/1097063/729059 -->
+                {%- block footer %}
+                <a href="{{webRoot}}/about">About</a><span class="divider">-</span><!--
+             --><a href="javascript:void(0)" class="in-wizard" onClick="rebootModal();return false;">Reboot</a><span class="divider in-wizard">-</span><!--
+             --><a href="javascript:void(0)" class="in-wizard" onClick="shutdownModal();return false;" >Shutdown</a><span class="divider">-</span><!--
+             --><a href="{{'https://github.com/lad1337/XDM'|dereferMe}}"><i class="icon-github-sign"></i></a><span class="divider">-</span><!--
+             --><a href="{{'https://twitter.com/XDM_APP'|dereferMe}}"><i class="icon-twitter-sign"></i></a>
+                {%- if system.c.show_feed -%}<!--
+             --><span class="divider">-</span><!--
+             --><i class="icon-rss-sign"></i>
                 <div id="newsFeed">
-                    {%for news in common.NM.news %}
+                    {%- for news in common.NM.news %}
                         <div class="news {{news.tags|join(' ')}}"><a href="{{news.link|dereferMe}}">{{news.message}}</a></div>
-                    {% endfor %}
+                    {%- endfor %}
                 </div>
-                {% endif %}
+                {%- endif -%}
                 <a href="{{'https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=PTZ63QGTRPH5Y'|dereferMe}}">
                 <img src="{{webRoot}}/img/btn_donate_SM.gif"/>
                 </a>
-                {%endblock%}
+                {%- endblock %}
             </footer>
         </div>    
         {% block js%}

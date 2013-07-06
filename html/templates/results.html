@@ -125,7 +125,6 @@ $(document).ready(function() {
                 $('.searchTabPaneInner', tab).show("slide", { direction: "up" }, 500)
                 var fnName = t.data('instance')+"_init"
                 var fn = window[fnName];
-                console.log(fnName, window[fnName])
                 if(typeof fn === 'function') {
                     fn();
                 }

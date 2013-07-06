@@ -348,7 +348,7 @@ def buildOSX(buildParams):
                   'xdm',
                   'lib',
                   'rootLibs',
-                  'plugins',
+                  'corePlugins',
                   'i18n']
     _NSHumanReadableCopyright = "(c) %s Dennis Lutter\nBuild on: %s %s\nBased on: %s\nPython used & incl: %s" % (buildParams['thisYearString'],
                                                                                                                     buildParams['osName'],

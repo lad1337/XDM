@@ -393,7 +393,7 @@ function messageScrobbler(functionUrl, interval, onErrorClass, onErrorMessage){
         onErrorMessage = 'Connection to Server Lost';
     
     $.getJSON(webRoot+'/ajax/'+functionUrl, {}, function(res){
-        console.log(res)
+        //console.log(res)
         var lastMessage = ''
         $.each(res['data'],function(index, messageTuple){
             if(firstMessage){
@@ -405,8 +405,8 @@ function messageScrobbler(functionUrl, interval, onErrorClass, onErrorMessage){
             $('#install-shell').parent().scrollTop(900000)
             firstMessage = false;
             lastMessage = messageTuple[1]
-
         })
+        
         if(lastMessage != 'Done!' && !interval){
             window.setTimeout(function(){messageScrobbler(functionUrl, interval, onErrorClass, onErrorMessage)}, 500);
         }else if(lastMessage == 'Done!'){
@@ -428,7 +428,7 @@ function messageScrobbler(functionUrl, interval, onErrorClass, onErrorMessage){
         console.log($('#install-shell li:last-child').text(), onErrorMessage)
         var oldText = $('#install-shell li:last-child').text();
         if(oldText.substring(0, onErrorMessage.length) === onErrorMessage){
-            $('#install-shell li:last-child').html( '<span class="'+onErrorClass+'">'+ oldText + ".</span>")
+            $('#install-shell li:last-child').html( '<span class="'+onErrorClass+'">'+ oldText + "&shy;.</span>")
         }else{
             $('#install-shell').append('<li><span class="'+onErrorClass+'">'+onErrorMessage+'</span></li>')
         }

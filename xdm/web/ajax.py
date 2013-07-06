@@ -157,6 +157,22 @@ class AjaxCalls:
         return '<ul id="install-shell" class="shell"></ul>'
 
     @cherrypy.expose
+    def installPlugins(self, **kwargs):
+        _keys = sorted([int(x) for x in kwargs.keys()])
+        _identifiers = [kwargs[str(key)] for key in _keys]
+
+        log("Batch plugin install identifiers: %s" % _identifiers)
+
+        def installAllPlugins(identifiers):
+            for identifier in identifiers:
+                common.REPOMANAGER.install(identifier, doCleanUp=False)
+            common.REPOMANAGER.doCleanUp()
+
+        t = tasks.TaskThread(installAllPlugins, _identifiers)
+        t.start()
+        return '<ul id="install-shell" class="shell"></ul>'
+
+    @cherrypy.expose
     def deinstallPlugin(self, identifier=''):
         t = tasks.TaskThread(tasks.deinstallPlugin, identifier)
         t.start()
@@ -310,6 +326,6 @@ class AjaxCalls:
                 final_actions[cur_action].append(cur_class_name)
         for action, plugins_that_called_it  in final_actions.items():
             actionManager.executeAction(action, plugins_that_called_it)
-        common.SYSTEM = common.PM.getSystems('Default')[0] # yeah SYSTEM is a plugin
+        common.SYSTEM = common.PM.getSystem('Default')[0] # yeah SYSTEM is a plugin
         return json.dumps({'result': True, 'data': {}, 'msg': 'Configuration saved.'})
 
