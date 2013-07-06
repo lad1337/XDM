@@ -262,7 +262,10 @@ class Plugin(object):
         return os.path.abspath(__file__)
 
     def get_plugin_isntall_path(self):
-        return common.PM.path_cache[self.__class__.__name__]
+        if self.identifier:
+            return common.PM.path_cache[self.identifier]
+        else:
+            return common.PM.path_cache[self.__class__.__name__]
 
     def _create_media_type_configs(self):
         if self._type in (MediaTypeManager.__name__, System.__name__):

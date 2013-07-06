@@ -169,8 +169,12 @@ class PluginManager(object):
                     else:
                         final_instances = [cur_class.identifier.replace('.', '_')]
                     self._cache[cur_plugin_type][cur_class] = final_instances
+                    #TODO: have a look at this ... it is used in bases again ... i dont like this switch
                     if cur_class.identifier:
-                        self.path_cache[cur_class.identifier] = {'path': os.path.dirname(cur_path), 'version': cur_class.version}
+                        path_cache_key = cur_class.identifier
+                    else:
+                        path_cache_key = cur_class.__name__
+                    self.path_cache[path_cache_key] = {'path': os.path.dirname(cur_path), 'version': cur_class.version}
                     log("I found %s instances for %s(v%s): %s" % (len(final_instances), cur_class.__name__, cur_class.version, self._cache[cur_plugin_type][cur_class]))
             #log("Final plugin cache %s" % self._cache)
 

@@ -63,7 +63,8 @@ common.PM.cache(extra_plugin_path=options.path)
 
 for plugin in common.PM.getAll(returnAll=True):
     #print "checking %s" % plugin
-    if not plugin.get_plugin_isntall_path().startswith(options.path):
+    pPath = plugin.get_plugin_isntall_path()['path']
+    if not pPath.startswith(options.path):
         #print "%s not in the path you want to use plugin path:%s" % (plugin, plugin.get_plugin_isntall_path())
         continue
 
@@ -71,8 +72,8 @@ for plugin in common.PM.getAll(returnAll=True):
         print 'WARNING: %s has no identifier' % plugin
         continue
 
-    if os.path.basename(plugin.get_plugin_isntall_path()) != plugin.screenName:
-        print 'WARNING: %s should be in a folder named "%s" not in "%s"' % (plugin, plugin.screenName, os.path.basename(plugin.get_plugin_isntall_path()))
+    if os.path.basename(pPath) != plugin.screenName:
+        print 'WARNING: %s should be in a folder named "%s" not in "%s"' % (plugin, plugin.screenName, os.path.basename(pPath))
         continue
 
     info = plugin.createRepoJSON(True)[plugin.identifier]
