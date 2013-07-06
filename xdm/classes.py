@@ -188,7 +188,10 @@ class MediaType(BaseModel):
     identifier = CharField()
 
     def _getMyManager(self):
-        return common.PM.getMediaTypeManager(self.identifier)[0]
+        try:
+            return common.PM.getMediaTypeManager(self.identifier)[0]
+        except IndexError:
+            raise LookupError('No MTM with the identifier %s found.' % self.identifier)
     manager = property(_getMyManager)
 
     def __str__(self):
@@ -572,6 +575,12 @@ class Element(BaseModel):
     def delete_instance(self, silent=False):
         if not silent:
             log("Deleting instance: %s(%s)" % (self, self.id))
+        try:
+            self.manager
+        except LookupError:
+            log('Element id: %s has no manager not deleting, it would fail anyway. Reinstalling MediaTypeManager %s might help.' % (self.id, self.mediaType.identifier))
+            return
+
         self.deleteImages()
         self.deleteFields()
         self.deleteDownloads()
