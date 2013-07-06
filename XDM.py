@@ -253,8 +253,6 @@ class App():
         cherrypy.log.screen = False
         cherrypy.server.start()
         log.info("XDM web server running")
-        common.SM.setNewMessage("Up and running.")
-        common.SM.setNewMessage("Done!")
         cherrypy.server.wait()
 
         # from couchpotato
@@ -292,6 +290,9 @@ def main():
 
     common.addState(2)
     common.removeState(0)
+
+    common.SM.setNewMessage("Up and running.")
+    common.SM.setNewMessage("Done!")
 
     try:
         while True:

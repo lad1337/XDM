@@ -78,6 +78,9 @@ def stateCheck():
         if '_pjax' in cherrypy.request.params:
             del cherrypy.request.params['_pjax']
         return False
+    elif xdm.xdm_states[3] in xdm.common.STATES and cherrypy.request.path_info.startswith('/ajax'):
+        # allow ajax calls during update
+        return False
     else: #webserver is running but we do something that is so important that we dont wan the user to inteact witht he gui
         messages = ""
         for msg in common.SM.system_messages:

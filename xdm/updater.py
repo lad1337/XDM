@@ -63,14 +63,14 @@ class CoreUpdater(object):
 
     def migrate(self):
         xdm.common.addState(1)
-        common.SM.reset()
+        #common.SM.reset()
         try:
             self._migrate()
         except:
             log.error("Error during migration")
             log.info("Shutting down because migration did not work sorry")
             actionManager.executeAction('shutdown', 'failed migration')
-        common.SM.reset()
+        #common.SM.reset()
         xdm.common.removeState(1)
 
     def _migrate(self):

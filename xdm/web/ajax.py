@@ -214,10 +214,10 @@ class AjaxCalls:
 
     @cherrypy.expose
     def coreUpdate(self):
-        t = tasks.TaskThread(common.UPDATER.update)
-        t.start()
         common.SM.reset()
         common.SM.setNewMessage('update.py -t NOW')
+        t = tasks.TaskThread(common.UPDATER.update)
+        t.start()
         return '<ul id="install-shell" class="shell"></ul>'
 
     @cherrypy.expose
