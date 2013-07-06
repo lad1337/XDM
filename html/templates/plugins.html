@@ -58,7 +58,7 @@
                 <td>{{plugin.getMyScore()|round(2)}}</td>
                 <td>{%if plugin.testMe()%}<i class="icon-check"></i>{%else%}<i class="icon-warning-sign"></i>{%endif%}</td>
                 <td style="width: 120px;">
-                    {%if common.SYSTEM.c.extra_plugin_path in plugin.get_plugin_isntall_path()%}
+                    {%if common.SYSTEM.c.extra_plugin_path in plugin.get_plugin_isntall_path()['path']%}
                     <a class="btn btn-danger btn-block" href="javascript:void(0)" onClick="deinstallModal(this);" data-identifier="{{plugin.identifier}}" data-type="{{plugin.type}}""><i class="icon-trash"></i>Deinstall</a>
                     {% set new_version = common.REPOMANAGER.hasUpdate(plugin.identifier)%}
                     {%if new_version%}
