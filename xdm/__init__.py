@@ -1,3 +1,24 @@
+# Author: Dennis Lutter <lad1337@gmail.com>
+# URL: https://github.com/lad1337/XDM
+#
+# This file is part of XDM: eXtentable Download Manager.
+#
+#XDM: eXtentable Download Manager. Plugin based media collection manager.
+#Copyright (C) 2013  Dennis Lutter
+#
+#XDM is free software: you can redistribute it and/or modify
+#it under the terms of the GNU General Public License as published by
+#the Free Software Foundation, either version 3 of the License, or
+#(at your option) any later version.
+#
+#XDM is distributed in the hope that it will be useful,
+#but WITHOUT ANY WARRANTY; without even the implied warranty of
+#MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#GNU General Public License for more details.
+#
+#You should have received a copy of the GNU General Public License
+#along with this program.  If not, see http://www.gnu.org/licenses/.
+
 import version
 from lib.peewee import *
 from os.path import join
@@ -24,7 +45,7 @@ TEMPDIR = 'temp'
 TEMPPATH = ''
 TEMPPATH_RELATIVE = ''
 
-PLUGININSTALLDIR = 'extraPlugins'
+PLUGININSTALLDIR = 'plugins'
 PLUGININSTALLPATH = ''
 PLUGININSTALLPATH_RELATIVE = ''
 
@@ -50,7 +71,8 @@ xdm_states = {0: 'booting',
               3: 'updating',
               4: 'plugin_install',
               5: 'searching',
-              6: 'cleaning'}
+              6: 'cleaning',
+              7: 'wizard'}
 
 
 class Common(object):
@@ -80,7 +102,13 @@ class Common(object):
     IGNORE = None # ignore this item
     TEMP = None # ignore this item
 
-    APIKEY = ""
+    def _getApiKey(self):
+        return self.SYSTEM.c.api_key
+
+    def _setApiKey(self, new_key):
+        self.SYSTEM.c.api_key = new_key
+
+    APIKEY = property(_getApiKey, _setApiKey)
 
     STATES = [xdm_states[0]]
 
@@ -95,6 +123,9 @@ class Common(object):
     DONTSTOPPP = 4
 
     RUNPROFILER = False
+
+    PUBLIC_PATHS = []
+    CHERRYPY_APP = None
 
     MM = MessageManager()
     SM = SystemMessageManager()

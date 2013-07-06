@@ -35,6 +35,11 @@ body{
     background: url(../img/shattered.png) fixed;
 }
 
+
+body.no-tooltip .tooltip{
+    display: none !important;
+}
+
 .navbar .nav a{
     /*font-family: TypeOneRegular;*/x
 }
@@ -126,7 +131,9 @@ footer p{
 footer a:hover{
     text-decoration: underline;
 }
-
+footer .divider{
+    padding: 0 0.3em;
+}
 .hint{
     color: #555;
     text-shadow: -1px -1px white, 1px 1px #333;
@@ -428,6 +435,13 @@ td.download-size,
 .progress.progress-download {
     height: 6px;
 }
+
+.input-append .btn:first-child {
+    -webkit-border-radius: 4px 0 0 4px;
+    -moz-border-radius: 4px 0 0 4px;
+    border-radius: 4px 0 0 4px;
+}
+
 
 @media only screen and (max-width: 767px) {
     #container {

@@ -60,7 +60,7 @@ from xdm import common
 from xdm import logger # need this to set the log level
 from xdm import tasks
 from xdm.logger import *
-from xdm.web import WebRoot, stateCheck
+from xdm.web import WebRoot
 from xdm.helper import launchBrowser, daemonize
 
 
@@ -157,10 +157,6 @@ class App():
         init.schedule()
         init.runTasks()
 
-        self.pluginResPaths = {}
-        for pType, path in common.PM.path_cache.items():
-            self.pluginResPaths['/' + pType] = {'tools.staticdir.on': True, 'tools.staticdir.dir': os.path.abspath(path)}
-
         # Set port
         if options.port:
             print "------------------- Port manual set to " + options.port + " -------------------"
@@ -212,7 +208,7 @@ class App():
                 '/img': {'tools.staticdir.on': True, 'tools.staticdir.dir': images_path},
                 '/favicon.ico': {'tools.staticfile.on': True, 'tools.staticfile.filename': os.path.join(images_path, 'favicon.ico')}
                }
-        conf.update(self.pluginResPaths)
+        common.PUBLIC_PATHS = conf.keys()
 
         if common.SYSTEM.c.webRoot: # if this is always set even when False then https does not work
             options_dict = {'global': {'tools.proxy.on': True}}
@@ -250,7 +246,8 @@ class App():
         else:
             log.info("Starting the XDM http web server")
 
-        cherrypy.tree.mount(WebRoot(app_path), config=conf)
+        common.CHERRYPY_APP = cherrypy.tree.mount(WebRoot(app_path), config=conf)
+        helper.updateCherrypyPluginDirs()
         cherrypy.server.socket_host = common.SYSTEM.c.socket_host
 
         cherrypy.log.screen = False

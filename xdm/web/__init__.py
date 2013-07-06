@@ -27,9 +27,12 @@ import sys
 import platform
 import cherrypy
 import os
+import re
 import datetime
 import xdm
 from fileBrowser import WebFileBrowser
+from wizard import Wizard
+
 from ajax import AjaxCalls
 from jinja2 import Environment, FileSystemLoader
 from xdm.classes import *
@@ -37,7 +40,6 @@ from xdm import common, tasks, helper
 from xdm.logger import *
 from xdm import actionManager
 from xdm.api import WebApi
-import re
 
 
 env = Environment(loader=FileSystemLoader(os.path.join('html', 'templates')), extensions=['jinja2.ext.i18n'])
@@ -51,13 +53,32 @@ env.filters['dereferMeText'] = helper.dereferMeText
 
 
 def stateCheck():
+    if xdm.xdm_states[7] in xdm.common.STATES:
+        r = cherrypy.request
+        if not r.path_info.startswith('/wizard'):
+            for path in common.PUBLIC_PATHS + ['/ajax']:
+                if r.path_info.startswith(path) and len(r.path_info) > 1:
+                    #print 'path looks fine %s' % r.path_info
+                    break
+            else:
+                #print "redirecting %s to %s" % (r.path_info, '%s%s' % (common.SYSTEM.c.webRoot, '/wizard/%s' % common.SYSTEM.hc.setup_wizard_step))
+                raise cherrypy.HTTPRedirect('%s%s' % (common.SYSTEM.c.webRoot, '/wizard/%s' % common.SYSTEM.hc.setup_wizard_step))
+
     if not (xdm.xdm_states[0] in xdm.common.STATES or\
             xdm.xdm_states[1] in xdm.common.STATES or\
             xdm.xdm_states[6] in xdm.common.STATES or\
             xdm.xdm_states[3] in xdm.common.STATES):
         # allow normal handler to run
+        # now check if we need tu run the wizard an redirect to it
+        if xdm.xdm_states[7] not in xdm.common.STATES and common.SYSTEM.hc.setup_wizard_step < Wizard.steps:
+            xdm.common.addState(7)
+            raise cherrypy.HTTPRedirect('%s%s' % (common.SYSTEM.c.webRoot, '/wizard/%s' % common.SYSTEM.hc.setup_wizard_step))
+
+        # i dont want to rewrite every header of a function just to allow pjax 
+        if '_pjax' in cherrypy.request.params:
+            del cherrypy.request.params['_pjax']
         return False
-    else: #webserver is running but we do somehting that is so important that we dont wan the user to inteact witht he gui
+    else: #webserver is running but we do something that is so important that we dont wan the user to inteact witht he gui
         messages = ""
         for msg in common.SM.system_messages:
             messages += u'%s<br>' % msg[1]
@@ -80,17 +101,10 @@ class WebRoot:
     def __init__(self, app_path):
         WebRoot.appPath = app_path
 
-    def _globals(self):
-        return {'mtms': common.PM.MTM,
-                's': Status.select(),
-                'system': common.SYSTEM,
-                'PM': common.PM,
-                'common': common,
-                'messages': common.MM.getMessages(),
-                'webRoot': common.SYSTEM.c.webRoot}
-
+    _globals = helper.guiGlobals
     browser = WebFileBrowser()
     ajax = AjaxCalls(env)
+    wizard = Wizard(env)
     api = WebApi()
 
     def redirect(self, abspath, *args, **KWs):
@@ -134,9 +148,15 @@ class WebRoot:
         return template.render(**self._globals())
 
     @cherrypy.expose
-    def settings(self):
+    def settings(self, **kwargs):
+        plugins = []
+        if kwargs:
+            for index, pluginClassGetter in kwargs.items():
+                plugins.extend(getattr(common.PM, pluginClassGetter)(returnAll=True))
+        else:
+            plugins = common.PM.getAll(True)
         template = env.get_template('settings.html')
-        return template.render(plugins=common.PM.getAll(True), **self._globals())
+        return template.render(plugins=plugins, **self._globals())
 
     @cherrypy.expose
     def forcesearch(self, id):
@@ -275,6 +295,6 @@ class WebRoot:
                 final_actions[cur_action].append(cur_class_name)
         for action, plugins_that_called_it  in final_actions.items():
             actionManager.executeAction(action, plugins_that_called_it)
-        common.SYSTEM = common.PM.getSystems('Default')[0] # yeah SYSTEM is a plugin
+        common.SYSTEM = common.PM.getSystem('Default')[0] # yeah SYSTEM is a plugin
         return json.dumps({'result': True, 'data': {}, 'msg': 'Configuration saved.'})
 

@@ -88,7 +88,7 @@ def postDB():
     common.PM = PluginManager()
     common.PM.cache(debug=common.STARTOPTIONS.pluginImportDebug, systemOnly=True,)
     # load system config !
-    common.SYSTEM = common.PM.getSystems('Default')[0] # yeah SYSTEM is a plugin
+    common.SYSTEM = common.PM.getSystem('Default')[0] # yeah SYSTEM is a plugin
     # system config loaded
 
     # init i18n
@@ -113,7 +113,7 @@ def postDB():
         log('Adding eyternal plugin path %s to the python path' % common.SYSTEM.c.extra_plugin_path)
         sys.path.append(common.SYSTEM.c.extra_plugin_path)
     common.PM.cache(debug=common.STARTOPTIONS.pluginImportDebug)
-    common.SYSTEM = common.PM.getSystems('Default')[0] # yeah SYSTEM is a plugin
+    common.SYSTEM = common.PM.getSystem('Default')[0] # yeah SYSTEM is a plugin
 
     # generate api key if api is aktive
     if common.SYSTEM.c.api_active and not common.SYSTEM.c.api_key:

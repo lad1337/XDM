@@ -39,7 +39,6 @@ Libraries in use
 - [gitdb](https://pypi.python.org/pypi/gitdb): Git Object Database
 - [async](https://github.com/gitpython-developers/async): Distribute interdependent tasks to 0 or more threads
 - [smmap](https://pypi.python.org/pypi/smmap): A pure git implementation of a sliding window memory map manager
-- [tmdb](http://github.com/doganaydin/themoviedb): themoviedb.org wrapper for api v3
 - [JSONRPClib](https://github.com/joshmarshall/jsonrpclib): A Python JSON-RPC over HTTP that mirrors xmlrpclib syntax.
 
 ### Frontend
@@ -54,6 +53,9 @@ Libraries in use
 - [noty](http://needim.github.io/noty/): jquery notification plugin
 - [jQuery resize event](http://benalman.com/projects/jquery-resize-plugin/): With jQuery resize event, you can now bind resize event handlers to elements other than window.
 - [JQuery Countdown Timer](http://jaspreetchahal.org/a-simple-jquery-countdown-timer-with-callback/): A simple jQuery Countdown Timer with callback
+- [jQuery YouTube Popup Player](http://lab.abhinayrathore.com/jquery_youtube/): A simple and light weight plugin to display YouTube videos in a jQuery dialog box.
+- [pjax](ttps://github.com/defunkt/jquery-pjax): pushState + ajax = pjax http://pjax.heroku.com
+- [TouchSwipe](https://github.com/mattbryson/TouchSwipe-Jquery-Plugin): A jquery plugin to be used on touch devices such as iPad, iPhone, android etc
 
 (Plugins may use more libraries)
 
