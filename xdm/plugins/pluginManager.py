@@ -169,7 +169,8 @@ class PluginManager(object):
                     else:
                         final_instances = [cur_class.identifier.replace('.', '_')]
                     self._cache[cur_plugin_type][cur_class] = final_instances
-                    self.path_cache[cur_class.__name__] = os.path.dirname(cur_path)
+                    if cur_class.identifier:
+                        self.path_cache[cur_class.identifier] = {'path': os.path.dirname(cur_path), 'version': cur_class.version}
                     log("I found %s instances for %s(v%s): %s" % (len(final_instances), cur_class.__name__, cur_class.version, self._cache[cur_plugin_type][cur_class]))
             #log("Final plugin cache %s" % self._cache)
 

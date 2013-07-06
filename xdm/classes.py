@@ -412,6 +412,7 @@ class Element(BaseModel):
                                       statusCssClass=statusCssClass,
                                       loopIndex=curIndex,
                                       webRoot=webRoot,
+                                      myUrl=self.manager.myUrl(),
                                       **widgets_html)
 
     def buildFieldDict(self):

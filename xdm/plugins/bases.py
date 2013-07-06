@@ -416,6 +416,10 @@ class Plugin(object):
             return out
         return json.dumps(out, indent=4, sort_keys=False)
 
+    def myUrl(self):
+        # NOTE: this patern is also used in heper.updateCherrypyPluginDirs()
+        return "%s/%s.v%s" % (common.SYSTEM.c.webRoot, self.identifier, self.version)
+
 
 class DownloadType(Plugin):
     """Simple skeleton for a "DownloadType"."""
@@ -873,6 +877,16 @@ class MediaTypeManager(Plugin):
 
     def headInject(self):
         return ''
+
+    def _defaultHeadInject(self):
+        """This will inject a script and a css style tag script.js and style.css respectively
+        It is assumes that these files are in the root of the plugin.
+        """
+        myUrl = self.myUrl()
+        return """
+        <link rel="stylesheet" href="%s/style.css">
+        <script src="%s/script.js"></script>
+        """ % (myUrl, myUrl)
 
     @xdm.profileMeMaybe
     def paintChildrenOf(self, root, status=None):

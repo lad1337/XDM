@@ -217,17 +217,18 @@ class RepoManager(object):
             self.setNewMessage('error', '%s' % ex)
 
         if install_result:
-            self.setNewMessage('info', 'Installation successful')
+            self.setNewMessage('info', 'Installation successful!')
             if doCleanUp:
                 self.doCleanUp()
         else:
-            self.setNewMessage('error', 'Installation unsuccessful')
-        self.setNewMessage('info', ' ')
+            self.setNewMessage('error', 'Installation unsuccessful!')
 
     def doCleanUp(self):
         self.setNewMessage('info', 'Recaching plugins...')
         actionManager.executeAction('recachePlugins', ['RepoManager'])
         self.setNewMessage('info', 'Recaching pugins done.')
+        self.setNewMessage('info', 'Setting new static dirs.')
+        helper.updateCherrypyPluginDirs()
         self.setNewMessage('info', 'Recaching repos...')
         self.cache()
         self.lastDownload = ''

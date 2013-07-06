@@ -102,7 +102,13 @@ class Common(object):
     IGNORE = None # ignore this item
     TEMP = None # ignore this item
 
-    APIKEY = ""
+    def _getApiKey(self):
+        return self.SYSTEM.c.api_key
+
+    def _setApiKey(self, new_key):
+        self.SYSTEM.c.api_key = new_key
+
+    APIKEY = property(_getApiKey, _setApiKey)
 
     STATES = [xdm_states[0]]
 
@@ -119,6 +125,7 @@ class Common(object):
     RUNPROFILER = False
 
     PUBLIC_PATHS = []
+    CHERRYPY_APP = None
 
     MM = MessageManager()
     SM = SystemMessageManager()

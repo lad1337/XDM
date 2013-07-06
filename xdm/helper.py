@@ -147,6 +147,21 @@ def create_https_certificates(ssl_cert, ssl_key):
     return True
 
 
+def updateCherrypyPluginDirs():
+    log("Updating static paths.")
+    pluginResPaths = {}
+    for identifier, info in common.PM.path_cache.items():
+        # NOTE: this pattern is also used in xdm.plugins.bases.myUrl()
+        url = "/%s.v%s" % (identifier, info['version'])
+        pluginResPaths[url] = {'tools.staticdir.on': True, 'tools.staticdir.dir': os.path.abspath(info['path'])}
+    common.PUBLIC_PATHS.extend(pluginResPaths.keys())
+    common.PUBLIC_PATHS = list(set(common.PUBLIC_PATHS))
+    if common.CHERRYPY_APP is not None:
+        common.CHERRYPY_APP.merge(pluginResPaths)
+    else:
+        log.error("Setting the static plugins folder for the server failed, there is no CHERRYPY_APP.")
+
+
 def reltime(date):
     if type(date).__name__ not in ('date', 'datetime'):
         return "reltime needs a date or datetime we got: '%s'" % repr(date)
