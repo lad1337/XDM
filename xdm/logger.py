@@ -169,7 +169,7 @@ class LogWrapper():
 
     def getEntries(self, entries=10):
         if entries > len(self._logLineCache):
-            f = open(xdm.LOGFILE, 'r')
+            f = open(xdm.LOGPATH, 'r')
             try:
                 logLinesStr = tail(f, entries)
             finally:

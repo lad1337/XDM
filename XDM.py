@@ -113,7 +113,8 @@ class App():
         xdm.LOGPATH = os.path.join(datadir, xdm.LOGFILE)
         hdlr = logging.handlers.RotatingFileHandler(xdm.LOGPATH, maxBytes=10 * 1024 * 1024, backupCount=5)
         xdm.logger.fLogger.addHandler(hdlr)
-
+        log.info("Logfile path is %s" % xdm.LOGPATH)
+        
 
         #TODO: rewrite for the config.db
         """if options.config:
