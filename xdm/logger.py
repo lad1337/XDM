@@ -19,6 +19,7 @@
 #You should have received a copy of the GNU General Public License
 #along with this program.  If not, see http://www.gnu.org/licenses/.
 
+import os
 import datetime
 import json
 import logging
@@ -28,9 +29,10 @@ from jsonHelper import MyEncoder
 import xdm
 import traceback
 
+LOGLINECACHESIZE = 20
 
-lvlNames = {logging.ERROR:          {'c': '   ERROR', 'p': 'ERROR'},
-                logging.WARNING:    {'c': ' WARNING', 'p': 'WARING'},
+lvlNames = {    logging.ERROR:      {'c': '   ERROR', 'p': 'ERROR'},
+                logging.WARNING:    {'c': ' WARNING', 'p': 'WARNING'},
                 logging.INFO:       {'c': '    INFO', 'p': 'INFO'},
                 logging.DEBUG:      {'c': '   DEBUG', 'p': 'DEBUG'},
                 logging.CRITICAL:   {'c': 'CRITICAL', 'p': 'CRITICAL'}
@@ -104,6 +106,8 @@ class StructuredMessage(object):
 
 class LogWrapper():
 
+    _logLineCache = []
+
     def _log(self, lvl, msg, censor=None, **kwargs):
         if xdm.common.STARTOPTIONS is None or (not xdm.common.STARTOPTIONS.dev):
             if type(censor) == tuple:
@@ -119,7 +123,11 @@ class LogWrapper():
         calframe = inspect.getouterframes(curframe, 0)
         sm = StructuredMessage(lvl, msg, calframe, **kwargs)
         cLogger.log(lvl, sm.console())
-        fLogger.log(lvl, sm)
+        _line = '%s' % sm
+        fLogger.log(lvl, _line)
+        self._logLineCache.append(_line)
+        if len(self._logLineCache) > LOGLINECACHESIZE:
+            self._logLineCache = self._logLineCache[1:]
         if lvl in (logging.WARNING, logging.ERROR):
             callerClass = get_class_from_frame(calframe[2][0])
             #was the error/warning send by a notifier ?
@@ -159,7 +167,51 @@ class LogWrapper():
         self._log(logging.DEBUG, msg, censor=censor, **kwargs)
         return msg
 
+    def getEntries(self, entries=10):
+        if entries > len(self._logLineCache):
+            f = open(xdm.LOGFILE, 'r')
+            try:
+                logLinesStr = tail(f, entries)
+            finally:
+                f.close()
+        else:
+            logLinesStr = self._logLineCache
+        return [{'data': json.loads(l), 'raw': l, 'id': 'AA%s' % hash(l)} for l in logLinesStr]
+
 log = LogWrapper()
+
+
+#http://stackoverflow.com/a/13790289/729059
+def tail(f, lines=1, _buffer=4098):
+    """Tail a file and get X lines from the end"""
+    # place holder for the lines found
+    lines_found = []
+
+    # block counter will be multiplied by buffer
+    # to get the block size from the end
+    block_counter = -1
+
+    lines = int(lines) # make sure we get a int !!
+    # loop until we find X lines
+    while len(lines_found) < lines:
+        try:
+            f.seek(block_counter * _buffer, os.SEEK_END)
+        except IOError:  # either file is too small, or too many lines requested
+            f.seek(0)
+            lines_found = f.readlines()
+            break
+
+        lines_found = f.readlines()
+
+        # we found enough lines, get out
+        if len(lines_found) > lines:
+            break
+
+        # decrement the block counter to get the
+        # next X bytes
+        block_counter -= 1
+
+    return lines_found[-lines:]
 
 
 __all__ = ['log']

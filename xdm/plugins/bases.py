@@ -895,7 +895,7 @@ class MediaTypeManager(Plugin):
     def paintChildrenOf(self, root, status=None):
         if status is None:
             status = common.getAllStatus()
-        log('init paint children on given root %s %s' % (root, root.id))
+        log('init paint children on given root %s' % root)
         return root.paint(status=status, onlyChildren=True)
 
     @xdm.profileMeMaybe

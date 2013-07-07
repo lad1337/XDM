@@ -53,7 +53,8 @@
                                                             ('/completed/', 'completed', 'Completed')]),
                                     ('/results/', 'search', 'Search', []),
                                     ('/settings/', 'settings', 'Settings', [('/settings/', 'settings', 'Core and Plugin Settings'),
-                                                                            ('/plugins/', 'plugins', 'Manage Plugins')])
+                                                                            ('/plugins/', 'plugins', 'Manage Plugins'),
+                                                                            ('/log/', 'log', 'Log and Errors')])
                                     ] -%}
             {% set active_page = active_page|default('index') -%}
             {% set active_sub_page = active_sub_page|default('index') -%}

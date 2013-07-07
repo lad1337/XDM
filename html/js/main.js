@@ -401,8 +401,8 @@ function messageScrobbler(functionUrl, interval, onErrorClass, onErrorMessage){
             }else{
                 $('#install-shell').append('<li><span class="'+messageTuple[0]+'">'+messageTuple[1]+'</span></li>')
             }
-        
-            $('#install-shell').parent().scrollTop(900000)
+            p = $('#install-shell').parent();
+            p.scrollTop(p[0].scrollHeight);
             firstMessage = false;
             lastMessage = messageTuple[1]
         })
@@ -413,7 +413,7 @@ function messageScrobbler(functionUrl, interval, onErrorClass, onErrorMessage){
             $('#install-shell').append('<li><span class="info">XDM: ~$</span></li>')
             $('#install-shell').parent().scrollTop(900000)
             var modal = $('#install-shell').parent().parent();
-            $('.modal-footer button' ,modal).addClass('btn-success').text('Refresh page').click(function(e){
+            $('.modal-footer button' ,modal).addClass('btn-success').text('Refresh page').focus().click(function(e){
                 window.location.reload() 
             }).show()
             $(".modal-footer", modal).append('<span class="label label-info pull-left">Refreshing page in <span id="countdown"></span></span>');
