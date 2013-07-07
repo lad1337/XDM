@@ -57,6 +57,11 @@ def replace_some(text):
     return replace_x(text, dic)
 
 
+def idSafe(text):
+    dic = {' ': '_', '(': '', ')': '', '.': '_', ':': '_'}
+    return replace_x(text, dic)
+
+
 def replace_all(text):
     dic = {'...':'', ' & ':' ', ' = ': ' ', '?':'', '$':'s', ' + ':' ', '"':'', ',':'', '*':'', '.':'', ':':'', "'":'', "#":''}	
     return replace_x(text, dic)

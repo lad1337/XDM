@@ -203,13 +203,22 @@ class AjaxCalls:
     @cherrypy.expose
     def getSystemMessage(self):
         return json.dumps({'result': True, 'data': common.SM.getLastMessages(), 'msg': ''})
+        return '<ul id="install-shell" class="shell"></ul>'
+
+    @cherrypy.expose
+    def getLogEntries(self, entries=10):
+        logEntries = []
+        entryTemplate = self.env.get_template('log_entry.html')
+        for _log in log.getEntries(int(entries)):
+            logEntries.append({'id': _log['id'], 'html': entryTemplate.render(log=_log)})
+        return json.dumps(logEntries)
 
     @cherrypy.expose
     def shutdown(self):
         common.SM.reset()
         common.SM.setNewMessage('shutdown.py -t NOW')
         t = tasks.TaskThread(actionManager.executeAction, 'shutdown', 'Webgui')
-        threading.Timer(1, t.start).start ()
+        threading.Timer(1, t.start).start()
         return '<ul id="install-shell" class="shell"></ul>'
 
     @cherrypy.expose
