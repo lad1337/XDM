@@ -26,6 +26,8 @@ from xdm import web
 from babel.core import Locale
 import gettext
 import locale
+import traceback
+import inspect
 
 
 # this class is special because it will be set to SYSTEM in the whole app
@@ -63,10 +65,6 @@ class SystemConfig(System):
                       }
     """this is the attr for hidden config it can be used just as the _config but is not visable to the user / settings page"""
 
-    def __init__(self, instance='Default'):
-        System.__init__(self, instance=instance)
-        self._setLocale(self.c.language_select)
-
     def _clearAllUnsedConfgs(self):
         amount = common.PM.clearAllUnsedConfgs()
         return (True, {}, '%s configs removed' % amount)
@@ -83,6 +81,15 @@ class SystemConfig(System):
         else:
             self._locale = locale.getlocale(locale.LC_ALL)[0]
         log("Language setting is '%s' resulting locale: '%s'" % (setting, self._locale))
+
+    def _getLocale(self):
+        try:
+            return self._locale
+        except AttributeError:
+            self._setLocale(self.c.language_select)
+        return self._locale
+
+    locale = property(_getLocale)
 
     def _switchLanguage(self):
         languages = None

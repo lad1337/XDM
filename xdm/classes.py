@@ -44,7 +44,7 @@ WIDGET_PATH = os.path.join('html', 'templates', 'widget')
 elementWidgetEnvironment = Environment(loader=FileSystemLoader(WIDGET_PATH), extensions=['jinja2.ext.i18n'])
 elementWidgetEnvironment.install_gettext_callables(_, ngettext, newstyle=True)
 elementWidgetEnvironment.filters['relativeTime'] = helper.reltime
-elementWidgetEnvironment.filters['idSafe'] = helper.replace_some
+elementWidgetEnvironment.filters['idSafe'] = helper.idSafe
 elementWidgetEnvironment.filters['derefMe'] = helper.dereferMe
 elementWidgetEnvironment.filters['derefMeText'] = helper.dereferMeText
 
@@ -387,7 +387,7 @@ class Element(BaseModel):
         env = Environment(loader=DictLoader({'this': tpl}), extensions=['jinja2.ext.i18n'])
         env.install_gettext_callables(_, ngettext, newstyle=True)
         env.filters['relativeTime'] = helper.reltime
-        env.filters['idSafe'] = helper.replace_some
+        env.filters['idSafe'] = helper.idSafe
         env.filters['derefMe'] = helper.dereferMe
         env.filters['derefMeText'] = helper.dereferMeText
         elementTemplate = env.get_template('this')

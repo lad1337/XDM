@@ -110,7 +110,8 @@ class App():
             raise SystemExit("Data dir must be writeable '" + datadir + "'")
 
         # setup file logger with datadir
-        hdlr = logging.handlers.RotatingFileHandler(os.path.join(datadir, 'xdm.log'), maxBytes=10 * 1024 * 1024, backupCount=5)
+        xdm.LOGPATH = os.path.join(datadir, xdm.LOGFILE)
+        hdlr = logging.handlers.RotatingFileHandler(xdm.LOGPATH, maxBytes=10 * 1024 * 1024, backupCount=5)
         xdm.logger.fLogger.addHandler(hdlr)
 
 

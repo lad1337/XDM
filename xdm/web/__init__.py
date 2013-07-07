@@ -44,7 +44,7 @@ from xdm.api import WebApi
 
 env = Environment(loader=FileSystemLoader(os.path.join('html', 'templates')), extensions=['jinja2.ext.i18n'])
 env.install_gettext_callables(_, ngettext, newstyle=True)
-env.filters['idSafe'] = helper.replace_some
+env.filters['idSafe'] = helper.idSafe
 env.filters['statusLabelClass'] = helper.statusLabelClass
 env.filters['vars'] = helper.webVars
 env.filters['relativeTime'] = helper.reltime
@@ -277,6 +277,15 @@ class WebRoot:
         tasks.runChecker()
         self.redirect("/")
 
+    @cherrypy.expose
+    def log(self, entries=30):
+        logEntries = ''
+        entryTemplate = env.get_template('log_entry.html')
+        for _log in log.getEntries(entries):
+            logEntries += entryTemplate.render(log=_log)
+
+        template = env.get_template('log.html')
+        return template.render(logEntries=logEntries, logPath=xdm.LOGPATH, **self._globals())
 
     @cherrypy.expose
     def saveSettings(self, **kwargs):
