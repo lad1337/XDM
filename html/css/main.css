@@ -45,9 +45,8 @@ body.no-tooltip .tooltip{
 }
 
 .navbar .brand{
-    padding: 4px 20px 4px;
+    padding: 4px 20px 1px;
     vertical-align: bottom;
-    line-height: 28px;
 }
 
 .navbar ul.nav li.dropdown:hover ul.dropdown-menu{

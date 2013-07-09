@@ -60,7 +60,14 @@
             {% set active_sub_page = active_sub_page|default('index') -%}
             <div class="navbar">
                 <div class="navbar-inner">
-                    <a class="brand" href="{{webRoot}}/"><img src="{{webRoot}}/img/xdm-logo.svg" width="100"></a>
+                    <a class="brand" href="{{webRoot}}/">
+                    
+                    <object data="{{webRoot}}/img/xdm-logo.svg" type="image/svg+xml" style="width:100px; height: 32px;">
+                        <img src="{{webRoot}}/img/xdm-logo.png" width="100" height="32"/>
+                    </object>
+                    
+                    
+                    </a>
                     <ul class="nav">
                         {% for href, id, caption, subMenu in navigation_bar %}
                         {%if not subMenu%}
