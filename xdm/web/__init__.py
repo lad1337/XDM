@@ -285,7 +285,7 @@ class WebRoot:
             logEntries += entryTemplate.render(log=_log)
 
         template = env.get_template('log.html')
-        return template.render(logEntries=logEntries, logPath=xdm.LOGPATH, **self._globals())
+        return template.render(platform=platform, logEntries=logEntries, logPath=xdm.LOGPATH, **self._globals())
 
     @cherrypy.expose
     def saveSettings(self, **kwargs):

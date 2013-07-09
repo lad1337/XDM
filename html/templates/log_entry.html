@@ -60,6 +60,42 @@
                 <button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
             </div>
         </div>
+        <a href="#gitIssue_{{log['id']}}" data-toggle="modal" title="Create an issue in github"><i class="icon-github-sign"></i></a>
+        <div class="modal modal-wide hide fade" id="gitIssue_{{log['id']}}" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h3>Make a github issue out of this</h3>
+            </div>
+            <div class="modal-body">
+                <form class="form-horizontal github" id="gitIssueForm_{{log['id']}}">
+                    <div class="control-group">
+                        <label class="control-label" for="inputEmail">Title</label>
+                        <div class="controls">
+                            <input type="text" id="inputEmail" placeholder="Title" name="title">
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label" for="inputPassword">Description</label>
+                        <div class="controls">
+                            <textarea style="width: 535px;height: 350px;" name="body" data-systemInfo="no">**This is what happend:**
+Please write a short story of what the issue is.
+
+---
+**Raw log message:**
+```javascript
+{{raw}}
+```
+
+**System info:**</textarea>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <p class="muted pull-left text-left">Make sure there is no sensitive data in the description.<br>The description uses GitHub Flavored Markdown. You will be redirected to Github.</p>
+                <button type="submit" class="btn btn-success" onClick="window.open('https://github.com/lad1337/XDM/issues/new?'+$('#gitIssueForm_{{log['id']}}').serialize());">Create Issue&hellip;</button>
+            </div>
+        </div>
     </td>
     <td style="white-space: nowrap;">{{l['time']}}</td>
     <td><pre style="background: none;border: none;padding: 0;margin: 0;">{{l['msg']}}</pre></td>

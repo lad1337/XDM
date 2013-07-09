@@ -62,6 +62,9 @@ class CoreUpdater(object):
         else:
             self.updater = None
 
+    def getHumanInstallType(self):
+        return install_type_names[self.install_type]
+
     def migrate(self):
         xdm.common.addState(1)
         #common.SM.reset()
