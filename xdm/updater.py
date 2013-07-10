@@ -37,11 +37,12 @@ import shutil
 install_type_exe = 0# any compiled windows build
 install_type_mac = 1# any compiled mac osx build
 install_type_git = 2# running from source using git
-install_type_source = 3# running from source without git
+install_type_src = 3# running from source without git
 install_type_names = {install_type_exe: 'Windows Binary',
-                   install_type_mac: 'Mac App',
-                   install_type_git: 'Git',
-                   install_type_source: 'Source'}
+                      install_type_mac: 'Mac App',
+                      install_type_git: 'Git',
+                      install_type_src: 'Source'}
+
 
 class CoreUpdater(object):
 
@@ -56,10 +57,13 @@ class CoreUpdater(object):
             self.updater = MacUpdateManager()
         elif self.install_type == install_type_git:
             self.updater = GitUpdateManager()
-        elif self.install_type == install_type_source:
+        elif self.install_type == install_type_src:
             self.updater = SourceUpdateManager()
         else:
             self.updater = None
+
+    def getHumanInstallType(self):
+        return install_type_names[self.install_type]
 
     def migrate(self):
         xdm.common.addState(1)
@@ -102,12 +106,12 @@ class CoreUpdater(object):
         """Determines how this copy of XDM was installed."""
         if getattr(sys, 'frozen', None) == 'macosx_app': # check if we're a mac build
             install_type = install_type_mac
-        elif sys.platform == 'win32': # check if we're a windows build
+        elif sys.platform == 'win32' and False: # check if we're a windows build.. disabeled for now since we dont have win exes
             install_type = install_type_exe
         elif os.path.isdir(os.path.join(xdm.APP_PATH, '.git')):
             install_type = install_type_git
         else:
-            install_type = install_type_source
+            install_type = install_type_src
 
         return install_type
 

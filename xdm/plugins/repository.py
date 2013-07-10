@@ -122,7 +122,7 @@ class RepoManager(object):
             self.setNewMessage('error', 'Deinstallation unsuccessful')
             self.setNewMessage('info', 'Done!')
             return
-        install_path = os.path.abspath(old_instalation.get_plugin_isntall_path())
+        install_path = os.path.abspath(old_instalation.get_plugin_isntall_path()['path'])
         self.setNewMessage('info', 'Deleting plugin folder')
         self.setNewMessage('info', install_path)
         try:
@@ -180,7 +180,7 @@ class RepoManager(object):
             self.setNewMessage('info', '%s is not yet installed' % plugin_to_update.name)
 
         if old_instalation is not None:
-            old_plugin_path = os.path.abspath(old_instalation.get_plugin_isntall_path())
+            old_plugin_path = os.path.abspath(old_instalation.get_plugin_isntall_path()['path'])
             old_plugin_path_parent = os.path.abspath(os.path.join(old_plugin_path, os.pardir))
             self.setNewMessage('info', 'Renaming old install path %s' % old_plugin_path)
             new_dir = '__old__%s%s' % (plugin.type, plugin.version)

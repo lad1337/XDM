@@ -65,7 +65,7 @@ for plugin in common.PM.getAll(returnAll=True):
     #print "checking %s" % plugin
     pPath = plugin.get_plugin_isntall_path()['path']
     if not pPath.startswith(options.path):
-        #print "%s not in the path you want to use plugin path:%s" % (plugin, plugin.get_plugin_isntall_path())
+        #print "%s not in the path you want to use plugin path:%s" % (plugin, plugin.get_plugin_isntall_path()['path'])
         continue
 
     if not plugin.identifier:

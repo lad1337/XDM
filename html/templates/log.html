@@ -13,11 +13,22 @@ $(document).ready(function() {
         filterLogTable($(this).data('lvl'));
     })
     $(document).on('resize', function(event){
-        $('#scroller').height(($(window).height()-240)+'px');
-        scrollDownLogs();
+        resizeAndScrollLog();
     });
+
     refilter();
 });
+
+
+$('#scroller table.table').ready(function() {
+    resizeAndScrollLog();
+});
+
+function resizeAndScrollLog(){
+    // 240px is approximently the size og the footer, menu and margin
+    $('#scroller').height(($(window).height()-240)+'px');
+    scrollDownLogs();
+}
 
 function getLogEntries(spinner){
     var data = {'entries': 3}
@@ -30,7 +41,8 @@ function getLogEntries(spinner){
             var html = data['html'];
             if(!$('#'+id).length){
                 table.append(html)
-                $('tr:first', table).remove();
+                if($('#scroller .table tr').length > 100)
+                   $('#scroller .table tr:first', table).remove();
             }
         });
         refilter();
@@ -67,6 +79,7 @@ function refilter(){
         filterLogTable(lowestLvl);
     }else
         scrollDownLogs();
+    $('#scroller .table .github textarea[data-systemInfo="no"]').append($('#systemInfo').text()).attr('data-systemInfo', 'yes')
 }
 
 function scrollDownLogs(){
@@ -107,6 +120,16 @@ function filterLogTable(lowestLvl){
     </div>
 </div>
 <div class="clearfix"></div>
+<p id="systemInfo" style="display:none;">
+* XDM version: {{common.getVersionHuman()}}
+* Updater version: {{common.UPDATER.info.localVersion}}
+* Install type: {{common.UPDATER.getHumanInstallType()}}
+* System: {{platform.system()}}<br>
+* Release: {{platform.release()}}<br>
+* Machine: {{platform.machine()}}<br>
+* Python_version: {{platform.python_version()}}<br>
+* Python_implementation: {{platform.python_implementation()}}
+</p>
 <div style="position: relative;">
     <div style="overflow-y: scroll;" id="scroller">
         <table class="table table-condensed">
