@@ -1,5 +1,6 @@
 # XDM data
 *.db
+*.db-journal
 *.log*
 images/*
 temp/*
