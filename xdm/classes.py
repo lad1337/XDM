@@ -766,17 +766,33 @@ class Download_V0(BaseModel):
             num /= 1024.0
 
 
-class Download(Download_V0):
+class Download_V1(Download_V0):
     pp_log = TextField(True)
+
+    class Meta:
+        db_table = 'Download'
 
     @classmethod
     def _migrate(cls):
-        field = QueryCompiler().field_sql(cls.pp_log)
-        table = cls._meta.db_table
-        if cls._checkForColumn(cls.pp_log):
-            return False # False like: dude stop !
-        cls._meta.database.execute_sql('ALTER TABLE %s ADD COLUMN %s' % (table, field))
-        return True
+        return cls._migrateNewField(cls.pp_log)
+
+
+class Download(Download_V1):
+    _extra_data = TextField(True)
+
+    @classmethod
+    def _migrate(cls):
+        return cls._migrateNewField(cls._extra_data)
+
+    def _getExtraDataDict(self):
+        if not self._extra_data:
+            return {}
+        return json.loads(self._extra_data)
+
+    def _setExtraDataDict(self, value):
+        self._extra_data = json.dumps(value)
+
+    extra = helper.dictproperty(_getExtraDataDict, _setExtraDataDict)
 
 
 class History(BaseModel):

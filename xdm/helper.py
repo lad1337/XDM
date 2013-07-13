@@ -279,6 +279,43 @@ def guiGlobals(self):
             'webRoot': common.SYSTEM.c.webRoot}
 
 
+#http://code.activestate.com/recipes/440514-dictproperty-properties-for-dictionary-attributes/
+class dictproperty(object):
+    class _proxy(object):
+
+        def __init__(self, obj, fget, fset, fdel):
+            self._obj = obj
+            self._fget = fget
+            self._fset = fset
+            self._fdel = fdel
+
+        def __getitem__(self, key):
+            if self._fget is None:
+                raise TypeError, "can't read item"
+            return self._fget(self._obj, key)
+
+        def __setitem__(self, key, value):
+            if self._fset is None:
+                raise TypeError, "can't set item"
+            self._fset(self._obj, key, value)
+
+        def __delitem__(self, key):
+            if self._fdel is None:
+                raise TypeError, "can't delete item"
+            self._fdel(self._obj, key)
+
+    def __init__(self, fget=None, fset=None, fdel=None, doc=None):
+        self._fget = fget
+        self._fset = fset
+        self._fdel = fdel
+        self.__doc__ = doc
+
+    def __get__(self, obj, objtype=None):
+        if obj is None:
+            return self
+        return self._proxy(obj, self._fget, self._fset, self._fdel)
+
+
 releaseThresholdDelta = {1: timedelta(days=1),
                         2: timedelta(days=2),
                         3: timedelta(days=7), # a week
