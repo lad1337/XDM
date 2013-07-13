@@ -55,8 +55,18 @@ class AjaxCalls:
                 log('function %s needs %s' % (action, name))
                 field_name = 'field_%s' % name
                 if field_name in kwargs:
-                    fn_args.append(kwargs[field_name])
+                    fn_args.append(convertV(kwargs[field_name]))
+                    continue
+                else:
+                    log("Field '%s' not found in kwargs. tring array" % field_name)
+                field_name = 'field_%s[]' % name
+                if field_name in kwargs:
+                    fn_args.append(convertV(kwargs[field_name]))
+                else:
+                    log.warning("Field %s not found in kwargs. this will probably not work out")
+
         try:
+            log("calling %s with %s" % (p_function, fn_args))
             status, data, msg = p_function(*fn_args)
         except Exception as ex:
             tb = traceback.format_exc()
@@ -250,16 +260,6 @@ class AjaxCalls:
         if 'saveOn' in kwargs:
             del kwargs['saveOn']
 
-        def convertV(cur_v):
-            try:
-                return float(cur_v)
-            except TypeError: # its a list for bools / checkboxes "on" and "off"... "on" is only send when checked "off" is always send
-                return True
-            except ValueError:
-                if cur_v in ('None', 'off'):
-                    cur_v = False
-                return cur_v
-
         element = None
         if 'element_id' in kwargs:
             element = Element.get(Element.id == kwargs['element_id'])
@@ -337,4 +337,18 @@ class AjaxCalls:
             actionManager.executeAction(action, plugins_that_called_it)
         common.SYSTEM = common.PM.getSystem('Default')[0] # yeah SYSTEM is a plugin
         return json.dumps({'result': True, 'data': {}, 'msg': 'Configuration saved.'})
+
+
+def convertV(cur_v):
+    try:
+        f = float(cur_v)
+        if f.is_integer():
+            return int(f)
+        return f
+    except TypeError: # its a list for bools / checkboxes "on" and "off"... "on" is only send when checked "off" is always send
+        return True
+    except ValueError:
+        if cur_v in ('None', 'off'):
+            cur_v = False
+        return cur_v
 
