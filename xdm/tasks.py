@@ -167,6 +167,7 @@ def snatchOne(ele, downloads):
                 ele.save()
                 download.status = common.SNATCHED
                 download.save()
+                log(u'%s snatched %s' % (downloader, download))
                 createGenericEvent(download, 'snatch', u'%s snatched me' % (downloader))
                 notify(ele)
                 return ele.status #exit on first success
