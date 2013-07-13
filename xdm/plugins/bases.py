@@ -285,7 +285,7 @@ class Plugin(object):
 
             #log('Creating multi config fields on %s from %s' % (self.__class__, mtm.__class__))
             for configType in [x.__name__ for x in mtm.elementConfigsFor]:
-                for element in Element.select().where(Element.type == configType):
+                for element in Element.select().where(Element.type == configType, Element.status != common.TEMP):
                     prefix = self.useConfigsForElementsAs
                     sufix = element.getName()
                     h_name = '%s for %s' % (prefix, sufix)
