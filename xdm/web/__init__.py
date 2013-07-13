@@ -227,7 +227,8 @@ class WebRoot:
     @cherrypy.expose
     def delete(self, id):
         e = Element.get(Element.id == id)
-        e.deleteWithChildren()
+        manager = e.manager
+        manager.deleteElement(e)
         self.redirect('/')
 
     @cherrypy.expose

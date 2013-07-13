@@ -929,6 +929,19 @@ class MediaTypeManager(Plugin):
         log.warning('Default makereal/save method called but the media type should have implemented this')
         return False
 
+    def deleteElement(self, element):
+        self._deleteElement(element)
+
+    def _deleteElement(self, element):
+        element.deleteWithChildren()
+
+    def _deleteElementAndEmptyParent(self, element):
+        parent = element.parent
+        if Element.select().where(Element.parent == parent).count() == 1:
+            parent.deleteWithChildren()
+        else:
+            self._deleteElement(element)
+
     def getSearches(self):
         return Element.select().where(Element.status == common.TEMP, Element.type == self.__class__.__name__)
 
