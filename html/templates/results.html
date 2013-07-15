@@ -49,7 +49,7 @@
 <script>
 var data_{{mt.instance}}  = {}
 data_{{mt.instance}}['mt'] = '{{mt.identifier}}'
-data_{{mt.instance}}['search_query'] = '{{search_query}}'
+data_{{mt.instance}}['search_query'] = "{{search_query}}"
 var searching{{mt.instance}} = true;
 jQuery.get( webRoot+'/ajax/search', data_{{mt.instance}}, function(res){
     var p = $('#{{mt.instance}}-current')

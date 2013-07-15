@@ -36,6 +36,7 @@ import types
 #from jinja2 import FileSystemBytecodeCache
 from jinja2.environment import Environment
 from jinja2.loaders import FileSystemLoader, DictLoader
+import urllib
 
 #bcc = FileSystemBytecodeCache(pattern='%s.cache')
 #, bytecode_cache=bcc
@@ -960,12 +961,13 @@ class Image(BaseModel):
 
     def getSrc(self):
         if self.type: # type is only set after we down loaded the image
-            return '%s/%s' % (common.SYSTEM.c.webRoot, os.path.join(xdm.IMAGEPATH_RELATIVE, str(self.element.mediaType), self.imgName()).replace(xdm.PROGDIR, ''))
+            url = u'%s/%s' % (common.SYSTEM.c.webRoot, os.path.join(xdm.IMAGEPATH_RELATIVE, str(self.element.mediaType), self.imgName()).replace(xdm.PROGDIR, ''))
+            return urllib.quote(url.encode('utf-8'))
         else:
             return self.url
 
     def imgName(self):
-        return helper.fileNameClean("%s (%s) %s.%s" % (helper.replace_all(self.element.getName()), self.element.id, self.name, self.type))
+        return helper.fileNameClean(u"%s (%s) %s.%s" % (helper.replace_all(self.element.getName()), self.element.id, self.name, self.type))
 
 
 class Repo(BaseModel):
