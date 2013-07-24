@@ -286,8 +286,18 @@ function pluginAjaxCall(self, p_type, p_instance, id, action){
     $(self).addClass('btn-striped animate')
     var data = {'p_type': p_type, 'p_instance': p_instance, 'action': action};
     $('input, select', '#'+id).each(function(k,i){
-        if(typeof $(i).data('configname') !== "undefined")
-            data['field_'+$(i).data('configname')] = $(i).val()
+        if(typeof $(i).data('configname') !== "undefined"){
+            var val = $(i).val()
+            if($(i).attr('type') == 'checkbox'){
+                if($(i).prop('checked')){
+                    val = ['on', 'off'];
+                }else{
+                    val = 'off';
+                }
+            }
+            data['field_'+$(i).data('configname')] = val;
+        }
+            
     });
     $.getJSON(webRoot+'/ajax/pluginCall', data, function(res){
         if(res['result']){
