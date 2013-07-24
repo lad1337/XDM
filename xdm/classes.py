@@ -953,7 +953,7 @@ class Image(BaseModel):
                     f.write(chunk)
 
     def getPath(self):
-        directory = os.path.join(xdm.IMAGEPATH, str(self.element.mediaType))
+        directory = os.path.join(xdm.IMAGEPATH, unicode(self.element.mediaType))
         if not os.path.exists(directory):
             os.makedirs(directory)
 
