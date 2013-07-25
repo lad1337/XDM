@@ -78,7 +78,7 @@ def reboot():
 
     popen_list = []
 
-    if install_type in (xdm.updater.install_type_git, xdm.updater.install_type_source):
+    if install_type in (xdm.updater.install_type_git, xdm.updater.install_type_src):
         popen_list = [sys.executable, os.path.normpath(os.path.abspath(sys.argv[0]))]
     elif install_type == xdm.updater.install_type_exe:
         if hasattr(sys, 'frozen'):
