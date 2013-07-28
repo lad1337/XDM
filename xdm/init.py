@@ -162,7 +162,7 @@ def schedule():
     # plugin repo cacher
     rate = 60 * 60 * 12
     log.info("Setting up plugin repo / plugin update scheduler every %s seconds" % rate)
-    common.SCHEDULER.addTask(common.REPOMANAGER.cache, rate, 10, 'repository cache')
+    common.SCHEDULER.addTask(common.REPOMANAGER.autoCache, rate, 10, 'repository cache')
 
     # garbage collector
     rate = common.SYSTEM.c.interval_clean * 60

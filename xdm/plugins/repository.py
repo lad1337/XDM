@@ -48,6 +48,14 @@ class RepoManager(object):
         self.lastDownload = ''
         self._read_messages = []
 
+    def autoCache(self):
+        self.cache()
+        if common.SYSTEM.c.auto_update_plugins:
+            log.info("Automatically updating plugins! Cross fingers.")
+            for plugin_identifer in self.updateable_plugins:
+                self.install(plugin_identifer, False)
+            self.doCleanUp()
+
     def cache(self):
         self.caching = True
         for repo in self.repos:
@@ -183,7 +191,7 @@ class RepoManager(object):
             old_plugin_path = os.path.abspath(old_instalation.get_plugin_isntall_path()['path'])
             old_plugin_path_parent = os.path.abspath(os.path.join(old_plugin_path, os.pardir))
             self.setNewMessage('info', 'Renaming old install path %s' % old_plugin_path)
-            new_dir = '__old__%s%s' % (plugin.type, plugin.version)
+            new_dir = '__old__%s %s %s' % (plugin.type, plugin.identifier, plugin.version)
             new_dir = new_dir.replace(' ', '-').replace('.', '_')
             new_path = os.path.join(old_plugin_path_parent, new_dir)
             self.setNewMessage('info', 'to %s' % new_path)
