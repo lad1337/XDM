@@ -303,7 +303,17 @@ class PluginManager(object):
                 self.getProvider(returnAll=returnAll, i=instance) +\
                 self.getDownloaderTypes(returnAll=returnAll, i=instance) +\
                 self.getMediaTypeManager(returnAll=returnAll, i=instance)
-    getAll.order = ['System', 'Indexer', 'Downloader', 'DownloadFilter', 'SearchTermFilter', 'PostProcessors', 'MediaAdder', 'Notifier', 'Provider', 'DownloadTypes', 'MediaTypeManager']
+    getAll.order = ['System',
+                    'Indexer',
+                    'Downloader',
+                    'DownloadFilter',
+                    'SearchTermFilter',
+                    'PostProcessor',
+                    'MediaAdder',
+                    'Notifier',
+                    'Provider',
+                    'DownloadType',
+                    'MediaTypeManager']
 
     # this is ugly ... :(
     def getInstanceByName(self, class_name, instance):
