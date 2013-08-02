@@ -306,6 +306,7 @@ class GitUpdateManager(UpdateManager):
         self.response.localVersion = git("rev-parse", "HEAD").rstrip('\n')
         branch = self._getBranch()
         log.info("Running on branch: %s" % branch)
+        self.response.extraData['on_branch'] = branch
         # is dirty will be some text unless its not dirty
         is_dirty = git("ls-files", "-m", "-o", "-d", "--exclude-standard", _cwd=xdm.APP_PATH)
         if is_dirty and not common.STARTOPTIONS.dev:
