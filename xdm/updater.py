@@ -287,11 +287,16 @@ class GitUpdateManager(UpdateManager):
     # Your branch is behind 'origin/master' by 4 commits, and can be fast-forwarded.
     #
     nothing to commit (use -u to show untracked files)"""
-    en_US_behind_pattern = re.compile(r'by (\d+) commits')
+    en_US_behind_pattern = re.compile(r'behind .*? by (\d+) commits')
     en_US_ff_pattern = re.compile(r'can be fast-forwarded')
+    """
+    # On branch master
+    # Your branch is ahead of 'origin/master' by 1 commit.
+    #"""
+    en_US_ahead_pattern = re.compile(r'ahead .*? by (\d+) commits')
 
     def need_update(self):
-        self.response.localVersion = git("rev-parse", "HEAD")
+        self.response.localVersion = git("rev-parse", "HEAD").rstrip('\n')
 
         # is dirty will be some text unless its not dirty
         is_dirty = git("ls-files", "-m", "-o", "-d", "--exclude-standard", _cwd=xdm.APP_PATH)
@@ -303,7 +308,7 @@ class GitUpdateManager(UpdateManager):
             return self.response
 
         git.remote("update", _cwd=xdm.APP_PATH)
-        self.response.externalVersion = git("rev-parse", "origin")
+        self.response.externalVersion = git("rev-parse", "origin").rstrip('\n')
 
         if self.response.localVersion == self.response.externalVersion: # local is updated; end
             self.response.message = 'No update needed'
@@ -314,16 +319,24 @@ class GitUpdateManager(UpdateManager):
         #TODO: do something about other languages!
         p = self.en_US_pattern
         behind = p.match(info)[1]
-        if behind is None:
-            self.response.message = "behind is none"
+        if behind is not None:
+            behind = int(behind)
+            if behind > 0:
+                self.response.needUpdate = True
+            self.response.message = "behind by %s commits" % behind
             return self.response
-        behind = int(behind)
-        if behind > 0:
-            self.response.needUpdate = True
-        self.response.message = "behind is %s" % behind
+        p = self.en_US_ahead_pattern
+        ahead = p.match(info)[1]
+        if ahead is not None:
+            ahead = int(ahead)
+            if ahead > 0:
+                self.response.needUpdate = False
+            self.response.message = "ahead by %s commits" % behind
+            return self.response
+
+        self.response.message = "I dont know what the stat of your git is."
+        self.response.needUpdate = None
         return self.response
-            
-            
             
         """repo = git.Repo(xdm.APP_PATH)                   # get the local repo
         local_commit = repo.commit()                    # latest local commit
@@ -366,7 +379,6 @@ class GitUpdateManager(UpdateManager):
 
     def update(self):
         common.SM.setNewMessage('Init git pull on')
-        try:
         pull = git.pull(_cwd=xdm.APP_PATH)                   # get the local repo
         if pull.exit_code == 0:
             log.warning("Git pull exited with an error\n %s" % pull)
