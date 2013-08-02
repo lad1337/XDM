@@ -315,8 +315,6 @@ class GitUpdateManager(UpdateManager):
             self.response.needUpdate = False
             return self.response
         info = git.status("-uno", _cwd=xdm.APP_PATH)
-        print info
-        print type(info)
         #TODO: do something about other languages!
         p = self.en_US_behind_pattern
         match = p.search(unicode(info))
@@ -324,7 +322,7 @@ class GitUpdateManager(UpdateManager):
             behind = int(match.group(1))
             if behind > 0:
                 self.response.needUpdate = True
-            self.response.message = "behind by %s commits" % behind
+            self.response.message = "Behind by %s commits" % behind
             return self.response
         p = self.en_US_ahead_pattern
         match = p.search(unicode(info))
@@ -332,51 +330,12 @@ class GitUpdateManager(UpdateManager):
             ahead = int(match.group(1))
             if ahead > 0:
                 self.response.needUpdate = False
-            self.response.message = "ahead by %s commits" % ahead
+            self.response.message = "Ahead by %s commits. No update for you!" % ahead
             return self.response
 
-        self.response.message = "I dont know what the stat of your git is."
+        self.response.message = "I dont know what the the status of your git is."
         self.response.needUpdate = None
         return self.response
-            
-        """repo = git.Repo(xdm.APP_PATH)                   # get the local repo
-        local_commit = repo.commit()                    # latest local commit
-        remote = git.remote.Remote(repo, 'origin')      # remote repo
-        info = remote.fetch()[0]                        # fetch changes
-        remote_commit = info.commit
-
-        self.response.localVersion = local_commit.hexsha
-        self.response.externalVersion = remote_commit.hexsha
-
-        if repo.is_dirty():
-            self.response.extraData['dirty_git'] = True
-            msg = "Running on a dirty git installation! No real check was done."
-            log.warning(msg)
-            self.response.message = msg
-            return self.response
-
-        behind = 0
-        if local_commit.hexsha == remote_commit.hexsha: # local is updated; end
-            self.response.message = 'No update needed'
-            self.response.needUpdate = False
-            return self.response
-
-        self.response.needUpdate = True
-        for commit in self._repo_changes(remote_commit):
-            if commit.hexsha == local_commit.hexsha:
-                if behind == 1:
-                    msg = '%s commit behind.' % behind
-                else:
-                    msg = '%s commits behind.' % behind
-                self.response.message = msg
-                return self.response
-            behind += 1
-        else:
-            msg = 'Looks like you are ahead. No update for YOU!'
-            log(msg)
-            self.response.message = msg
-            self.response.needUpdate = None
-            return self.response"""
 
     def update(self):
         common.SM.setNewMessage('Init git pull on')
