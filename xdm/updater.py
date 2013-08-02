@@ -295,20 +295,30 @@ class GitUpdateManager(UpdateManager):
     #"""
     en_US_ahead_pattern = re.compile(r'ahead .*? by (\d+) commits')
 
+    def _getBranch(self):
+        for branch_line in git.branch(_cwd=xdm.APP_PATH, _iter=True):
+            if branch_line.startswith('*'):
+                return re.search(r"\s(.*?)$", branch_line).group(1)
+        log.warning("assuming master branch !")
+        return 'master'
+
     def need_update(self):
         self.response.localVersion = git("rev-parse", "HEAD").rstrip('\n')
-
+        branch = self._getBranch()
+        log.info("Running on branch: %s" % branch)
         # is dirty will be some text unless its not dirty
         is_dirty = git("ls-files", "-m", "-o", "-d", "--exclude-standard", _cwd=xdm.APP_PATH)
-        if is_dirty:
+        if is_dirty and not common.STARTOPTIONS.dev:
             self.response.extraData['dirty_git'] = True
             msg = "Running on a dirty git installation! No real check was done."
             log.warning(msg)
             self.response.message = msg
             return self.response
+        elif is_dirty and common.STARTOPTIONS.dev:
+            log.info("Ignoring dirty git since we are in dev mode")
 
         git.remote("update", _cwd=xdm.APP_PATH)
-        self.response.externalVersion = git("rev-parse", "origin").rstrip('\n')
+        self.response.externalVersion = git("rev-parse", "origin/%s" % branch).rstrip('\n')
 
         if self.response.localVersion == self.response.externalVersion: # local is updated; end
             self.response.message = 'No update needed'
