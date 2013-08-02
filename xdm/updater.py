@@ -315,23 +315,24 @@ class GitUpdateManager(UpdateManager):
             self.response.needUpdate = False
             return self.response
         info = git.status("-uno", _cwd=xdm.APP_PATH)
-
+        print info
+        print type(info)
         #TODO: do something about other languages!
         p = self.en_US_behind_pattern
-        behind = p.match(info)[1]
-        if behind is not None:
-            behind = int(behind)
+        match = p.search(unicode(info))
+        if match is not None:
+            behind = int(match.group(1))
             if behind > 0:
                 self.response.needUpdate = True
             self.response.message = "behind by %s commits" % behind
             return self.response
         p = self.en_US_ahead_pattern
-        ahead = p.match(info)[1]
-        if ahead is not None:
-            ahead = int(ahead)
+        match = p.search(unicode(info))
+        if match is not None:
+            ahead = int(match.group(1))
             if ahead > 0:
                 self.response.needUpdate = False
-            self.response.message = "ahead by %s commits" % behind
+            self.response.message = "ahead by %s commits" % ahead
             return self.response
 
         self.response.message = "I dont know what the stat of your git is."
