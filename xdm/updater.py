@@ -315,6 +315,7 @@ class GitUpdateManager(UpdateManager):
             self.response.needUpdate = False
             return self.response
         info = git.status("-uno", _cwd=xdm.APP_PATH)
+        log(unicode(info))
         #TODO: do something about other languages!
         p = self.en_US_behind_pattern
         match = p.search(unicode(info))
