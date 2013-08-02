@@ -317,7 +317,7 @@ class GitUpdateManager(UpdateManager):
         info = git.status("-uno", _cwd=xdm.APP_PATH)
 
         #TODO: do something about other languages!
-        p = self.en_US_pattern
+        p = self.en_US_behind_pattern
         behind = p.match(info)[1]
         if behind is not None:
             behind = int(behind)
