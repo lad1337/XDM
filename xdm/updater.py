@@ -22,7 +22,6 @@
 import sys
 import os
 import xdm
-import git
 from xdm.logger import *
 from core_migrate import *
 from lib import requests
@@ -31,8 +30,13 @@ import re
 from subprocess import call
 import urllib
 import subprocess
-from git.util import RemoteProgress
 import shutil
+
+import platform
+if "windows" in platform.system().lower():
+    from lib.pbs import git
+else:
+    from lib.sh import git
 
 install_type_exe = 0# any compiled windows build
 install_type_mac = 1# any compiled mac osx build
@@ -278,9 +282,50 @@ class SourceUpdateManager(object):
 
 class GitUpdateManager(UpdateManager):
 
-    #http://stackoverflow.com/questions/8290233/gitpython-get-list-of-remote-commits-not-yet-applied
+    """
+    # On branch master
+    # Your branch is behind 'origin/master' by 4 commits, and can be fast-forwarded.
+    #
+    nothing to commit (use -u to show untracked files)"""
+    en_US_behind_pattern = re.compile(r'by (\d+) commits')
+    en_US_ff_pattern = re.compile(r'can be fast-forwarded')
+
     def need_update(self):
-        repo = git.Repo(xdm.APP_PATH)                   # get the local repo
+        self.response.localVersion = git("rev-parse", "HEAD")
+
+        # is dirty will be some text unless its not dirty
+        is_dirty = git("ls-files", "-m", "-o", "-d", "--exclude-standard", _cwd=xdm.APP_PATH)
+        if is_dirty:
+            self.response.extraData['dirty_git'] = True
+            msg = "Running on a dirty git installation! No real check was done."
+            log.warning(msg)
+            self.response.message = msg
+            return self.response
+
+        git.remote("update", _cwd=xdm.APP_PATH)
+        self.response.externalVersion = git("rev-parse", "origin")
+
+        if self.response.localVersion == self.response.externalVersion: # local is updated; end
+            self.response.message = 'No update needed'
+            self.response.needUpdate = False
+            return self.response
+        info = git.status("-uno", _cwd=xdm.APP_PATH)
+
+        #TODO: do something about other languages!
+        p = self.en_US_pattern
+        behind = p.match(info)[1]
+        if behind is None:
+            self.response.message = "behind is none"
+            return self.response
+        behind = int(behind)
+        if behind > 0:
+            self.response.needUpdate = True
+        self.response.message = "behind is %s" % behind
+        return self.response
+            
+            
+            
+        """repo = git.Repo(xdm.APP_PATH)                   # get the local repo
         local_commit = repo.commit()                    # latest local commit
         remote = git.remote.Remote(repo, 'origin')      # remote repo
         info = remote.fetch()[0]                        # fetch changes
@@ -317,28 +362,14 @@ class GitUpdateManager(UpdateManager):
             log(msg)
             self.response.message = msg
             self.response.needUpdate = None
-            return self.response
-
-    def _repo_changes(self, commit):
-        "Iterator over repository changes starting with the given commit."
-        next_parent = None
-        yield commit                           # return the first commit itself
-        while len(commit.parents) > 0:         # iterate
-            for parent in commit.parents:        # go over all parents
-                yield parent                       # return each parent
-                next_parent = parent               # for the next iteration
-            commit = next_parent                 # start again
+            return self.response"""
 
     def update(self):
-        repo = git.Repo(xdm.APP_PATH)                   # get the local repo
-        remote = git.remote.Remote(repo, 'origin')      # remote repo
-        rp = self.MyRemoteProgress()
-
-        common.SM.setNewMessage('Init git pull on %s' % remote)
-        remote.pull(progress=rp)
-        return True
-
-    class MyRemoteProgress(RemoteProgress):
-
-        def update(self, op_code, cur_count, max_count=None, message=''):
-            common.SM.setNewMessage(self._cur_line)
+        common.SM.setNewMessage('Init git pull on')
+        try:
+        pull = git.pull(_cwd=xdm.APP_PATH)                   # get the local repo
+        if pull.exit_code == 0:
+            log.warning("Git pull exited with an error\n %s" % pull)
+            return False
+        else:
+            return True
