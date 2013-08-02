@@ -287,13 +287,13 @@ class GitUpdateManager(UpdateManager):
     # Your branch is behind 'origin/master' by 4 commits, and can be fast-forwarded.
     #
     nothing to commit (use -u to show untracked files)"""
-    en_US_behind_pattern = re.compile(r'behind .*? by (\d+) commits')
+    en_US_behind_pattern = re.compile(r'behind .*? by (\d+) commit')
     en_US_ff_pattern = re.compile(r'can be fast-forwarded')
     """
     # On branch master
     # Your branch is ahead of 'origin/master' by 1 commit.
     #"""
-    en_US_ahead_pattern = re.compile(r'ahead .*? by (\d+) commits')
+    en_US_ahead_pattern = re.compile(r'ahead .*? by (\d+) commit')
 
     def _getBranch(self):
         for branch_line in git.branch(_cwd=xdm.APP_PATH, _iter=True):
