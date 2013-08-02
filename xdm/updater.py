@@ -353,7 +353,7 @@ class GitUpdateManager(UpdateManager):
     def update(self):
         common.SM.setNewMessage('Init git pull on')
         pull = git.pull(_cwd=xdm.APP_PATH)                   # get the local repo
-        if pull.exit_code == 0:
+        if pull.exit_code != 0:
             log.warning("Git pull exited with an exit code %s\n %s" % (pull.exit_code, pull))
             return False
         else:
