@@ -25,16 +25,16 @@ from xdm.helper import replace_x
 
 
 class Replace(SearchTermFilter):
-    version = "0.1"
-    _config = {'replace_this': '&;:',
-               'with_this': "; "}
+    version = "0.2"
+    _config = {'replace_this': '&;:;/;|',
+               'with_this': "; ;; "}
     config_meta = {'plugin_desc': 'Replace each item with another one for each search term. Separate by a ; (semicolon). This is case sensitive and whitespace is NOT striped'}
 
     def compare(self, element, terms):
         badList = self.c.replace_this.split(';')
         replaceList = self.c.with_this.split(';')
         if len(badList) != len(replaceList):
-            log.warning('The two config fields from %s do not match in lenght check your ->;' % self)
+            log.warning('The two config fields from %s do not match in length check your ->;' % self)
             return terms
         replaceDict = {}
         for index, badThing in enumerate(badList):
