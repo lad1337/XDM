@@ -33,12 +33,6 @@ import subprocess
 import shutil
 
 
-import platform
-if "windows" in platform.system().lower():
-    from lib.pbs import git
-else:
-    from lib.sh import git
-
 install_type_exe = 0# any compiled windows build
 install_type_mac = 1# any compiled mac osx build
 install_type_git = 2# running from source using git
@@ -157,11 +151,12 @@ class UpdateResponse(object):
 
     def __str__(self):
         extra = '; '.join(self.extraData)
-        return 'Needupdate: %s; current version: %s; external version: %s;\nExtra info: %s\n%s' % (self.needUpdate,
-                                                                                                   self.localVersion,
-                                                                                                   self.externalVersion,
-                                                                                                   extra,
-                                                                                                   self.message)
+        return 'Needupdate: %s; current version: %s; external version: %s;\nExtra info: %s\n%s' % (
+           self.needUpdate,
+           self.localVersion,
+           self.externalVersion,
+           extra,
+           self.message)
 
 
 class UpdateManager(object):
@@ -271,7 +266,7 @@ class MacUpdateManager(BinaryUpdateManager):
         return True
 
 
-class SourceUpdateManager(object):
+class SourceUpdateManager(UpdateManager):
 
     def need_update(self):
         self.response.needUpdate = None
@@ -282,6 +277,16 @@ class SourceUpdateManager(object):
 
 
 class GitUpdateManager(UpdateManager):
+
+
+    def __init__(self):
+        import platform
+        if "windows" in platform.system().lower():
+            from lib.pbs import git
+        else:
+            from lib.sh import git
+        self.git = git
+        UpdateManager.__init__(self)
 
     """
     # On branch master
@@ -297,19 +302,19 @@ class GitUpdateManager(UpdateManager):
     en_US_ahead_pattern = re.compile(r'ahead .*? by (\d+) commit')
 
     def _getBranch(self):
-        for branch_line in git.branch(_cwd=xdm.APP_PATH, _iter=True):
+        for branch_line in self.git.branch(_cwd=xdm.APP_PATH, _iter=True):
             if branch_line.startswith('*'):
                 return re.search(r"\s(.*?)$", branch_line).group(1)
         log.warning("assuming master branch !")
         return 'master'
 
     def need_update(self):
-        self.response.localVersion = git("rev-parse", "HEAD").rstrip('\n')
+        self.response.localVersion = self.git("rev-parse", "HEAD").rstrip('\n')
         branch = self._getBranch()
         log.info("Running on branch: %s" % branch)
         self.response.extraData['on_branch'] = branch
         # is dirty will be some text unless its not dirty
-        is_dirty = git("ls-files", "-m", "-o", "-d", "--exclude-standard", _cwd=xdm.APP_PATH)
+        is_dirty = self.git("ls-files", "-m", "-o", "-d", "--exclude-standard", _cwd=xdm.APP_PATH)
         if is_dirty and not common.STARTOPTIONS.dev:
             self.response.extraData['dirty_git'] = True
             msg = "Running on a dirty git installation! No real check was done."
@@ -319,15 +324,15 @@ class GitUpdateManager(UpdateManager):
         elif is_dirty and common.STARTOPTIONS.dev:
             log.info("Ignoring dirty git since we are in dev mode")
 
-        git.remote("update", _cwd=xdm.APP_PATH)
-        self.response.externalVersion = git("rev-parse", "origin/%s" % branch).rstrip('\n')
+        self.git.remote("update", _cwd=xdm.APP_PATH)
+        self.response.externalVersion = self.git("rev-parse", "origin/%s" % branch).rstrip('\n')
 
         if self.response.localVersion == self.response.externalVersion: # local is updated; end
             self.response.message = 'No update needed'
             self.response.needUpdate = False
             return self.response
-        info = git.status("-uno", _cwd=xdm.APP_PATH)
-        log("git status output\n5s" % unicode(info))
+        info = self.git.status("-uno", _cwd=xdm.APP_PATH)
+        log("git status output\n%s" % unicode(info))
         #TODO: do something about other languages!
         p = self.en_US_behind_pattern
         match = p.search(unicode(info))
@@ -352,7 +357,7 @@ class GitUpdateManager(UpdateManager):
 
     def update(self):
         common.SM.setNewMessage('Init git pull on')
-        pull = git.pull(_cwd=xdm.APP_PATH)                   # get the local repo
+        pull = self.git.pull(_cwd=xdm.APP_PATH) # get the local repo
         if pull.exit_code != 0:
             log.warning("Git pull exited with an exit code %s\n %s" % (pull.exit_code, pull))
             return False

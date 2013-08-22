@@ -30,12 +30,13 @@ import xdm
 import traceback
 
 LOGLINECACHESIZE = 20
-
-lvlNames = {    logging.ERROR:      {'c': '   ERROR', 'p': 'ERROR'},
-                logging.WARNING:    {'c': ' WARNING', 'p': 'WARNING'},
-                logging.INFO:       {'c': '    INFO', 'p': 'INFO'},
-                logging.DEBUG:      {'c': '   DEBUG', 'p': 'DEBUG'},
-                logging.CRITICAL:   {'c': 'CRITICAL', 'p': 'CRITICAL'}
+# "c" is for console "p" is for i forgot, but it is used for the file logger
+# the "c" strings have terminal control strings that change the color ^_^
+lvlNames = {    logging.ERROR:      {'c': '   \x1b[31;1mERROR\x1b[0m', 'p': 'ERROR'},
+                logging.WARNING:    {'c': ' \x1b[35;1mWARNING\x1b[0m', 'p': 'WARNING'},
+                logging.INFO:       {'c': '    \x1b[32;1mINFO\x1b[0m', 'p': 'INFO'},
+                logging.DEBUG:      {'c': '   \x1b[36;1mDEBUG\x1b[0m', 'p': 'DEBUG'},
+                logging.CRITICAL:   {'c': '\x1b[43;1m\x1b[31;1mCRITICAL\x1b[49\x1b[0m', 'p': 'CRITICAL'}
                 }
 
 
@@ -87,16 +88,16 @@ class StructuredMessage(object):
         self.time = datetime.datetime.now()
 
     def console(self):
-        return '%s| %s: %s' % (lvlNames[self.lvl]['c'], self.time, self.message)
+        return u'%s| %s: %s' % (lvlNames[self.lvl]['c'], self.time, self.message)
 
     def __str__(self):
         def _json(time, lvl, message, calframe, kwargs={}):
             return json.dumps({'time': time,
-                           'lvl': lvlNames[lvl]['p'],
-                            'msg': message,
-                            'caller': {'file': calframe[2][1], 'line': calframe[2][2], 'fn': calframe[2][3]},
-                            'data': kwargs},
-                            cls=MyEncoder)
+                               'lvl': lvlNames[lvl]['p'],
+                               'msg': message,
+                               'caller': {'file': calframe[2][1], 'line': calframe[2][2], 'fn': calframe[2][3]},
+                               'data': kwargs},
+                               cls=MyEncoder)
 
         try:
             return _json(self.time, self.lvl, self.message, self.calframe, self.kwargs)
