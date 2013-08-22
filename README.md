@@ -1,4 +1,4 @@
-![XDM](http://xdm.lad1337.de/img/xdm-logo.svg "XDM")
+![XDM](http://xdm.lad1337.de/wp-content/uploads/2013/05/xdm-logo.h100.png "XDM")
 
 XDM: eXtendable Download Manager. Plugin based media collection manager.
 
