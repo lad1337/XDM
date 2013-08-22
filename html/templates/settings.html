@@ -107,7 +107,7 @@
                 {% if not plugin.single %}
                 <div class="input-append">
                     <input id="" type="text" class="newInstanceName"/>
-                    <input class="newInstance btn" type="button" value="Create New {{ plugin.screenName }} Instance" data-plugin="{{ plugin.type }}"/>
+                    <input class="newInstance btn" type="button" value="Create new {{ plugin.screenName }} Instance" data-plugin="{{ plugin.type }}"/>
                 </div>
                 {% endif %}
                 <input class="btn btn-success pull-right" type="submit" value="Save" onclick="$('#saveOn').attr('value', '{{ plugin.name|idSafe }}')"/>
