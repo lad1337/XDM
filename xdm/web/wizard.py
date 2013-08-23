@@ -73,7 +73,7 @@ class Wizard(object):
     def skip(self):
         common.removeState(7)
         common.SYSTEM.hc.setup_wizard_step = Wizard.steps
-        raise cherrypy.HTTPRedirect(common.SYSTEM.c.webRoot)
+        raise cherrypy.HTTPRedirect('%s/wizard/finished' % common.SYSTEM.c.webRoot)
 
     @cherrypy.expose
     def finished(self):
