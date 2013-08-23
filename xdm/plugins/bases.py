@@ -128,8 +128,10 @@ class Plugin(object):
         self._collect_hidden_configs()
 
         # method wrapping
-        methodList = [method for method in dir(self) if isinstance(getattr(self, method), (types.FunctionType, types.BuiltinFunctionType, types.MethodType, types.BuiltinMethodType, types.UnboundMethodType)) \
-                      and not method.startswith('_')]
+        methodList = [method for method in dir(self) if isinstance(
+            getattr(self, method), (types.FunctionType, types.BuiltinFunctionType, types.MethodType, types.BuiltinMethodType, types.UnboundMethodType)
+            ) and not method.startswith('_')]
+        
         for method_name in methodList:
             alternative = getattr(super(self.__class__, self), method_name)
             method = getattr(self, method_name)
@@ -164,7 +166,7 @@ class Plugin(object):
                     for field in ('type', 'element', 'mediaType'):
                         if field in self.config_meta[cur_c.name] is not None:
                             if self.config_meta[cur_c.name][field] is not None:
-                                log('Setting %s for %s to %s' % (cur_c.name, field, self.config_meta[cur_c.name][field]))
+                                log('%s setting %s for %s to %s' % (self, cur_c.name, field, self.config_meta[cur_c.name][field]))
                                 setattr(cur_c, field, self.config_meta[cur_c.name][field])
                 cur_c.save()
 
@@ -211,7 +213,7 @@ class Plugin(object):
                     for field in ('type', 'element', 'mediaType'):
                         if field in self._hidden_config_meta[cur_c.name] is not None:
                             if self._hidden_config_meta[cur_c.name][field] is not None:
-                                log('Setting %s for %s to %s' % (cur_c.name, field, self._hidden_config_meta[cur_c.name][field]))
+                                log('%s setting %s for %s to %s' % (self, cur_c.name, field, self._hidden_config_meta[cur_c.name][field]))
                                 setattr(cur_c, field, self._hidden_config_meta[cur_c.name][field])
                 cur_c.save()
 
@@ -268,7 +270,7 @@ class Plugin(object):
             return common.PM.path_cache[self.__class__.__name__]
 
     def _create_media_type_configs(self):
-        if self._type in (MediaTypeManager.__name__, System.__name__):
+        if self._type in (MediaTypeManager.__name__, System.__name__): # dont run for MediaTypeManager or System plugins
             return
 
         for mtm in common.PM.getMediaTypeManager():
@@ -291,7 +293,10 @@ class Plugin(object):
                     h_name = '%s for %s' % (prefix, sufix)
                     c_name = helper.replace_some('%s %s %s' % (mtm.name, prefix.lower(), sufix))
                     self._config[c_name] = None
-                    self.config_meta[c_name] = {'human': h_name, 'type': self.useConfigsForElementsAs.lower(), 'mediaType': mtm.mt, 'element': element}
+                    self.config_meta[c_name] = {'human': h_name,
+                                                'type': self.useConfigsForElementsAs.lower(),
+                                                'mediaType': mtm.mt,
+                                                'element': element}
 
             # add costum options
             if self.__class__.__bases__[0] in mtm.addConfig:
