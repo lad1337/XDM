@@ -23,7 +23,11 @@ from subprocess import call, Popen
 import urllib, ConfigParser
 from distutils.core import setup
 import zipfile, fnmatch
-import git
+import platform
+if "windows" in platform.system().lower():
+    from lib.pbs import git
+else:
+    from lib.sh import git
 
 
 ######################
@@ -94,10 +98,7 @@ def getNiceOSString(buildParams):
 
 
 def getLatestCommitID(buildParams):
-    repo = git.Repo('./')                   # get the local repo
-    local_commit = repo.commit()                    # latest local commit
-
-    longID = local_commit.hexsha
+    longID = git("rev-parse", "HEAD").rstrip('\n')
     shortID = longID[:6]
     return (longID, shortID)
 
