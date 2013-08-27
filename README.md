@@ -77,9 +77,11 @@ Plugin and reposetory managment
 Usage
 -----
 <pre>
-sage: XDM [-h] [-d] [-v] [-D] [-p PIDFILE] [-P PORT] [-n] [-b DATADIR]
-           [-c CONFIG] [--dev] [--noApi] [--apiPort APIPORT] [--noWebServer]
-           [--pluginImportDebug] [--profile [PROFILE [PROFILE ...]]]
+usage: XDM [-h] [-d] [-v] [-D] [-p PIDFILE] [-P PORT] [-n] [-b DATADIR]
+           [--config_db CONFIG_DB] [--data_db DATA_DB]
+           [--history_db HISTORY_DB] [--dev] [--noApi] [--apiPort APIPORT]
+           [--noWebServer] [--pluginImportDebug]
+           [--profile [PROFILE [PROFILE ...]]]
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -91,14 +93,17 @@ optional arguments:
   -P PORT, --port PORT  Force webinterface to listen on this port.
   -n, --nolaunch        Don't start the browser.
   -b DATADIR, --datadir DATADIR
-                        Set the directory for the database.
-  -c CONFIG, --config CONFIG
-                        Path to config file
+                        Set the directory for created data.
+  --config_db CONFIG_DB
+                        Path to config database
+  --data_db DATA_DB     Path to data database
+  --history_db HISTORY_DB
+                        Path to history database
   --dev                 Developer mode. Disables the censoring during log and
                         the plugin manager follows symlinks
   --noApi               Disable the api
   --apiPort APIPORT     Port the api runs on
-  --noWebServer         Port the api runs on
+  --noWebServer         Don't start the webserver
   --pluginImportDebug   Extra verbosy debug during plugin import is printed.
   --profile [PROFILE [PROFILE ...]]
                         Wrap a decorated(!) function in a profiler. By default
