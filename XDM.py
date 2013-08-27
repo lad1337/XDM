@@ -125,28 +125,24 @@ class App():
         # Daemonize
         if options.daemonize:
             if sys.platform == 'win32':
-                print "Daemonize not supported under Windows, starting normally"
+                log.error("Daemonize not supported under Windows, starting normally")
             else:
-                print "------------------- Preparing to run in daemon mode (screen logging is now OFF) -------------------"
                 log.info("Preparing to run in daemon mode")
                 logger.cLogger.setLevel(logging.CRITICAL)
                 daemonize()
 
         # Debug
         if options.debug:
-            print "------------------- XDM Debug Messages ON -------------------"
             logger.cLogger.setLevel(logging.DEBUG)
             log.info('XDM Debug mode ON')
         # Profile
         if options.profile is not None:
-            print "------------------- XDM Profiling ON -------------------"
             log.info('XDM profiling mode ON')
             common.RUNPROFILER = True
-            print common.RUNPROFILER
 
         # PIDfile
         if options.pidfile:
-            print "------------------- Set PIDfile to " + options.pidfile + " -------------------"
+            log.info("Set PIDfile to %s" % options.pidfile)
             PIDFile(cherrypy.engine, options.pidfile).subscribe()
         if options.pidfile:
             pid = str(os.getpid())
@@ -161,7 +157,7 @@ class App():
 
         # Set port
         if options.port:
-            print "------------------- Port manual set to " + options.port + " -------------------"
+            log.info("Port manual set to %d" % (options.port))
             port = int(options.port)
             server.socket_port = port
         else:
@@ -170,7 +166,7 @@ class App():
         self.port = server.socket_port
         # Set api port
         if options.apiPort:
-            print "------------------- Api port manual set to " + options.apiPort + " -------------------"
+            log.info("Api port manual set to %d" % (options.apiPort))
             self.port_api = int(options.apiPort)
         else:
             self.port_api = common.SYSTEM.c.port_api
@@ -262,7 +258,7 @@ class App():
         https = common.SYSTEM.c.https
         try:
             if not (common.STARTOPTIONS.nolaunch or common.SYSTEM.c.dont_open_browser):
-                print "------------------- launch Browser ( " + str(host) + ":" + str(self.port) + ") -------------------"
+                log.info("launch Browser %s:%s" % (host, self.port))
                 launchBrowser(host, self.port, https)
         except:
             pass
@@ -278,7 +274,7 @@ def main():
             os._exit(1)
     else:
         log.info('Not starting webserver because of the command line option --noWebServer')
-    if not app.options.noApi and common.SYSTEM.c.api_active:
+    if (not app.options.noApi) and common.SYSTEM.c.api_active:
         try:
             api = JSONRPCapi(app.port_api)
         except:
