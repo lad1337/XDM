@@ -322,8 +322,7 @@ class GitUpdateManager(UpdateManager):
                 break
         else:
             log.warning("assuming master branch !")
-        if b.startswith("\x1b[32m"):
-            b = b.strip("\x1b[32m").strip("\x1b[m") # strip color escape codes
+        b.replace("\x1b[32m", "").replace("\x1b[m", "") # strip color escape codes
         return b
 
     def need_update(self):
