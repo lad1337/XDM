@@ -50,9 +50,28 @@ def preDB(app_path, datadir):
         log('Set %s to %s' % (pathname, getattr(xdm, pathname)))
         log('Set %s to %s' % (relativepathname, getattr(xdm, relativepathname)))
 
-    xdm.DATABASE_PATH = os.path.join(xdm.DATADIR, xdm.DATABASE_NAME)
-    xdm.CONFIG_DATABASE_PATH = os.path.join(xdm.DATADIR, xdm.CONFIG_DATABASE_NAME)
-    xdm.HISTORY_DATABASE_PATH = os.path.join(xdm.DATADIR, xdm.HISTORY_DATABASE_NAME)
+    # config db
+    if common.STARTOPTIONS.config_db is not None:
+        xdm.CONFIG_DATABASE_PATH = common.STARTOPTIONS.config
+    else:
+        xdm.CONFIG_DATABASE_PATH = os.path.join(xdm.DATADIR, xdm.CONFIG_DATABASE_NAME)
+    log('Set CONFIG_DATABASE_PATH to %s' % xdm.CONFIG_DATABASE_PATH)
+
+    # data db
+    if common.STARTOPTIONS.data_db is not None:
+        xdm.DATABASE_PATH = common.STARTOPTIONS.data_db
+    else:
+        xdm.DATABASE_PATH = os.path.join(xdm.DATADIR, xdm.DATABASE_NAME)
+    log('Set DATABASE_PATH to %s' % xdm.DATABASE_PATH)
+
+    # history db
+    if common.STARTOPTIONS.history_db is not None:
+        xdm.HISTORY_DATABASE_PATH = common.STARTOPTIONS.history_db
+    else:
+        xdm.HISTORY_DATABASE_PATH = os.path.join(xdm.DATADIR, xdm.HISTORY_DATABASE_NAME)
+    log('Set HISTORY_DATABASE_PATH to %s' % xdm.HISTORY_DATABASE_PATH)
+
+
     #databases FILE init
     xdm.DATABASE.init(xdm.DATABASE_PATH)
     xdm.CONFIG_DATABASE.init(xdm.CONFIG_DATABASE_PATH)
@@ -105,7 +124,7 @@ def postDB():
         common.SYSTEM.c.https_key_filepath = os.path.join(xdm.DATADIR, common.SYSTEM.c.https_key_filepath)
 
     # prepare to load other plugins
-    if not common.SYSTEM.c.extra_plugin_path:
+    if not common.SYSTEM.c.extra_plugin_path or common.STARTOPTIONS.datadir is not None:
         log.info('Setting extra plugin path to %s' % xdm.PLUGININSTALLPATH)
         common.SYSTEM.c.extra_plugin_path = xdm.PLUGININSTALLPATH
 
