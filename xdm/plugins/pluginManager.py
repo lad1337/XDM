@@ -58,7 +58,7 @@ class PluginManager(object):
             r = lint.Run(['--disable=W0704,C0301,C0302,C0111,R0903,R0902,R0201,W0614,W0602,C0103,W0603,C0321,F0401,W0603,W0602,C0301,C0111,C0321,C0103,W0401,W0614,E0202', path], exit=False)
             s = eval(r.linter.config.evaluation, {}, r.linter.stats)
         except:
-            log.error('Chrash during pylint scoring.')
+            log.error('Crash during pylint scoring.')
             s = 0
         sys.stdout = old_stdout
         sys.stderr = old_stderr
