@@ -47,6 +47,7 @@ $(document).ready(function() {
         window.setInterval(function(){ poolDownloadStatus(ids)}, 15000); // poll every 15seconds
     
     }
+    $('#content>.btn-group a[href="'+decodeURIComponent(window.location.hash)+'"]').click();
 });
 
 function poolDownloadStatus(ids){
