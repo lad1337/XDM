@@ -35,11 +35,12 @@ Libraries in use
 - [pylint](http://www.logilab.org/project/pylint): analyzes Python source code looking for bugs and signs of poor quality
 - [astng](https://pypi.python.org/pypi/logilab-astng): common base representation of python source code for projects such as pychecker, pyreverse, pylint
 - [guessit](https://pypi.python.org/pypi/guessit): a library for guessing information from video files.
-- [GitPython](http://gitorious.org/git-python): a python library used to interact with Git repositories.
 - [gitdb](https://pypi.python.org/pypi/gitdb): Git Object Database
 - [async](https://github.com/gitpython-developers/async): Distribute interdependent tasks to 0 or more threads
 - [smmap](https://pypi.python.org/pypi/smmap): A pure git implementation of a sliding window memory map manager
 - [JSONRPClib](https://github.com/joshmarshall/jsonrpclib): A Python JSON-RPC over HTTP that mirrors xmlrpclib syntax.
+- [pbs](https://pypi.python.org/pypi/pbs): Python subprocess wrapper (fallback for windows, see sh).
+- [sh](http://amoffat.github.io/sh/): sh (previously pbs) is a full-fledged subprocess interface for Python that allows you to call any program as if it were a function.
 
 ### Frontend
 
@@ -64,14 +65,21 @@ Screenshots
 
 [More screenshots](http://xdm.lad1337.de)
 
-Music plugin with some albums
-![Music plugin](http://xdm.lad1337.de/img/home.png "Music plugin")
 
 Movie plugin with some movies
-![Movie plugin](http://xdm.lad1337.de/img/movies.png "Movie plugin")
+![Movie plugin](http://xdm.lad1337.de/img/webshot-1.jpg "Movie plugin")
+
+Music plugin with some albums
+![Music plugin](http://xdm.lad1337.de/img/webshot-2.jpg "Music plugin")
+
+Games
+![Games plugin](http://xdm.lad1337.de/img/webshot-3.jpg "Games plugin")
+
+Books
+![Books plugin](http://xdm.lad1337.de/img/webshot-4.jpg "Books plugin")
 
 Plugin and reposetory managment
-![Music plugin](http://xdm.lad1337.de/img/repo.png "Plugin and reposetory managment")
+![Plugins](http://xdm.lad1337.de/img/webshot-6.jpg "Plugin and reposetory managment")
 
 
 Usage
