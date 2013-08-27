@@ -35,9 +35,6 @@ Libraries in use
 - [pylint](http://www.logilab.org/project/pylint): analyzes Python source code looking for bugs and signs of poor quality
 - [astng](https://pypi.python.org/pypi/logilab-astng): common base representation of python source code for projects such as pychecker, pyreverse, pylint
 - [guessit](https://pypi.python.org/pypi/guessit): a library for guessing information from video files.
-- [gitdb](https://pypi.python.org/pypi/gitdb): Git Object Database
-- [async](https://github.com/gitpython-developers/async): Distribute interdependent tasks to 0 or more threads
-- [smmap](https://pypi.python.org/pypi/smmap): A pure git implementation of a sliding window memory map manager
 - [JSONRPClib](https://github.com/joshmarshall/jsonrpclib): A Python JSON-RPC over HTTP that mirrors xmlrpclib syntax.
 - [pbs](https://pypi.python.org/pypi/pbs): Python subprocess wrapper (fallback for windows, see sh).
 - [sh](http://amoffat.github.io/sh/): sh (previously pbs) is a full-fledged subprocess interface for Python that allows you to call any program as if it were a function.
