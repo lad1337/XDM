@@ -315,20 +315,20 @@ class GitUpdateManager(UpdateManager):
 
 
     def _getBranch(self):
-        b = "master"
+        branch = "master"
         for branch_line in self.git.branch(_cwd=xdm.APP_PATH, _iter=True):
             if branch_line.startswith('*'):
-                b = re.search(r"\s(.*?)$", branch_line).group(1)
+                branch = unicode(re.search(r"\s(.*?)$", branch_line).group(1))
                 break
         else:
             log.warning("assuming master branch !")
-        b.replace("\x1b[32m", "").replace("\x1b[m", "") # strip color escape codes
-        return b
+        branch = branch.replace(u"\x1b[32m", "").replace(u"\x1b[m", "") # strip color escape codes
+        return branch
 
     def need_update(self):
         self.response.localVersion = self.git("rev-parse", "HEAD").rstrip('\n')
         branch = self._getBranch()
-        log.info("Running on branch: %s" % branch)
+        log.info(u"Running on branch: %s" % branch)
         self.response.extraData['on_branch'] = branch
         # is dirty will be some text unless its not dirty
         is_dirty = self.git("ls-files", "-m", "-o", "-d", "--exclude-standard", _cwd=xdm.APP_PATH)
