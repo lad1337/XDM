@@ -315,14 +315,11 @@ class GitUpdateManager(UpdateManager):
 
 
     def _getBranch(self):
-        branch = "master"
-        for branch_line in self.git.branch(_cwd=xdm.APP_PATH, _iter=True):
-            if branch_line.startswith('*'):
-                branch = unicode(re.search(r"\s(.*?)$", branch_line).group(1))
-                break
-        else:
+        branch = self.git('symbolic-ref','--short','--quiet','HEAD',_cwd=xdm.APP_PATH,_ok_code=[0,1])
+        if branch.exit_code:
             log.warning("assuming master branch !")
-        branch = branch.replace(u"\x1b[32m", "").replace(u"\x1b[m", "") # strip color escape codes
+            branch = 'master'
+        branch = branch.rstrip('\n')
         return branch
 
     def need_update(self):
