@@ -317,7 +317,7 @@ class GitUpdateManager(UpdateManager):
     def _getBranch(self):
         branch = self.git('symbolic-ref','--short','--quiet','HEAD',_cwd=xdm.APP_PATH,_ok_code=[0,1])
         if branch.exit_code:
-            log.warning("assuming master branch !")
+            log.warning(u"assuming master branch !")
             branch = 'master'
         branch = branch.rstrip('\n')
         return branch
