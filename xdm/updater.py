@@ -328,7 +328,7 @@ class GitUpdateManager(UpdateManager):
         log.info(u"Running on branch: %s" % branch)
         self.response.extraData['on_branch'] = branch
         # is dirty will be some text unless its not dirty
-        is_dirty = self.git("ls-files", "-m", "-o", "-d", "--exclude-standard", _cwd=xdm.APP_PATH)
+        is_dirty = self.git.status("--porcelain", _cwd=xdm.APP_PATH)
         if is_dirty and not common.STARTOPTIONS.dev:
             self.response.extraData['dirty_git'] = True
             msg = "Running on a dirty git installation! No real check was done."
@@ -338,7 +338,7 @@ class GitUpdateManager(UpdateManager):
         elif is_dirty and common.STARTOPTIONS.dev:
             log.info("Ignoring dirty git since we are in dev mode")
 
-        self.git.remote("update", _cwd=xdm.APP_PATH)
+        self.git.remote.update(_cwd=xdm.APP_PATH)
         self.response.externalVersion = self.git("rev-parse", "--verify", "--quiet", "@{upstream}").rstrip('\n')
 
         if self.response.localVersion == self.response.externalVersion: # local is updated; end
