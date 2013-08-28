@@ -76,7 +76,7 @@ class App():
         p.add_argument('-v', '--version', action="store_true", dest='version', help="Print Version and exit.")
         p.add_argument('-D', '--debug', action="store_true", dest='debug', help="Print debug log to screen.")
         p.add_argument('-p', '--pidfile', dest='pidfile', default=None, help="Store the process id in the given file.")
-        p.add_argument('-P', '--port', dest='port', default=None, help="Force webinterface to listen on this port.")
+        p.add_argument('-P', '--port', dest='port', type=int, default=None, help="Force webinterface to listen on this port.")
         p.add_argument('-n', '--nolaunch', action="store_true", dest='nolaunch', help="Don't start the browser.")
         p.add_argument('-b', '--datadir', dest='datadir', default=None, help="Set the directory for created data.")
         p.add_argument('--config_db', dest='config_db', default=None, help="Path to config database")
@@ -84,7 +84,7 @@ class App():
         p.add_argument('--history_db', dest='history_db', default=None, help="Path to history database")
         p.add_argument('--dev', action="store_true", dest='dev', default=None, help="Developer mode. Disables the censoring during log and the plugin manager follows symlinks")
         p.add_argument('--noApi', action="store_true", dest='noApi', default=None, help="Disable the api")
-        p.add_argument('--apiPort', dest='apiPort', default=None, help="Port the api runs on")
+        p.add_argument('--apiPort', dest='apiPort', type=int, default=None, help="Port the api runs on")
         p.add_argument('--noWebServer', action="store_true", dest='noWebServer', help="Don't start the webserver")
         p.add_argument('--pluginImportDebug', action="store_true", dest='pluginImportDebug', help="Extra verbosy debug during plugin import is printed.")
         p.add_argument('--profile', dest='profile', nargs='*', default=None, help="Wrap a decorated(!) function in a profiler. By default all decorated functions are profiled. Decorate your function with @profileMeMaybe")
@@ -157,7 +157,7 @@ class App():
         # Set port
         if options.port:
             log.info("Port manual set to %d" % (options.port))
-            port = int(options.port)
+            port = options.port
             server.socket_port = port
         else:
             port = common.SYSTEM.c.port
@@ -166,7 +166,7 @@ class App():
         # Set api port
         if options.apiPort:
             log.info("Api port manual set to %d" % (options.apiPort))
-            self.port_api = int(options.apiPort)
+            self.port_api = options.apiPort
         else:
             self.port_api = common.SYSTEM.c.port_api
 
