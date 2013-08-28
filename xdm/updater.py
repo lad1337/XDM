@@ -339,7 +339,7 @@ class GitUpdateManager(UpdateManager):
             log.info("Ignoring dirty git since we are in dev mode")
 
         self.git.remote("update", _cwd=xdm.APP_PATH)
-        self.response.externalVersion = self.git("rev-parse", "origin/%s" % branch).rstrip('\n')
+        self.response.externalVersion = self.git("rev-parse", "--verify", "--quiet", "@{upstream}").rstrip('\n')
 
         if self.response.localVersion == self.response.externalVersion: # local is updated; end
             self.response.message = 'No update needed'
