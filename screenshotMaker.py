@@ -20,6 +20,7 @@
 #You should have received a copy of the GNU General Public License
 #along with this program.  If not, see http://www.gnu.org/licenses/.
 
+import os
 from os import path
 from time import sleep
 try:
@@ -28,7 +29,7 @@ except ImportError:
     print "wkhtmltoimage is not installed"
     exit(1)
     
-destination_dir = "Meta-Resources/screenshots/"
+destination_dir = "dist/"
 xdm_config_data_path = "/Users/lad1337/Desktop/XDM_conf/"
 
 xdm_args = ["-n", "-b", xdm_config_data_path]
@@ -82,6 +83,9 @@ def process_error_log_line(line):
     print "%s" % line,
     if 'Done' in line:
         done = True
+
+if not os.path.isdir(destination_dir):
+    os.mkdir(destination_dir)
 
 for page in pages:
     image_path = path.abspath("%s%s.jpg" % (destination_dir, page.name))
