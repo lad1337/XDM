@@ -92,6 +92,14 @@ class AjaxCalls:
         name = element.getName()
         element.deleteWithChildren()
         return json.dumps({'result': True, 'data': {}, 'msg': 'Deleted %s' % name})
+    
+    @cherrypy.expose
+    def addElement(self, id):
+        element = Element.get(Element.id == id)
+        element.manager.makeReal(element)
+        t = tasks.TaskThread(tasks.searchElement, element)
+        t.start()
+        return json.dumps({'result': True, 'data': {}, 'msg': '%s added.' % element.getName()})
 
     @cherrypy.expose
     def getDownloadsFrame(self, id):

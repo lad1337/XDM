@@ -128,6 +128,18 @@ function ajaxDeleteElement(id, deleteNode){
     })
 };
 
+function addElement(sender, id){
+	$(sender).addClass('btn-striped animate');
+	data = {};
+    data['id'] = id;
+    $.getJSON(webRoot+'/ajax/addElement', data, function(res){
+        if(res['result']){
+        	$(sender).closest('.status-temp').hide('slow')
+        	$(sender).removeClass('btn-striped animate');
+            noty({text: res['msg'], type: 'success', timeout:2000})
+        }
+    })
+};
 
 function createModal(name){
     var id = makeSafeForCSS(name+'Frame');
