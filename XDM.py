@@ -66,7 +66,10 @@ from xdm.helper import launchBrowser, daemonize
 
 class App():
 
-    def __init__(self):
+    def __init__(self, args=None):
+
+        if args is None:
+            args = sys.argv[1:]
 
         p = argparse.ArgumentParser(prog='XDM')
         p.add_argument('-d', '--daemonize', action="store_true", dest='daemonize', help="Run the server as a daemon.")
@@ -86,7 +89,7 @@ class App():
         p.add_argument('--pluginImportDebug', action="store_true", dest='pluginImportDebug', help="Extra verbosy debug during plugin import is printed.")
         p.add_argument('--profile', dest='profile', nargs='*', default=None, help="Wrap a decorated(!) function in a profiler. By default all decorated functions are profiled. Decorate your function with @profileMeMaybe")
 
-        options = p.parse_args()
+        options = p.parse_args(args)
         self.options = options
         common.STARTOPTIONS = options
 
