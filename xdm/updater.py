@@ -289,31 +289,6 @@ class GitUpdateManager(UpdateManager):
         self.git = git
         UpdateManager.__init__(self)
 
-    """
-    # On branch master
-    # Your branch is behind 'origin/master' by 4 commits, and can be fast-forwarded.
-    #
-    nothing to commit (use -u to show untracked files)"""
-
-    """
-    # On branch master
-    # Your branch is ahead of 'origin/master' by 1 commit.
-    #"""
-    def _ahead_pattern_factory(self):
-        words = (u"ahead", u"avance", u"vorraus")
-        for word in words:
-            yield re.compile(ur'%s .*?\s(\d+)' % word)
-
-    """
-    # On branch master
-    # Your branch is ahead of 'origin/master' by 1 commit.
-    #"""
-    def _behind_pattern_factory(self):
-        words = (u"behind", u"derriére", u"hinter")
-        for word in words:
-            yield re.compile(ur'%s .*?\s(\d+)' % word)
-
-
     def _getBranch(self):
         branch = self.git('symbolic-ref','--short','--quiet','HEAD',_cwd=xdm.APP_PATH,_ok_code=[0,1])
         if branch.exit_code:
@@ -345,33 +320,17 @@ class GitUpdateManager(UpdateManager):
             self.response.message = 'No update needed'
             self.response.needUpdate = False
             return self.response
-        info = unicode(self.git.status("-uno", _cwd=xdm.APP_PATH))
-        log("git status output\n%s" % info)
-        #TODO: do something about other languages!
-        for p in self._behind_pattern_factory():
-            match = p.search(info)
-            if match:
-                break
-        if match is not None:
-            behind = int(match.group(1))
-            if behind > 0:
-                self.response.needUpdate = True
-            self.response.message = "Behind by %s commits" % behind
-            return self.response
-
-        for p in self._ahead_pattern_factory():
-            match = p.search(info)
-            if match:
-                break
-        if match is not None:
-            ahead = int(match.group(1))
-            if ahead > 0:
-                self.response.needUpdate = False
-            self.response.message = "Ahead by %s commits. No update for you!" % ahead
-            return self.response
-
-        self.response.message = "I dont know what the the status of your git is."
-        self.response.needUpdate = None
+        behind, ahead = map(int,self.git('rev-list','--left-right','--count','@{upstream}...HEAD').rstrip('\n').split('\t'))
+        if ahead and behind:
+            self.response.message = "Ahead by %d commits, behind by %d commits.  You should probably update manually."
+        elif behind:
+            self.response.needUpdate = True
+            self.response.message = "Behind by %d commits" % behind
+        elif ahead:
+            self.response.message = "Ahead by %d commits. No update for you!" % ahead
+        else:
+            self.response.message = "I dont know what the the status of your git is."
+            self.response.needUpdate = None
         return self.response
 
     def update(self):
