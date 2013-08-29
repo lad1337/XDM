@@ -125,6 +125,9 @@ def which(program):
             exe_file = os.path.join(path, program)
             if is_exe(exe_file):
                 return exe_file
+            exe_file += ".exe"
+            if is_exe(exe_file):
+                return exe_file
 
     return None
 
@@ -214,6 +217,9 @@ class RunningCommand(object):
     def __int__(self):
         return int(str(self).strip())
 
+    def exit_code(self):
+        return self.exit_code
+
     @property
     def stdout(self):
         if self.call_args["bg"]: self.wait()
@@ -231,6 +237,7 @@ class RunningCommand(object):
         return str(self)
 
     def _handle_exit_code(self, rc):
+        self.exit_code = rc
         if rc not in self.call_args["ok_code"]:
             raise get_rc_exc(rc)(self.command_ran, self._stdout, self._stderr)
 
