@@ -946,7 +946,10 @@ class Image(BaseModel):
             log.error("Downloading image %s failed" % self.url)
             self.type = self._extByHeader('')
             return
+
         self.type = self._extByHeader(r.headers['content-type'])
+        dst_path = self.getPath()
+        log("Saving image to %s" % dst_path)
         if r.status_code == 200:
             with open(self.getPath(), 'wb') as f:
                 for chunk in r.iter_content():
@@ -960,14 +963,26 @@ class Image(BaseModel):
         return os.path.join(directory, self.imgName())
 
     def getSrc(self):
-        if self.type: # type is only set after we down loaded the image
-            url = u'%s/%s' % (common.SYSTEM.c.webRoot, os.path.join(xdm.IMAGEPATH_RELATIVE, str(self.element.mediaType), self.imgName()).replace(xdm.PROGDIR, ''))
-            return urllib.quote(url.encode('utf-8'))
+        if self.type: # type is only set after we downloaded the image
+
+            # TODO: figure this out
+            # there was a 
+            # .replace(xdm.PROGDIR, '')
+            # on the url why was this here ? is this needed ?
+            url = u'/'.join((xdm.IMAGEPATH_RELATIVE,
+                             unicode(self.element.mediaType),
+                             unicode(self.imgName())
+                             ))
+            webrooted_url = u'%s/%s' % (common.SYSTEM.c.webRoot, url)
+            return urllib.quote(webrooted_url.encode('utf-8'))
         else:
             return self.url
 
     def imgName(self):
-        return helper.fileNameClean(u"%s (%s) %s.%s" % (helper.replace_all(self.element.getName()), self.element.id, self.name, self.type))
+        return helper.fileNameClean(u"%s (%s) %s.%s" % (helper.replace_all(self.element.getName()),
+                                                        self.element.id,
+                                                        self.name,
+                                                        self.type))
 
 
 class Repo(BaseModel):
