@@ -107,12 +107,6 @@ function ajaxSearchProgress(parent, data){
 };
 
 $(document).ready(function() {
-    $('.progress .bar').resize(function(event){
-        $('span', this).width($(this).parent().width())
-        $('span', $(this).parent()).css('line-height', $(this).parent().height()+'px')
-    });
-    $('.progress .bar').resize()
-    
     $('a[data-toggle="tab"]').on('show', function (e) {
         var t = $(e.target)
         var tab = $(t.attr('href'));

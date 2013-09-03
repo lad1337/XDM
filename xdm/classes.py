@@ -24,7 +24,7 @@ from lib.peewee import *
 from lib.peewee import QueryCompiler
 import os
 import xdm
-from lib import requests
+from lib import requests, dateutil
 from logger import *
 from xdm import common, helper, profileMeMaybe
 import datetime
@@ -394,7 +394,9 @@ class Element(BaseModel):
         elementTemplate = env.get_template('this')
 
         widgets_html = {}
-        useInSearch = {'actionButtons': 'addButton', 'actionButtonsIcons': 'addButtonIcon', 'released': 'released'}
+        useInSearch = {'actionButtons': 'addButton',
+                       'actionButtonsIcons': 'addButtonIcon',
+                       'released': 'released'}
 
         for widget in WIDGETS:
             if (widget in useInSearch and search) or not search:
@@ -403,7 +405,10 @@ class Element(BaseModel):
                     if search:
                         templateName = '%s.html' % useInSearch[widget]
                     curTemplate = elementWidgetEnvironment.get_template(templateName)
-                    widgets_html[widget] = curTemplate.render(this=self, globalStatus=Status.select(), webRoot=webRoot)
+                    widgets_html[widget] = curTemplate.render(this=self,
+                                                              globalStatus=Status.select(),
+                                                              webRoot=webRoot,
+                                                              common=common)
 
         #Static infos / render stuff
         # status class
@@ -452,7 +457,9 @@ class Element(BaseModel):
         children = Element.select().where(Element.parent == self.id)
         curIndex = 0
         if '{{children}}' in html:
-            for child in sorted(children, key=lambda c: c.orderFieldValues):
+            for child in sorted(children,
+                                key=lambda c: c.orderFieldValues,
+                                reverse=self.orderReverse):
                 html = html.replace('{{children}}', '%s{{children}}' % child.paint(search=search, single=single, status=status, curIndex=curIndex), 1)
                 curIndex += 1
 
@@ -471,6 +478,11 @@ class Element(BaseModel):
         return out
 
     orderFieldValues = property(_getOrderFieldValues)
+    
+    def _getOrderReverse(self):
+        return self.manager.getOrderReverse(self.type)
+    
+    orderReverse = property(_getOrderReverse)
 
     def _getAllAncestorss(self):
         if not self.parent:
@@ -634,7 +646,11 @@ class Field(Field_V0):
                 return int(self._value_int)
             return self._value_int
         elif self._value_datetime != None:
-            return self._value_datetime
+            if type(self._value_datetime).__name__ in ('str', 'unicode'):
+                datetime = dateutil.parser.parse(self._value_datetime)
+                return datetime.replace(tzinfo=None)
+            else:
+                return self._value_datetime
         else:
             return self._value_char
 

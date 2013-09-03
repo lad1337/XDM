@@ -876,9 +876,14 @@ class MediaTypeManager(Plugin):
                 return fields
             else:
                 return (fields,)
-            return self.s[eType]['class'].__dict__['_orderBy']
         else:
             return []
+
+    def getOrderReverse(self, eType):
+        if eType in self.s and '_orderReverse' in self.s[eType]['class'].__dict__:
+            return self.s[eType]['class'].__dict__['_orderReverse']
+        else:
+            return False
 
     def getAttrs(self, eType):
         return self.s[eType]['attr']
@@ -903,10 +908,13 @@ class MediaTypeManager(Plugin):
         log('init paint children on given root %s' % root)
         return root.paint(status=status, onlyChildren=True)
 
+    def homeStatuses(self):
+        return common.getHomeStatuses()
+
     @xdm.profileMeMaybe
     def paint(self, root=None, status=None):
         if status is None:
-            status = common.getHomeStatuses()
+            status = self.homeStatuses()
 
         if root is None:
             log('init paint on default root %s' % self.root)

@@ -441,6 +441,10 @@ td.download-size,
     border-radius: 4px 0 0 4px;
 }
 
+/* overwrite qtip */
+.qtip{
+    max-width: 690px;
+}
 
 @media only screen and (max-width: 767px) {
     #container {

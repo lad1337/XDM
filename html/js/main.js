@@ -12,7 +12,12 @@ $(document).ready(function() {
         padding     : 0,
         margin      : [20, 60, 20, 60] // Increase left/right margin
     });
-
+    
+    $('.progress .bar').resize(function(event){
+        $('span', this).width($(this).parent().width())
+        $('span', $(this).parent()).css('line-height', $(this).parent().height()+'px')
+    });
+    $('.progress .bar').resize()
     
     $('.navbar .navbar-search .add-on').click(function(){
         $(this).siblings('input').val('')

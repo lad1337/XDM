@@ -168,10 +168,11 @@ def updateCherrypyPluginDirs():
 
 
 def reltime(date):
+    if date == common.FAKEDATE:
+        return "unknown"
     if type(date).__name__ not in ('date', 'datetime'):
         return "reltime needs a date or datetime we got: '%s'" % repr(date)
-    _now = datetime.now()
-    return format_timedelta(date - _now, locale=common.getLocale())
+    return format_timedelta(date - datetime.now(), locale=common.getLocale())
 
 #http://code.activestate.com/recipes/576644-diff-two-dictionaries/
 KEYNOTFOUND = '<KEYNOTFOUND>'       # KeyNotFound for dictDiff
