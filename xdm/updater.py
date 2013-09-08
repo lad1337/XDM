@@ -120,7 +120,14 @@ class CoreUpdater(object):
         returns: UpdateManager.UpdateResponse()
         """
         log.info("Checking if %s needs an update" % install_type_names[self.install_type])
-        self.info = self.updater.need_update()
+        try:
+            self.info = self.updater.need_update()
+        except Exception as e:
+            log.critical(unicode(e))
+            if not common.STARTOPTIONS.dev:
+                raise
+            self.info = UpdateResponse()
+
         if not self.info.needUpdate:
             log.info(u"No update needed")
 
@@ -143,7 +150,7 @@ class UpdateResponse(object):
         self.needUpdate = None
         self.localVersion = 0
         self.externalVersion = 0
-        self.message = 'No update needed'
+        self.message = 'No update needed (default message)'
         self.extraData = {}
 
     def default(self):

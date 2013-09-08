@@ -167,6 +167,10 @@ def schedule():
     log.info("Setting up element list update scheduler every %s seconds" % rate)
     common.SCHEDULER.addTask(tasks.runUpdater, rate, 'Element Updater')
     """
+    
+    common.SCHEDULER.addTask(tasks.checkQ, 2, 10, 'queue worker')
+
+    
     # media adder schedule
     rate = common.SYSTEM.c.interval_mediaadder * 60
     log.info("Setting up mediaadder scheduler every %s seconds" % rate)

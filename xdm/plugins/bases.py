@@ -120,7 +120,7 @@ class Plugin(object):
         # element configs
         self.e = ConfigWrapper(self, self.elementConfig)
         self.elementConfig_meta = ConfigMeta(self.elementConfig_meta)
-        self._collect_element_configs()
+        #self._collect_element_configs()
 
         # hidden configs
         self.hc = ConfigWrapper(self, self._hidden_config)
@@ -608,6 +608,7 @@ class Provider(Plugin):
     """
     _type = 'Provider'
     _tag = 'unknown'
+    _additional_tags = []
     addMediaTypeOptions = False
 
     class Progress(object):
@@ -633,6 +634,7 @@ class Provider(Plugin):
         self._config['favor'] = False
         Plugin.__init__(self, instance=instance)
         self.tag = self._tag
+        self.tags = self._additional_tags + [self.tag]
         if instance != 'Default':
             self.tag = instance
         self.progress = self.Progress()
@@ -834,9 +836,11 @@ class MediaTypeManager(Plugin):
                         e.save()
 
     def checkElementFields(self):
+        #FIXME
+        return 
         for cur_class in self.order:
             for element in self.getElementsWithStatusIn(common.getEveryStatusBut([common.TEMP])):
-                for attrName in self.s[cur_class.__name__]['attr']:
+                for attrName in self.s[element.type]['attr']:
                     try:
                         getattr(element, attrName)
                     except AttributeError:
@@ -893,13 +897,13 @@ class MediaTypeManager(Plugin):
 
     def _defaultHeadInject(self):
         """This will inject a script and a css style tag script.js and style.css respectively
-        It is assumes that these files are in the root of the plugin.
+        It assumes that these files are in the root of the plugin.
         """
         myUrl = self.myUrl()
         return """
-        <link rel="stylesheet" href="%s/style.css">
-        <script src="%s/script.js"></script>
-        """ % (myUrl, myUrl)
+        <link rel="stylesheet" href="%(myUrl)s/style.css">
+        <script src="%(myUrl)s/script.js"></script>
+        """ % {'myUrl': myUrl}
 
     @xdm.profileMeMaybe
     def paintChildrenOf(self, root, status=None):

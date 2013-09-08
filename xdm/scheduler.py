@@ -136,7 +136,10 @@ class Task(threading.Thread):
             self._blockCount = 0
             self._neverRun = True
             self._runNow = False
-            self.start()
+            try:
+                self.start()
+            except RuntimeError:
+                pass
 
     def isSleeping(self):
         return bool(self._sleeping)

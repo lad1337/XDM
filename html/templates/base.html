@@ -26,7 +26,7 @@
 
         <script src="{{webRoot}}/js/vendor/modernizr-2.6.2.min.js"></script>
 
-        <link href="{{webRoot}}/css/ui-darkness/jquery-ui-1.10.1.custom.min.css" rel="stylesheet" media="screen">
+        <!--<link href="{{webRoot}}/css/ui-darkness/jquery-ui-1.10.1.custom.min.css" rel="stylesheet" media="screen">-->
         <link href="{{webRoot}}/css/jquery.qtip.min.css" rel="stylesheet" media="screen">
         <!-- Bootstrap -->
         <link href="{{webRoot}}/bootstrap/css/bootstrap-combined.no-icons.min.css?v={{common.getVersionString()}}" rel="stylesheet" media="screen">
@@ -151,9 +151,11 @@
             </div>
 
             <footer>
-                <!-- if you wonder why there are so many empy comments: they are used to have no whitespace between the a and span but still have a readable source code. idea is from http://stackoverflow.com/a/1097063/729059 -->
+                <!-- if you wonder why there are so many empy comments:
+                they are used to have no whitespace between the a and span but still have a readable source code.
+                idea is from http://stackoverflow.com/a/1097063/729059 -->
                 {%- block footer %}
-                <a href="{{webRoot}}/about">About</a><span class="divider">-</span><!--
+                <a href="{{webRoot}}/status">Status</a><span class="divider">-</span><!--
              --><a href="javascript:void(0)" class="in-wizard" onClick="rebootModal();return false;">Reboot</a><span class="divider in-wizard">-</span><!--
              --><a href="javascript:void(0)" class="in-wizard" onClick="shutdownModal();return false;" >Shutdown</a><span class="divider">-</span><!--
              --><a href="{{'https://github.com/lad1337/XDM'|dereferMe}}"><i class="icon-github-sign"></i></a><span class="divider">-</span><!--

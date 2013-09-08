@@ -26,7 +26,7 @@ from xdm.classes import Config
 
 
 class ConfigWrapper(object):
-    """this will be the "c" of a plugin to easily get the config for the current plugin
+    """this will be the "c", "hc" or "e" of a plugin to easily get the config for the current plugin
     also handels the saving of the new config"""
     configs = []
 
@@ -45,11 +45,14 @@ class ConfigWrapper(object):
             self.configs.insert(0, self.configs.pop(self.configs.index(enabled)))
 
     def getConfig(self, name, element=None):
-        for cur_c in self.configs:
-            if cur_c.name == name and element is None:
-                return cur_c
-            elif cur_c.name == name and element == cur_c.element:
-                return cur_c
+        if element is not None:
+            for cur_c in self.getConfigsFor(element):
+                if cur_c.name == name:
+                    return cur_c
+        else:
+            for cur_c in self.configs:
+                if cur_c.name == name:
+                    return cur_c
         return None
 
     def getConfigsFor(self, element):
@@ -75,6 +78,9 @@ class ConfigWrapper(object):
                 cur_c.save()
             out.append(cur_c)
             self.addConfig(cur_c)
+        # print "element configs for %s" % element
+        for c in out:
+            print c
         return out
 
     def __getattr__(self, name):
@@ -124,6 +130,7 @@ class ConfigMeta(collections.MutableMapping):
 
     def __keytransform__(self, key):
         return key
+
 
 
 def pluginMethodWrapper(caller_name, run, alternative):

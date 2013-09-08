@@ -40,6 +40,10 @@ body.no-tooltip .tooltip{
     display: none !important;
 }
 
+img[src^='http']{
+    
+}
+
 .navbar .nav a{
     /*font-family: TypeOneRegular;*/x
 }
@@ -127,12 +131,15 @@ footer p{
     color: #000;
     text-decoration: none;
 }
+
 footer a:hover{
     text-decoration: underline;
 }
+
 footer .divider{
     padding: 0 0.3em;
 }
+
 .hint{
     color: #555;
     text-shadow: -1px -1px white, 1px 1px #333;
@@ -140,26 +147,13 @@ footer .divider{
     letter-spacing: 1px;
 }
 
-
 .progress .bar{
-    position: relative;
-    z-index: 3;
     overflow: hidden;
-    
-    -webkit-border-radius: 4px 0 0 4px;
-    -moz-border-radius: 4px 0 0 4px;
-    border-radius: 4px 0 0 4px;
-    
 }
-.progress .bar[style="width: 100%;"]{
-    -webkit-border-radius: 4px;
-    -moz-border-radius: 4px;
-    border-radius: 4px;   
-}
+
 .progress span{
     line-height: inherit;
 }
-/*https://github.com/minddust/bootstrap-progressbar/blob/master/bootstrap-progressbar.css*/
 .progress .progressbar-back-text {
     position: absolute;
     width: 100%;
@@ -173,7 +167,18 @@ footer .divider{
     width: 100%;
     font-size: 12px;
     text-align: center;
+    position: absolute;
+    color: #fff;
 }
+/*
+.progress .progressbar-back-text,
+.progress .progressbar-front-text{
+    -webkit-transition: all 0.6s ease;
+    -moz-transition: all 0.6s ease;
+    -o-transition: all 0.6s ease;
+    transition: all 0.6s ease;
+}*/
+
 
 #container.search .progress{
     width: 40%;
@@ -439,6 +444,14 @@ td.download-size,
     -webkit-border-radius: 4px 0 0 4px;
     -moz-border-radius: 4px 0 0 4px;
     border-radius: 4px 0 0 4px;
+}
+
+/* helper */
+
+.box-shadow{
+    -webkit-box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+    -moz-box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
 }
 
 /* overwrite qtip */

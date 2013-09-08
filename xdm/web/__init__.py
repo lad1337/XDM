@@ -120,7 +120,7 @@ class WebRoot:
         return template.render(**self._globals())
 
     @cherrypy.expose
-    def about(self, runTask=None):
+    def status(self, runTask=None):
         if runTask is None:
             tasks.coreUpdateCheck()
         else:

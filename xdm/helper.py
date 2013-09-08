@@ -270,6 +270,20 @@ def dereferMeText(html):
         #html = html.replace(url, dereferMe(url), 1)
     return html
 
+def getNewNodes(old_tree, new_tree):
+    new_nodes = []
+    for node in new_tree.decendants:
+        old_node = findOldNode(node, old_tree)
+        if old_node is None:
+            new_nodes.append(node)
+    return new_nodes
+
+def findOldNode(node, root):
+    new_XDMID = node.XDMID
+    for old_node in [root] + root.decendants:
+        if old_node.XDMID == new_XDMID:
+            return old_node
+    return None
 
 def guiGlobals(self):
     return {'mtms': common.PM.MTM,

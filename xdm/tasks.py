@@ -27,6 +27,7 @@ from xdm.jsonHelper import MyEncoder
 import threading
 import datetime
 from babel.dates import format_timedelta
+import Queue 
 
 
 class TaskThread(threading.Thread):
@@ -39,6 +40,20 @@ class TaskThread(threading.Thread):
     def run(self):
         log.debug(u'Running %s with args: %s and kwargs: %s' % (self._target.__name__, self._args, self._kwargs))
         self._target(*self._args, **self._kwargs)
+
+
+def checkQ():
+    try:
+        key, body = common.Q.get(False)
+    except Queue.Empty:
+        return
+    if key == 'image.download':
+        try:
+            e = Element.get(Element.id == body['id'])
+            e.downloadImages()
+        except Element.DoesNotExist:
+            pass
+    common.Q.task_done()
 
 
 def coreUpdateCheck():
@@ -298,32 +313,50 @@ def ppElement(element, download, path):
     return False
 
 
-def updateElement(element, force=False, downloadImages=True):
+def updateElement(element, force=False, downloadImages=True, withDecendents=True):
     for p in common.PM.getProvider(runFor=element.manager):
         #TODO: make sure we use the updated element after one provider is done
-        pID = element.getField('id', p.tag)
-        if not pID:
-            log.info(u'we dont have this element(%s) on provider(%s) yet. we will search for it' % (element, p))
-            #TODO search element by name or with help of xem ... yeah wishful thinking
-            #new_e = p.searchForElement(element.getName())
-            log.warning('getting an element by name is not implemented can not refresh')
-            return None
-
-        log(u'Getting %s with provider id %s on %s' % (element, pID, p))
-        new_e = p.getElement(pID, element)
-        createGenericEvent(element, 'refreshing', u'Serching for update on %s' % p)
-        if new_e:
-            log.info(u"%s returned an element" % p)
-        else:
-            log.info(u"%s returned NO element" % p)
-        if new_e and new_e != element:
-            log.info(u"Found new version of %s" % element)
-            for f in list(new_e.fields):
-                element.setField(f.name, f.value, f.provider)
-            if downloadImages:
-                element.deleteImages()
-                element.downloadImages()
-            return
+        for suported_tag in p.tags:
+            pID = element.getField('id', suported_tag)
+            if not pID:
+                log.info(u'we dont have this element(%s) on provider(%s) with tag %s' % (element, p, suported_tag))
+                #TODO search element by name or with help of xem ... yeah wishful thinking
+                #new_e = p.searchForElement(element.getName())
+                log.warning('getting an element by name is not implemented can not refresh')
+                continue
+            log(u'Getting %s with provider id %s on %s' % (element, pID, p))
+            new_e = p.getElement(pID, element)
+            createGenericEvent(element, 'refreshing', u'Serching for update on %s' % p)
+            if new_e:
+                log.info(u"%s returned an element" % p)
+            else:
+                log.info(u"%s returned NO element" % p)
+            
+            new_nodes = helper.getNewNodes(element, new_e)
+            if new_nodes:
+                for new_node in new_nodes:
+                    log.info("%s is a new node compared to the root %s" % (new_node, element))
+                    new_parent = helper.findOldNode(new_node.parent, element)
+                    log.debug("attaching %s to %s" % (new_node, new_parent))
+                    new_node.parent = new_parent
+                    new_node.save()
+                    
+            else:
+                log("No new nodes found in %s" % new_e)
+            
+            for updated_node in [new_e] + new_e.decendants:
+                
+                old_node = helper.findOldNode(updated_node, element)
+                if old_node is None:
+                    log.error("NO old node found for %s in %s" % (updated_node, element))
+                    continue
+                
+                if updated_node != old_node:
+                    log.info(u"Found new version of %s" % old_node)
+                    for f in list(updated_node.fields):
+                        old_node.setField(f.name, f.value, f.provider)
+                    if downloadImages:
+                        common.Q.put(('image.download', {'id': old_node.id}))
 
 
 def updateAllElements(downloadImages=False):
