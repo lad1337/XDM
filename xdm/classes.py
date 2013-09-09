@@ -490,8 +490,7 @@ class Element(BaseModel):
         return p
 
     ancestors = property(_getAllAncestorss)
-    
-    
+
     def _getXDMID(self):
         if self.parent:
             return u"%s-%s" % (self.parent.XDMID, self.getIdentifier())
@@ -1008,7 +1007,7 @@ class Image(BaseModel):
     saved = property(_isSaved)
 
     def getSrc(self):
-        if self.type and self.saved: # type is only set after we down loaded the image
+        if self.saved: # type is only set after we down loaded the image
             # TODO: figure this out
             # there was a 
             # .replace(xdm.PROGDIR, '')

@@ -332,7 +332,9 @@ def updateElement(element, force=False, downloadImages=True, withDecendents=True
             else:
                 log.info(u"%s returned NO element" % p)
             
+            log("Processing new data tree %s" % new_e)
             new_nodes = helper.getNewNodes(element, new_e)
+            log("Processing %s done" % new_e)
             if new_nodes:
                 for new_node in new_nodes:
                     log.info("%s is a new node compared to the root %s" % (new_node, element))
@@ -340,18 +342,19 @@ def updateElement(element, force=False, downloadImages=True, withDecendents=True
                     log.debug("attaching %s to %s" % (new_node, new_parent))
                     new_node.parent = new_parent
                     new_node.save()
+                    if downloadImages:
+                        common.Q.put(('image.download', {'id': new_node.id}))
                     
             else:
                 log("No new nodes found in %s" % new_e)
             
             for updated_node in [new_e] + new_e.decendants:
-                
                 old_node = helper.findOldNode(updated_node, element)
                 if old_node is None:
                     log.error("NO old node found for %s in %s" % (updated_node, element))
                     continue
                 
-                if updated_node != old_node:
+                if not helper.sameElements(old_node, updated_node):
                     log.info(u"Found new version of %s" % old_node)
                     for f in list(updated_node.fields):
                         old_node.setField(f.name, f.value, f.provider)

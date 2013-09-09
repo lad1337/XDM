@@ -454,6 +454,17 @@ td.download-size,
     box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
 }
 
+.black-outline{
+    color: #fff;
+    text-shadow: -1px -1px 1px #000, 1px -1px 1px #000, -1px 1px 1px #000, 1px 1px 1px #000;
+}
+
+.drop-left .dropdown-menu{
+    right: 0;
+    left: auto;
+}
+
+
 /* overwrite qtip */
 .qtip{
     max-width: 690px;

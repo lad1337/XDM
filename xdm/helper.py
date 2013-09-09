@@ -267,9 +267,9 @@ def dereferMeText(html):
     urls = re.findall(r'href=[\'"]?([^\'" >]+)', html)
     for url in urls:
         html = re.sub(r'href=([\'"]?)%s' % url, r'href=\1%s\1' % dereferMe(url), html)
-        #html = html.replace(url, dereferMe(url), 1)
     return html
 
+# FIXME: this is like O(N^2)!
 def getNewNodes(old_tree, new_tree):
     new_nodes = []
     for node in new_tree.decendants:
@@ -284,6 +284,24 @@ def findOldNode(node, root):
         if old_node.XDMID == new_XDMID:
             return old_node
     return None
+
+def sameElements(a, b):
+    """b is considered the new version"""
+    if a.type != b.type:
+        return False
+
+    a_fields = list(a.fields)
+    b_fields = list(b.fields)
+    a_fields_dict = {f.name:f.value for f in a_fields}
+    b_fields_dict = {f.name:f.value for f in b_fields}
+
+    for b_name, b_value in b_fields_dict.items():
+        if not b_name in a_fields_dict:
+            return False
+        if b_value != a_fields_dict[b_name]:
+            return False
+    return True
+
 
 def guiGlobals(self):
     return {'mtms': common.PM.MTM,
