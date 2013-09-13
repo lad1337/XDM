@@ -4,10 +4,10 @@
     <span class="caret"></span>
 </button>
 <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
-    {% for s in globalStatus %}
-    {% if not s.hidden %}
+    {%- for s in globalStatus -%}
+    {%- if not s.hidden -%}
     <li><a href="javascript:void(0);" onClick="ajaxSetElementStatus(this, {{s.id}}, {{this.id}});return false;">{{_(s.name)}}</a></li>
-    {% endif %}
-    {% endfor %}
+    {%- endif -%}
+    {%- endfor -%}
 </ul>
 </div>

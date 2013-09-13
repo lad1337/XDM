@@ -825,7 +825,6 @@ class MediaTypeManager(Plugin):
                         e = Element.getWhereField(self.mt, elementType.__name__, defaultAttributes, providerTag)
                     except Element.DoesNotExist:
                         log('Creating default element for %s. type:%s, attrs:%s' % (self.identifier, elementType.__name__, defaultAttributes))
-                        #continue
                         e = Element()
                         e.type = elementType.__name__
                         e.mediaType = self.mt

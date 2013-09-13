@@ -90,7 +90,7 @@ class Task(threading.Thread):
                         break
             else:
                 self._blockCount += 1
-                log("XDM is in state %s not running action %s" % (xdm.common.STATES, self.name))
+                log("XDM is in state %s not running action: %s" % (xdm.common.STATES, self.name))
 
             self._runtime += self._loopdelay
             self._sleeping = 1
