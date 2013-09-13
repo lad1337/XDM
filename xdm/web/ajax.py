@@ -137,7 +137,11 @@ class AjaxCalls:
             ele.save()
         except:
             return json.dumps({'result': False, 'data': {}, 'msg': 'Could not set status.'})
-        
+
+        if status == common.WANTED:
+            t = tasks.TaskThread(tasks.searchElement, ele)
+            t.start()
+
         return json.dumps({'result': True, 'data': {'screenName': u'%s' % status}, 'msg': u'%s set to %s' % (ele.getName(), status)})
 
     @cherrypy.expose
