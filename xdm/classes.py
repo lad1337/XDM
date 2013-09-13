@@ -576,6 +576,8 @@ class Element(BaseModel):
                 lastAttributeOK = False
                 last_e = f.element
             lastAttributeOK = u'%s' % attributes[f.name] == u'%s' % f.value
+        if lastAttributeOK:
+            return last_e
         raise Element.DoesNotExist
 
     def deleteWithChildren(self, silent=False):
