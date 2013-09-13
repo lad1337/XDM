@@ -4,18 +4,28 @@
 {% set active_page = active_page|default(cur_index) -%}
 {%endif%}
 {% block content%}
-<div class="btn-group" data-toggle="buttons-radio">
+<div class="btn-group" data-toggle="buttons-radio" id="media-type-select">
     {% for mt in mtms%}
-        <a href="#{{mt.instance}}" data-toggle="tab" class="btn btn-primary{% if mt.identifier == system.c.defaut_mt_select %} active{%endif%}">
-        {{mt.type}} ({{mt.getDownloadableElements(True)|length}})
+        <a href="#{{mt.instance}}" data-toggle="tab" data-identifier="{{mt.instance}}" class="btn btn-primary{% if mt.identifier == system.c.defaut_mt_select %} active{%endif%}">
+        {{mt.type}}
         </a>
     {% endfor %}
+</div>
+<div class="btn-group pull-right" data-toggle="buttons-radio" id="media-type-status-select">
+        <a class="btn btn-default active" data-status="home" title="Click again to reload">
+        {{_(common.WANTED.name)}}
+        </a>
+        <a class="btn btn-default" data-status="completed" title="Click again to reload">
+        {{_(common.COMPLETED.name)}}
+        </a>
 </div>
 
 <div class="tab-content">
 {% for mt in mtms%}
 <div class="{{mt.identifier.replace('.','-')}} tab-pane fade{% if mt.identifier == system.c.defaut_mt_select %} active in{%endif%}" id="{{mt.instance}}">
+{%- if mt.identifier == system.c.defaut_mt_select %}
     {{mt.paint()}}
+{%endif -%}
 </div>
 {% endfor %}
 </div>
@@ -30,7 +40,47 @@
 
 <script>
 var downloadStatusInterval;
+
 $(document).ready(function() {
+    initDownloadbars();
+    $('#content>.btn-group a[href="'+decodeURIComponent(window.location.hash)+'"]').click();
+    $('#media-type-select a').click(function(e){
+        loadMediaTypeContent(this, $('#media-type-status-select a.active').data('status'), false);
+    })
+    $('#media-type-status-select a').click(function(e){
+        var link = $('#media-type-select a.active').first();
+        var status = $(this).data('status');
+        loadMediaTypeContent(link, status, true);
+    })
+    
+});
+
+function loadMediaTypeContent(link, status, overwrite){
+    var link = $(link);
+    var target = $('#'+link.data('identifier'));
+    
+    var data = {};
+    data['identifier'] = link.data('identifier');
+    data['status'] = status;
+    if(!target.html() || overwrite){
+        link.addClass('btn-striped animate').removeClass('active');
+        jQuery.get( webRoot+'/getMediaTypePaint', data, function(res){
+            if(res){
+                target.html(res)
+                var fnName = link.data('identifier')+"_init"
+                var fn = window[fnName];
+                if(typeof fn === 'function') {
+                    fn();
+                    console.log("called: "+fnName);
+                }
+            }
+            link.removeClass('btn-striped animate').addClass('active');
+        });
+    }
+}
+
+
+function initDownloadbars(){
     var bars = $('.status-downloading .progress-download')
     if(bars.length){
         $('.progress.progress-download .bar').resize(function(event){
@@ -47,13 +97,14 @@ $(document).ready(function() {
         window.setInterval(function(){ poolDownloadStatus(ids)}, 15000); // poll every 15seconds
     
     }
-    $('#content>.btn-group a[href="'+decodeURIComponent(window.location.hash)+'"]').click();
-});
+
+}
+
 
 function poolDownloadStatus(ids){
     $.getJSON(webRoot+'/ajax/getDownloadBars', ids, function(res){
         if(res['result']){
-            $.each(res['data'],function(curID, percentage){
+            $.each(res['data'], function(curID, percentage){
                 var parent = $('.progress-download[data-id="'+curID+'"]');
                 if(percentage){
                     $('.bar' ,parent).css('width', percentage + '%');

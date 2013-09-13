@@ -25,8 +25,8 @@
         <meta name="viewport" content="width=device-width">
 
         <script src="{{webRoot}}/js/vendor/modernizr-2.6.2.min.js"></script>
-
-        <!--<link href="{{webRoot}}/css/ui-darkness/jquery-ui-1.10.1.custom.min.css" rel="stylesheet" media="screen">-->
+        <!-- this is needed at least for the youtube plugin -->
+        <link href="{{webRoot}}/css/ui-darkness/jquery-ui-1.10.1.custom.min.css" rel="stylesheet" media="screen">
         <link href="{{webRoot}}/css/jquery.qtip.min.css" rel="stylesheet" media="screen">
         <!-- Bootstrap -->
         <link href="{{webRoot}}/bootstrap/css/bootstrap-combined.no-icons.min.css?v={{common.getVersionString()}}" rel="stylesheet" media="screen">
@@ -49,10 +49,7 @@
     </head>
     <body>
         <div id="container" class="{%if active_sub_page %}{{active_sub_page}}{%else%}{{ active_page }}{%endif%} page-container">
-            {% set navigation_bar = [
-                                    ('/', 'index', 'Home', [('/', 'index', 'Wanted'),
-                                                            ('/completed/', 'completed', 'Completed')]),
-                                    ('/results/', 'search', 'Search', []),
+            {% set navigation_bar = [('/results/', 'search', 'Search', []),
                                     ('/settings/', 'settings', 'System', [('/settings/', 'settings', 'Core and Plugin Settings'),
                                                                             ('/plugins/', 'plugins', 'Manage Plugins'),
                                                                             ('/log/', 'log', 'Log and Errors')])

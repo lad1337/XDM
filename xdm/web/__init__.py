@@ -186,6 +186,16 @@ class WebRoot:
 
 
     @cherrypy.expose
+    def getMediaTypePaint(self, identifier, status=''):
+        
+        mt = common.PM.getMediaTypeManager(identifier)[0]
+        if status == 'home':
+            status = mt.homeStatuses()
+        elif status == 'completed':
+            status = mt.completedStatues()
+        return mt.paint(status=status)
+
+    @cherrypy.expose
     def getPaint(self, id):
         e = Element.get(Element.id == id)
         return e.manager.paint(e)

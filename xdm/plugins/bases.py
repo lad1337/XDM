@@ -914,6 +914,9 @@ class MediaTypeManager(Plugin):
 
     def homeStatuses(self):
         return common.getHomeStatuses()
+    
+    def completedStatues(self):
+        return common.getCompletedStatuses()
 
     @xdm.profileMeMaybe
     def paint(self, root=None, status=None):

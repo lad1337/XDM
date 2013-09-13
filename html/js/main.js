@@ -270,7 +270,6 @@ function labelInputConnector(labels){
 }
 
 
-
 function formAjaxSaveConnect(saveButtons, theForm){
     saveButtons.click(function(event){
         console.log(this)
