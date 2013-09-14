@@ -12,19 +12,7 @@ $(document).ready(function() {
         padding     : 0,
         margin      : [20, 60, 20, 60] // Increase left/right margin
     });
-    
-    $('.progress .bar').resize(function(event){
-        var p = $(this).parent();
-        var ph = p.height();
-        var w = $('.bar', p).width();
-        var w = 0;
-        $('.bar', p).each(function() {
-            w += $(this).width();
-        });
-        $('span.progressbar-front-text', p).css("clip", "rect(0px, "+w+"px, "+ph+"px, 0px)")
-        $('span', p).css('line-height', ph+'px')
-    });
-    $('.progress .bar').resize()
+    init_progress_bar_resize($('body'));
 
     $('.navbar .navbar-search .add-on').click(function(){
         $(this).siblings('input').val('')
@@ -79,6 +67,22 @@ $(document).ready(function() {
         showNextNews();
     }
 });
+
+function init_progress_bar_resize(parent){
+    $('.progress .bar', parent).resize(function(event){
+        var p = $(this).parent();
+        var ph = p.height();
+        var w = $('.bar', p).width();
+        var w = 0;
+        $('.bar', p).each(function() {
+            w += $(this).width();
+        });
+        $('span.progressbar-front-text', p).css("clip", "rect(0px, "+w+"px, "+ph+"px, 0px)")
+        $('span', p).css('line-height', ph+'px')
+    });
+    $('.progress .bar', parent).resize()
+}
+
 
 
 function closeAllMessages(){
