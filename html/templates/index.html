@@ -55,6 +55,8 @@ $(document).ready(function() {
     
 });
 
+var lastStatusFor = {}
+
 function loadMediaTypeContent(link, status, overwrite){
     var link = $(link);
     var target = $('#'+link.data('identifier'));
@@ -62,7 +64,8 @@ function loadMediaTypeContent(link, status, overwrite){
     var data = {};
     data['identifier'] = link.data('identifier');
     data['status'] = status;
-    if(!target.html() || overwrite){
+    if(!target.html() || overwrite || lastStatusFor[data['identifier']] != status){
+
         link.addClass('btn-striped animate').removeClass('active');
         jQuery.get( webRoot+'/getMediaTypePaint', data, function(res){
             if(res){
@@ -75,6 +78,7 @@ function loadMediaTypeContent(link, status, overwrite){
                 }
             }
             link.removeClass('btn-striped animate').addClass('active');
+            lastStatusFor[data['identifier']] = status;
         });
     }
 }
