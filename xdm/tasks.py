@@ -344,9 +344,13 @@ def updateElement(element, force=False, downloadImages=True, withDecendents=True
                     new_node.save()
                     if downloadImages:
                         common.Q.put(('image.download', {'id': new_node.id}))
-                    
             else:
                 log("No new nodes found in %s" % new_e)
+            
+            log("Clearing cache from %s" % element)
+            element.clearTreeCache()
+            log("Clearing cache from %s" % new_e)
+            new_e.clearTreeCache()
             
             for updated_node in [new_e] + new_e.decendants:
                 old_node = helper.findOldNode(updated_node, element)

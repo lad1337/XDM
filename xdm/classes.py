@@ -220,10 +220,30 @@ class Element(BaseModel):
         self._tmp_fields = []
         self._fnChecked = []
         super(Element, self).__init__(*args, **kwargs)
-        self.__fieldCache = list(self.fields)
+        self.clearCache()
 
     def __str__(self):
         return '%s(%s)[%s] %s' % (self.type, self.mediaType, self.get_id(), self.getName())
+
+    def clearCache(self):
+        self.__field_cache = {}
+        self.__ancestors_cache = []
+        self.__decendents_cache = []
+        self.__XDMID_cache = u''
+
+    def clearLowerTreeCache(self):
+        for child in self.children:
+            child.clearLowerTreeCache()
+        self.clearCache()
+
+    def clearUpperTreeCache(self):
+        if self.parent:
+            self.parent.clearUpperTreeCache()
+        self.clearCache()
+
+    def clearTreeCache(self):
+        self.clearLowerTreeCache()
+        self.clearUpperTreeCache()
 
     def copy(self):
         new = Element()
@@ -274,8 +294,8 @@ class Element(BaseModel):
             return None
 
     def getField(self, name, provider=None, returnObject=False):
-        #this is faster then a db query oO
-        #my mother had me tested
+        # this is faster then a db query oO
+        # my mother had me tested
         xdm_field = None
         for f in list(self.fields) + self._tmp_fields:
             if f.name == name and provider and f.provider == provider:
@@ -334,6 +354,7 @@ class Element(BaseModel):
             f.element = self
             f.save()
         self._tmp_fields = []
+        self.clearCache()
 
     def _getMyManager(self):
         return common.PM.getMediaTypeManager(self.mediaType.identifier)[0]
@@ -402,10 +423,11 @@ class Element(BaseModel):
                     if search:
                         templateName = '%s.html' % useInSearch[widget]
                     curTemplate = elementWidgetEnvironment.get_template(templateName)
-                    widgets_html[widget] = curTemplate.render(this=self,
-                                                              globalStatus=Status.select(),
-                                                              webRoot=webRoot,
-                                                              common=common)
+                    widgets_html[widget] = curTemplate.render(
+                        this=self,
+                        globalStatus=Status.select(),
+                        webRoot=webRoot,
+                        common=common)
 
         #Static infos / render stuff
         # status class
@@ -483,29 +505,38 @@ class Element(BaseModel):
     orderReverse = property(_getOrderReverse)
 
     def _getAllAncestorss(self):
-        if not self.parent:
-            return []
-        p = [self.parent]
-        p.extend(self.parent.ancestors)
-        return p
+        if not self.__ancestors_cache:
+            if not self.parent:
+                return []
+            p = [self.parent]
+            p.extend(self.parent.ancestors)
+            self.__ancestors_cache = p
+        return self.__ancestors_cache
 
     ancestors = property(_getAllAncestorss)
 
     def _getXDMID(self):
-        if self.parent:
-            return u"%s-%s" % (self.parent.XDMID, self.getIdentifier())
-        return u'r'
+        if not self.__XDMID_cache:
+            if self.parent:
+                _XDMID = u"%s-%s" % (self.parent.XDMID, self.getIdentifier())
+            else:
+                _XDMID = u'r'
+            self.__XDMID_cache = _XDMID
+        return self.__XDMID_cache
 
     XDMID = property(_getXDMID)
 
     def _getAllDescendants(self):
-        if not self.children:
-            return []
-        d = []
-        for c in Element.select().where(Element.parent == self.id):
-            d.append(c)
-            d.extend(c.decendants)
-        return d
+        # this is much faster with the cache !! wohhoo
+        if not self.__decendents_cache:
+            if not self.children:
+                return []
+            d = []
+            for c in Element.select().where(Element.parent == self.id):
+                d.append(c)
+                d.extend(c.decendants)
+            self.__decendents_cache = d
+        return self.__decendents_cache
 
     decendants = property(_getAllDescendants)
 

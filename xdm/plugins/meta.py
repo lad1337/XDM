@@ -57,6 +57,25 @@ class ConfigWrapper(object):
 
     def getConfigsFor(self, element):
         out = []
+        for cur_element in element.ancestors:
+            print "checking ancestor '%s' from '%s'" % (cur_element, element)
+            for k, v in self._configDefinition.items():
+                try:
+                    cur_c = Config.get(Config.section == self._plugin.__class__.__name__,
+                                       Config.module == 'Plugin',
+                                       Config.instance == self._plugin.instance,
+                                       Config.name == k,
+                                       Config.element == cur_element)
+                except Config.DoesNotExist:
+                    continue
+                out.append(cur_c)
+                self.addConfig(cur_c)
+            # print "element configs for %s" % element
+        if out:
+            for c in out:
+                print c
+            return out
+
         for k, v in self._configDefinition.items():
             try:
                 cur_c = Config.get(Config.section == self._plugin.__class__.__name__,
