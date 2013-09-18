@@ -51,9 +51,9 @@
     <body>
         <div id="container" class="{%if active_sub_page %}{{active_sub_page}}{%else%}{{ active_page }}{%endif%} page-container">
             {% set navigation_bar = [('/results/', 'search', 'Search', []),
-                                    ('/settings/', 'settings', 'System', [('/settings/', 'settings', 'Core and Plugin Settings'),
+                                    ('/settings/', 'settings', 'System', [('/settings/', 'settings', 'Settings'),
                                                                             ('/plugins/', 'plugins', 'Manage Plugins'),
-                                                                            ('/log/', 'log', 'Log and Errors')])
+                                                                            ('/log/', 'log', 'Logging')])
                                     ] -%}
             {% set active_page = active_page|default('index') -%}
             {% set active_sub_page = active_sub_page|default('index') -%}
