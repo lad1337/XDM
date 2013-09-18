@@ -120,7 +120,7 @@ class WebRoot:
         return template.render(**self._globals())
 
     @cherrypy.expose
-    def about(self, runTask=None):
+    def status(self, runTask=None):
         if runTask is None:
             tasks.coreUpdateCheck()
         else:
@@ -184,6 +184,16 @@ class WebRoot:
                     break
         return template.render(searchers=searchers, search_query=search_query, **templateGlobals)
 
+
+    @cherrypy.expose
+    def getMediaTypePaint(self, identifier, status=''):
+        
+        mt = common.PM.getMediaTypeManager(identifier)[0]
+        if status == 'home':
+            status = mt.homeStatuses()
+        elif status == 'completed':
+            status = mt.completedStatues()
+        return mt.paint(status=status)
 
     @cherrypy.expose
     def getPaint(self, id):

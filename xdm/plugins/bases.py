@@ -120,7 +120,7 @@ class Plugin(object):
         # element configs
         self.e = ConfigWrapper(self, self.elementConfig)
         self.elementConfig_meta = ConfigMeta(self.elementConfig_meta)
-        self._collect_element_configs()
+        #self._collect_element_configs()
 
         # hidden configs
         self.hc = ConfigWrapper(self, self._hidden_config)
@@ -608,6 +608,7 @@ class Provider(Plugin):
     """
     _type = 'Provider'
     _tag = 'unknown'
+    _additional_tags = []
     addMediaTypeOptions = False
 
     class Progress(object):
@@ -633,6 +634,7 @@ class Provider(Plugin):
         self._config['favor'] = False
         Plugin.__init__(self, instance=instance)
         self.tag = self._tag
+        self.tags = self._additional_tags + [self.tag]
         if instance != 'Default':
             self.tag = instance
         self.progress = self.Progress()
@@ -823,7 +825,6 @@ class MediaTypeManager(Plugin):
                         e = Element.getWhereField(self.mt, elementType.__name__, defaultAttributes, providerTag)
                     except Element.DoesNotExist:
                         log('Creating default element for %s. type:%s, attrs:%s' % (self.identifier, elementType.__name__, defaultAttributes))
-                        #continue
                         e = Element()
                         e.type = elementType.__name__
                         e.mediaType = self.mt
@@ -834,9 +835,11 @@ class MediaTypeManager(Plugin):
                         e.save()
 
     def checkElementFields(self):
+        #FIXME
+        return 
         for cur_class in self.order:
             for element in self.getElementsWithStatusIn(common.getEveryStatusBut([common.TEMP])):
-                for attrName in self.s[cur_class.__name__]['attr']:
+                for attrName in self.s[element.type]['attr']:
                     try:
                         getattr(element, attrName)
                     except AttributeError:
@@ -876,9 +879,14 @@ class MediaTypeManager(Plugin):
                 return fields
             else:
                 return (fields,)
-            return self.s[eType]['class'].__dict__['_orderBy']
         else:
             return []
+
+    def getOrderReverse(self, eType):
+        if eType in self.s and '_orderReverse' in self.s[eType]['class'].__dict__:
+            return self.s[eType]['class'].__dict__['_orderReverse']
+        else:
+            return False
 
     def getAttrs(self, eType):
         return self.s[eType]['attr']
@@ -888,13 +896,13 @@ class MediaTypeManager(Plugin):
 
     def _defaultHeadInject(self):
         """This will inject a script and a css style tag script.js and style.css respectively
-        It is assumes that these files are in the root of the plugin.
+        It assumes that these files are in the root of the plugin.
         """
         myUrl = self.myUrl()
         return """
-        <link rel="stylesheet" href="%s/style.css">
-        <script src="%s/script.js"></script>
-        """ % (myUrl, myUrl)
+        <link rel="stylesheet" href="%(myUrl)s/style.css">
+        <script src="%(myUrl)s/script.js"></script>
+        """ % {'myUrl': myUrl}
 
     @xdm.profileMeMaybe
     def paintChildrenOf(self, root, status=None):
@@ -903,10 +911,16 @@ class MediaTypeManager(Plugin):
         log('init paint children on given root %s' % root)
         return root.paint(status=status, onlyChildren=True)
 
+    def homeStatuses(self):
+        return common.getHomeStatuses()
+    
+    def completedStatues(self):
+        return common.getCompletedStatuses()
+
     @xdm.profileMeMaybe
     def paint(self, root=None, status=None):
         if status is None:
-            status = common.getHomeStatuses()
+            status = self.homeStatuses()
 
         if root is None:
             log('init paint on default root %s' % self.root)

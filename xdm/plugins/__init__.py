@@ -26,3 +26,4 @@ from xdm.classes import *
 from xdm.logger import *
 from xdm import common
 from xdm import profileMeMaybe
+del Field

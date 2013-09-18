@@ -30,9 +30,11 @@ except ImportError:
     exit(1)
     
 destination_dir = "dist/"
-xdm_config_data_path = "/Users/lad1337/Desktop/XDM_conf/"
+xdm_config_data_path = ""
 
-xdm_args = ["-n", "-b", xdm_config_data_path]
+xdm_args = ["-n"]
+if xdm_config_data_path:
+    xdm_args.extend(["-b", xdm_config_data_path])
 
 print "Booting XDM"
 import XDM
@@ -64,17 +66,22 @@ class Page(object):
     
 
 pages = []
-pages.append(Page('Movies','', js='m = $(".movie").first(); $(".door>img", m).first().click()'))
+
+print "Sleeping 10s just giving XDM some time"
+sleep(10)
+
+pages.append(Page('TV','#de_lad1337_tv', js='s = $(\'.Show[data-id="12"]\'); $(".banner", s).first().click(); $(\'.Season[data-id="24"]\', s).first().click()', delay=10000))
+pages.append(Page('Movies','#de_lad1337_movies', js='m = $(".movie").first(); $(".door>img", m).first().click()'))
 # might be not cool to display this in the net
 #pages.append(Page('MoviesDownloads','', js='m = $(".movie").first(); $(".door>img", m).first().click(); $(".info-downloads", m).click(); '))
-pages.append(Page('Music','#de_lad1337_music', js='$(\'.Album[data-id="6421"]>img\').click()'))
+pages.append(Page('Music','#de_lad1337_music', js='$(\'.Album[data-id="11274"]>img\').click()'))
 pages.append(Page('Games','#de_lad1337_games'))
 pages.append(Page('Books','#de_lad1337_books'))
 pages.append(Page('Settings','settings/'))
 pages.append(Page('PluginManager','plugins/', delay=10000))
 # log page does not because i guess the windows size is none in the renderer
 #pages.append(Page('Log','log/', height=800, delay=10000))
-pages.append(Page('About','about/'))
+pages.append(Page('Status','status/'))
 
 
 done = False

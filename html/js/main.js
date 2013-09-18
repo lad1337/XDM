@@ -12,12 +12,12 @@ $(document).ready(function() {
         padding     : 0,
         margin      : [20, 60, 20, 60] // Increase left/right margin
     });
+    init_progress_bar_resize($('body'));
 
-    
     $('.navbar .navbar-search .add-on').click(function(){
         $(this).siblings('input').val('')
     })
-    
+
     $('.navbar .navbar-search input').typeahead({
         source: function (term, query) {
             autoCompl = []
@@ -68,6 +68,22 @@ $(document).ready(function() {
     }
 });
 
+function init_progress_bar_resize(parent){
+    $('.progress .bar', parent).resize(function(event){
+        var p = $(this).parent();
+        var ph = p.height();
+        var w = $('.bar', p).width();
+        var w = 0;
+        $('.bar', p).each(function() {
+            w += $(this).width();
+        });
+        $('span.progressbar-front-text', p).css("clip", "rect(0px, "+w+"px, "+ph+"px, 0px)")
+        $('span', p).css('line-height', ph+'px')
+    });
+    $('.progress .bar', parent).resize()
+}
+
+
 
 function closeAllMessages(){
     $('.notifications .open').removeClass('open')
@@ -116,6 +132,22 @@ function messageConfirm(uuid){
     })
 }
 
+function ajaxSetElementStatus(status_link, status_id, element_id, silent){
+    if(typeof silent == 'undefined')
+        silent = false;
+    data = {};
+    data['status_id'] = status_id;
+    data['element_id'] = element_id;
+    $.getJSON(webRoot+'/ajax/setStatus', data, function(res){
+        if(res['result']){
+            if(!silent)
+                noty({text: res['msg'], type: 'success', timeout:2000})
+            b = $('.dropdown-toggle .text', $(status_link).closest('.status-select'))
+            console.log(b, res['data']['screenName'])
+            $(b).text(res['data']['screenName'])
+        }
+    })
+};
 
 function ajaxDeleteElement(id, deleteNode){
     data = {};
@@ -240,7 +272,6 @@ function labelInputConnector(labels){
         }
     });
 }
-
 
 
 function formAjaxSaveConnect(saveButtons, theForm){
@@ -473,3 +504,4 @@ function getAsciiArtLogo(){
     
     
 }
+

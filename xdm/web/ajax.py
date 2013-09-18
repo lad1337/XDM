@@ -129,6 +129,22 @@ class AjaxCalls:
         return json.dumps({'result': True, 'data': {'amount': amount}, 'msg': '%s events removed' % amount})
 
     @cherrypy.expose
+    def setStatus(self, status_id, element_id):
+        status = common.getStatusByID(int(status_id))
+        try:
+            ele = Element.get(Element.id == element_id)
+            ele.status = status
+            ele.save()
+        except:
+            return json.dumps({'result': False, 'data': {}, 'msg': 'Could not set status.'})
+
+        if status == common.WANTED:
+            t = tasks.TaskThread(tasks.searchElement, ele)
+            t.start()
+
+        return json.dumps({'result': True, 'data': {'screenName': u'%s' % status}, 'msg': u'%s set to %s' % (ele.getName(), status)})
+
+    @cherrypy.expose
     def searchProgress(self, mt, search_query):
         mtm = common.PM.getMediaTypeManager(mt)[0]
         if mtm.searcher is not None:
@@ -265,6 +281,7 @@ class AjaxCalls:
     @xdm.profileMeMaybe
     def _save(self, **kwargs):
         actions = {}
+        # print kwargs
         if 'saveOn' in kwargs:
             del kwargs['saveOn']
 
@@ -305,15 +322,17 @@ class AjaxCalls:
                 _plugin_cache[_cacheName] = plugin
             if plugin:
                 log(u"We have a plugin: %s (%s)" % (class_name, instance_name))
-                if element is not None: # we got an element id so its an element config
-                    old_value = getattr(plugin.e, config_name)
-                else: # normal settings page
-                    old_value = getattr(plugin.c, config_name)
                 new_value = convertV(v)
-                if old_value == new_value:
-                    continue
+                if element is None: # normal settings page
+                    old_value = getattr(plugin.c, config_name)
+                    new_value = convertV(v)
+                    if old_value == new_value:
+                        continue
                 if element is not None: # we got an element id so its an element config
                     cur_c = plugin.e.getConfig(config_name, element)
+                    if cur_c.value == new_value:
+                        continue
+                    log.debug("setting element config. %s K:%s, V:%s" % (element, config_name, new_value))
                     cur_c.element = element
                     cur_c.value = new_value
                     cur_c.save()
@@ -334,7 +353,8 @@ class AjaxCalls:
                 log(u"We don't have a plugin: %s (%s)" % (class_name, instance_name))
                 continue
 
-        common.PM.cache()
+        if element is None:
+            common.PM.cache()
         final_actions = {}
         for cur_class_name, cur_actions in actions.items():
             for cur_action in cur_actions:

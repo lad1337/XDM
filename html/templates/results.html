@@ -25,8 +25,8 @@
         <div class="current tab-pane fade in active" id="{{mt.instance}}-current">
             <div class="progress progress-striped active">
                 <span class="progressbar-back-text"></span>
+                <span class="progressbar-front-text"></span>
                 <div class="bar" style="width: 100%;">
-                    <span class="progressbar-front-text"></span>
                 </div>
             </div>
             <div class="searchTabPaneInner" style="display:none;"></div>
@@ -36,8 +36,8 @@
         <div class="tab-pane fade" id="{{mt.instance}}-{{oldRoot.id}}">
             <div class="progress progress-striped active">
                 <span class="progressbar-back-text"></span>
+                <span class="progressbar-front-text"></span>
                 <div class="bar" style="width: 100%;">
-                    <span class="progressbar-front-text"></span>
                 </div>
             </div>
             <div class="searchTabPaneInner" style="display:none;"></div>
@@ -107,12 +107,6 @@ function ajaxSearchProgress(parent, data){
 };
 
 $(document).ready(function() {
-    $('.progress .bar').resize(function(event){
-        $('span', this).width($(this).parent().width())
-        $('span', $(this).parent()).css('line-height', $(this).parent().height()+'px')
-    });
-    $('.progress .bar').resize()
-    
     $('a[data-toggle="tab"]').on('show', function (e) {
         var t = $(e.target)
         var tab = $(t.attr('href'));

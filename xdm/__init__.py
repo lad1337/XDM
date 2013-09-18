@@ -30,6 +30,8 @@ import sched
 import time
 from xdm.scheduler import Scheduler
 import xdm
+import datetime
+from Queue import Queue
 
 HOME_PATH = ""
 APP_PATH = ""
@@ -133,6 +135,9 @@ class Common(object):
     SM = SystemMessageManager()
     NM = NewsManager()
     SCHEDULER = Scheduler()
+    Q = Queue()
+
+    FAKEDATE = datetime.datetime(1987, 5, 24, 13, 37, 6)
 
     def getLocale(self):
         """get the current local string

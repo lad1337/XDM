@@ -24,7 +24,7 @@ from lib.peewee import *
 from lib.peewee import QueryCompiler
 import os
 import xdm
-from lib import requests
+from lib import requests, dateutil
 from logger import *
 from xdm import common, helper, profileMeMaybe
 import datetime
@@ -183,6 +183,9 @@ class Status(Status_V0):
         return lgettext(self.name)
     screenName = property(_screenName)
 
+    def __str__(self):
+        return self.screenName
+
 
 class MediaType(BaseModel):
     name = CharField()
@@ -210,17 +213,37 @@ class Element(BaseModel):
     type = CharField()
     parent = ForeignKeyField('self', related_name='children', null=True)
     status = ForeignKeyField(Status)
-    _overwriteableFunctions = ('getTemplate', 'getSearchTerms', 'getName', 'getSearchTemplate', 'getReleaseDate')
+    _overwriteableFunctions = ('getTemplate', 'getSearchTerms', 'getName', 'getSearchTemplate', 'getReleaseDate', 'getIdentifier')
     _tmp_fields = []
 
     def __init__(self, *args, **kwargs):
         self._tmp_fields = []
         self._fnChecked = []
         super(Element, self).__init__(*args, **kwargs)
-        self.__fieldCache = list(self.fields)
+        self.clearCache()
 
     def __str__(self):
         return '%s(%s)[%s] %s' % (self.type, self.mediaType, self.get_id(), self.getName())
+
+    def clearCache(self):
+        self.__field_cache = {}
+        self.__ancestors_cache = []
+        self.__decendents_cache = []
+        self.__XDMID_cache = u''
+
+    def clearLowerTreeCache(self):
+        for child in self.children:
+            child.clearLowerTreeCache()
+        self.clearCache()
+
+    def clearUpperTreeCache(self):
+        if self.parent:
+            self.parent.clearUpperTreeCache()
+        self.clearCache()
+
+    def clearTreeCache(self):
+        self.clearLowerTreeCache()
+        self.clearUpperTreeCache()
 
     def copy(self):
         new = Element()
@@ -271,8 +294,8 @@ class Element(BaseModel):
             return None
 
     def getField(self, name, provider=None, returnObject=False):
-        #this is faster then a db query oO
-        #my mother had me tested
+        # this is faster then a db query oO
+        # my mother had me tested
         xdm_field = None
         for f in list(self.fields) + self._tmp_fields:
             if f.name == name and provider and f.provider == provider:
@@ -331,6 +354,7 @@ class Element(BaseModel):
             f.element = self
             f.save()
         self._tmp_fields = []
+        self.clearCache()
 
     def _getMyManager(self):
         return common.PM.getMediaTypeManager(self.mediaType.identifier)[0]
@@ -370,12 +394,6 @@ class Element(BaseModel):
         log('Final search term set for %s is: %s' % (self, finalSet))
         return finalSet
 
-    def imgName(self):
-        return "%s (%s).jpeg" % (helper.replace_all(self.name), self.id)
-
-    def imgPath(self):
-        return os.path.join(xdm.IMAGEPATH_RELATIVE, self.type, self.imgName())
-
     def buildHtml(self, search=False, curIndex=0):
         if search:
             tpl = self.getSearchTemplate()
@@ -394,7 +412,9 @@ class Element(BaseModel):
         elementTemplate = env.get_template('this')
 
         widgets_html = {}
-        useInSearch = {'actionButtons': 'addButton', 'actionButtonsIcons': 'addButtonIcon', 'released': 'released'}
+        useInSearch = {'actionButtons': 'addButton',
+                       'actionButtonsIcons': 'addButtonIcon',
+                       'released': 'released'}
 
         for widget in WIDGETS:
             if (widget in useInSearch and search) or not search:
@@ -403,7 +423,11 @@ class Element(BaseModel):
                     if search:
                         templateName = '%s.html' % useInSearch[widget]
                     curTemplate = elementWidgetEnvironment.get_template(templateName)
-                    widgets_html[widget] = curTemplate.render(this=self, globalStatus=Status.select(), webRoot=webRoot)
+                    widgets_html[widget] = curTemplate.render(
+                        this=self,
+                        globalStatus=Status.select(),
+                        webRoot=webRoot,
+                        common=common)
 
         #Static infos / render stuff
         # status class
@@ -417,6 +441,7 @@ class Element(BaseModel):
                                       loopIndex=curIndex,
                                       webRoot=webRoot,
                                       myUrl=self.manager.myUrl(),
+                                      common=common,
                                       **widgets_html)
 
     def buildFieldDict(self):
@@ -452,7 +477,9 @@ class Element(BaseModel):
         children = Element.select().where(Element.parent == self.id)
         curIndex = 0
         if '{{children}}' in html:
-            for child in sorted(children, key=lambda c: c.orderFieldValues):
+            for child in sorted(children,
+                                key=lambda c: c.orderFieldValues,
+                                reverse=self.orderReverse):
                 html = html.replace('{{children}}', '%s{{children}}' % child.paint(search=search, single=single, status=status, curIndex=curIndex), 1)
                 curIndex += 1
 
@@ -471,24 +498,45 @@ class Element(BaseModel):
         return out
 
     orderFieldValues = property(_getOrderFieldValues)
+    
+    def _getOrderReverse(self):
+        return self.manager.getOrderReverse(self.type)
+    
+    orderReverse = property(_getOrderReverse)
 
     def _getAllAncestorss(self):
-        if not self.parent:
-            return []
-        p = [self.parent]
-        p.extend(self.parent.ancestors)
-        return p
+        if not self.__ancestors_cache:
+            if not self.parent:
+                return []
+            p = [self.parent]
+            p.extend(self.parent.ancestors)
+            self.__ancestors_cache = p
+        return self.__ancestors_cache
 
     ancestors = property(_getAllAncestorss)
 
+    def _getXDMID(self):
+        if not self.__XDMID_cache:
+            if self.parent:
+                _XDMID = u"%s-%s" % (self.parent.XDMID, self.getIdentifier())
+            else:
+                _XDMID = u'r'
+            self.__XDMID_cache = _XDMID
+        return self.__XDMID_cache
+
+    XDMID = property(_getXDMID)
+
     def _getAllDescendants(self):
-        if not self.children:
-            return []
-        d = []
-        for c in Element.select().where(Element.parent == self.id):
-            d.append(c)
-            d.extend(c.decendants)
-        return d
+        # this is much faster with the cache !! wohhoo
+        if not self.__decendents_cache:
+            if not self.children:
+                return []
+            d = []
+            for c in Element.select().where(Element.parent == self.id):
+                d.append(c)
+                d.extend(c.decendants)
+            self.__decendents_cache = d
+        return self.__decendents_cache
 
     decendants = property(_getAllDescendants)
 
@@ -497,6 +545,12 @@ class Element(BaseModel):
 
     def _getName(self):
         return ' '.join([str(x.value) for x in self.fields])
+
+    def getIdentifier(self):
+        return self._getIdentifier
+
+    def _getIdentifier(self):
+        return self.getName()
 
     def getReleaseDate(self):
         return self._getReleaseDate
@@ -515,19 +569,26 @@ class Element(BaseModel):
     def isAncestorOf(self, jungstar):
         return jungstar in self.decendants
 
+    def getImageNames(self):
+        return [imageName for imageName in self.manager.getAttrs(self.type) if 'image' in imageName]
+
     def downloadImages(self):
-        imageNames = [imageName for imageName in self.manager.getAttrs(self.type) if 'image' in imageName]
-        for cImageName in imageNames:
+        for cImageName in self.getImageNames():
             if self.getField(cImageName):
                 self.downloadImage(cImageName)
 
-    def downloadImage(self, imageName):
-        img = self.getImage(imageName)
+    def downloadImage(self, imageName, provider=''):
+        img = self.getImage(imageName, provider)
         if img is None:
             img = Image()
             img.name = imageName
             img.element = self
-        img.url = self.getField(imageName)
+        url = self.getField(imageName, provider)
+        if img.url == url and img.saved:
+            return
+        else:
+            img.deleteFile()
+        img.url = url
         img.cacheImage()
         img.save()
 
@@ -546,6 +607,8 @@ class Element(BaseModel):
                 lastAttributeOK = False
                 last_e = f.element
             lastAttributeOK = u'%s' % attributes[f.name] == u'%s' % f.value
+        if lastAttributeOK:
+            return last_e
         raise Element.DoesNotExist
 
     def deleteWithChildren(self, silent=False):
@@ -634,7 +697,11 @@ class Field(Field_V0):
                 return int(self._value_int)
             return self._value_int
         elif self._value_datetime != None:
-            return self._value_datetime
+            if type(self._value_datetime).__name__ in ('str', 'unicode'):
+                datetime = dateutil.parser.parse(self._value_datetime)
+                return datetime.replace(tzinfo=None)
+            else:
+                return self._value_datetime
         else:
             return self._value_char
 
@@ -741,6 +808,8 @@ class Config(BaseModel):
         else:
             return 'str'
 
+    def __str__(self):
+        return u"(%s) Name: %s Value: %s" % (self.id, self.name, self.value)
 
 class Download_V0(BaseModel):
     element = ForeignKeyField(Element, related_name='downloads')
@@ -929,11 +998,14 @@ class Image(BaseModel):
     def __str__(self):
         return self.getSrc()
 
-    def delete_instance(self):
+    def deleteFile(self):
         try:
             os.remove(self.getPath())
         except OSError:
             pass
+        
+    def delete_instance(self):
+        self.deleteFile()
         super(Image, self).delete_instance()
 
     def cacheImage(self):
@@ -962,9 +1034,13 @@ class Image(BaseModel):
 
         return os.path.join(directory, self.imgName())
 
-    def getSrc(self):
-        if self.type: # type is only set after we downloaded the image
+    def _isSaved(self):
+        return os.path.isfile(self.getPath())
+    
+    saved = property(_isSaved)
 
+    def getSrc(self):
+        if self.saved: # type is only set after we down loaded the image
             # TODO: figure this out
             # there was a 
             # .replace(xdm.PROGDIR, '')
