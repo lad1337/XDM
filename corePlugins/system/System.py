@@ -3,21 +3,21 @@
 #
 # This file is part of XDM: eXtentable Download Manager.
 #
-#XDM: eXtentable Download Manager. Plugin based media collection manager.
-#Copyright (C) 2013  Dennis Lutter
+# XDM: eXtentable Download Manager. Plugin based media collection manager.
+# Copyright (C) 2013  Dennis Lutter
 #
-#XDM is free software: you can redistribute it and/or modify
-#it under the terms of the GNU General Public License as published by
-#the Free Software Foundation, either version 3 of the License, or
-#(at your option) any later version.
+# XDM is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
 #
-#XDM is distributed in the hope that it will be useful,
-#but WITHOUT ANY WARRANTY; without even the implied warranty of
-#MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#GNU General Public License for more details.
+# XDM is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
 #
-#You should have received a copy of the GNU General Public License
-#along with this program.  If not, see http://www.gnu.org/licenses/.
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see http://www.gnu.org/licenses/.
 
 from xdm.plugins import *
 import os
@@ -54,15 +54,15 @@ class SystemConfig(System):
                'dont_open_browser': False,
                'webRoot': '',
                'show_feed': True,
-               'api_active': True,
+               'api_active': False,
                'api_key': '',
                'language_select': 'automatic',
                'use_derefer_me': True,
                'auto_update_plugins': False
                }
 
-    _hidden_config = {'last_known_version': '0.4.18', #this was introduced in 0.4.19. so in order to run migration for 0.4.19 we have a value of 0.4.18
-                      'setup_wizard_step': 0 # starting point of wizard step, when the wizard only has like 5 steps but a later has an additional step 6 it should start at that step 
+    _hidden_config = {'last_known_version': '0.4.18', # this was introduced in 0.4.19. so in order to run migration for 0.4.19 we have a value of 0.4.18
+                      'setup_wizard_step': 0 # starting point of wizard step, when the wizard only has like 5 steps but a later has an additional step 6 it should start at that step
                       }
     """this is the attr for hidden config it can be used just as the _config but is not visable to the user / settings page"""
 
@@ -144,7 +144,7 @@ class SystemConfig(System):
                     'https_key_filepath': {'human': 'SSL key file', 'desc': 'If changed XDM will reboot', 'on_change_actions': ['reboot']},
                     'webRoot': {'human': 'WebRoot', 'desc': 'Use this if you want to run XDM behind a reverse proxy. If changed XDM will reboot', 'on_change_actions': ['reboot']},
                     'interval_search': {'human': 'Search interval (minutes)', 'on_change_actions': ['serverReStart']},
-                    'interval_update': {'human': 'Update interval (minutes)', 'desc': 'Set this to 0 if you want to disable XDM core update checks','on_change_actions': ['serverReStart']},
+                    'interval_update': {'human': 'Update interval (minutes)', 'desc': 'Set this to 0 if you want to disable XDM core update checks', 'on_change_actions': ['serverReStart']},
                     'interval_check': {'human': 'Download check interval (minutes)', 'on_change_actions': ['serverReStart']},
                     'again_on_fail': {'human': 'Retry a different download after a failed one', 'desc': 'If on XDM tries to find (another) download after a failure, also see Resnatch Same'},
                     'resnatch_same': {'human': 'Resnatch Same', 'desc': 'If on XDM will resnatch the same download after a failure (if Retry is on at all)'},
