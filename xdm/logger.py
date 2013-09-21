@@ -3,21 +3,21 @@
 #
 # This file is part of XDM: eXtentable Download Manager.
 #
-#XDM: eXtentable Download Manager. Plugin based media collection manager.
-#Copyright (C) 2013  Dennis Lutter
+# XDM: eXtentable Download Manager. Plugin based media collection manager.
+# Copyright (C) 2013  Dennis Lutter
 #
-#XDM is free software: you can redistribute it and/or modify
-#it under the terms of the GNU General Public License as published by
-#the Free Software Foundation, either version 3 of the License, or
-#(at your option) any later version.
+# XDM is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
 #
-#XDM is distributed in the hope that it will be useful,
-#but WITHOUT ANY WARRANTY; without even the implied warranty of
-#MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#GNU General Public License for more details.
+# XDM is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
 #
-#You should have received a copy of the GNU General Public License
-#along with this program.  If not, see http://www.gnu.org/licenses/.
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see http://www.gnu.org/licenses/.
 
 import os
 import datetime
@@ -45,8 +45,8 @@ fLogger = logging.getLogger('XDM.File')
 cLogger.setLevel(logging.INFO)
 fLogger.setLevel(logging.DEBUG)
 # create file handler which logs even debug messages
-#this is now done in XDM.py to use the data dir
-#fh = logging.handlers.RotatingFileHandler('xdm.log', maxBytes=10 * 1024 * 1024, backupCount=5)
+# this is now done in XDM.py to use the data dir
+# fh = logging.handlers.RotatingFileHandler('xdm.log', maxBytes=10 * 1024 * 1024, backupCount=5)
 # create console handler with a higher log level
 ch = logging.StreamHandler()
 
@@ -54,7 +54,7 @@ ch = logging.StreamHandler()
 
 
 cLogger.addHandler(ch)
-#fLogger.addHandler(fh)
+# fLogger.addHandler(fh)
 """ at some point i want the cherrypy stuff logged
 cpLogger = logging.getLogger('cherrypy')
 cph = logging.StreamHandler()
@@ -64,7 +64,7 @@ cpLogger.addHandler(cph)
 """
 
 
-#http://stackoverflow.com/questions/2203424/python-how-to-retrieve-class-information-from-a-frame-object
+# http://stackoverflow.com/questions/2203424/python-how-to-retrieve-class-information-from-a-frame-object
 def get_class_from_frame(fr):
     args, _, _, value_dict = inspect.getargvalues(fr)
     # we check the first parameter for the frame function is
@@ -120,6 +120,9 @@ class LogWrapper():
             elif type(censor) == str:
                 msg = msg.replace(censor, '##censored##')
 
+        if (xdm.common.SYSTEM is None or (xdm.common.SYSTEM.c.censor_xdm_path)) and xdm.APP_PATH:
+            msg = msg.replace(xdm.APP_PATH, '##xdm_path##')
+
         curframe = inspect.currentframe()
         calframe = inspect.getouterframes(curframe, 0)
         sm = StructuredMessage(lvl, msg, calframe, **kwargs)
@@ -131,7 +134,7 @@ class LogWrapper():
             self._logLineCache = self._logLineCache[1:]
         if lvl in (logging.WARNING, logging.ERROR):
             callerClass = get_class_from_frame(calframe[2][0])
-            #was the error/warning send by a notifier ?
+            # was the error/warning send by a notifier ?
             if callerClass and callerClass.__bases__ and callerClass.__bases__[0] is not None and 'Notifier' == callerClass.__bases__[0].__name__:
                 sm = StructuredMessage(logging.ERROR, 'Error while sending an error message with a notifier %s' % callerClass, calframe, **kwargs)
                 cLogger.log(lvl, sm.console())
@@ -182,7 +185,7 @@ class LogWrapper():
 log = LogWrapper()
 
 
-#http://stackoverflow.com/a/13790289/729059
+# http://stackoverflow.com/a/13790289/729059
 def tail(f, lines=1, _buffer=4098):
     """Tail a file and get X lines from the end"""
     # place holder for the lines found
@@ -197,7 +200,7 @@ def tail(f, lines=1, _buffer=4098):
     while len(lines_found) < lines:
         try:
             f.seek(block_counter * _buffer, os.SEEK_END)
-        except IOError:  # either file is too small, or too many lines requested
+        except IOError: # either file is too small, or too many lines requested
             f.seek(0)
             lines_found = f.readlines()
             break

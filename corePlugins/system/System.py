@@ -58,7 +58,8 @@ class SystemConfig(System):
                'api_key': '',
                'language_select': 'automatic',
                'use_derefer_me': True,
-               'auto_update_plugins': False
+               'auto_update_plugins': False,
+               'censor_xdm_path': False,
                }
 
     _hidden_config = {'last_known_version': '0.4.18', # this was introduced in 0.4.19. so in order to run migration for 0.4.19 we have a value of 0.4.18
