@@ -3,21 +3,21 @@
 #
 # This file is part of XDM: eXtentable Download Manager.
 #
-#XDM: eXtentable Download Manager. Plugin based media collection manager.
-#Copyright (C) 2013  Dennis Lutter
+# XDM: eXtentable Download Manager. Plugin based media collection manager.
+# Copyright (C) 2013  Dennis Lutter
 #
-#XDM is free software: you can redistribute it and/or modify
-#it under the terms of the GNU General Public License as published by
-#the Free Software Foundation, either version 3 of the License, or
-#(at your option) any later version.
+# XDM is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
 #
-#XDM is distributed in the hope that it will be useful,
-#but WITHOUT ANY WARRANTY; without even the implied warranty of
-#MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#GNU General Public License for more details.
+# XDM is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
 #
-#You should have received a copy of the GNU General Public License
-#along with this program.  If not, see http://www.gnu.org/licenses/.
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see http://www.gnu.org/licenses/.
 
 import cherrypy
 import json
@@ -44,6 +44,7 @@ class AjaxCalls:
 
     @cherrypy.expose
     def pluginCall(self, **kwargs):
+        log("Plugin ajay call with: %s" % kwargs)
         p_type = kwargs['p_type']
         p_instance = kwargs['p_instance']
         action = kwargs['action']
@@ -63,7 +64,7 @@ class AjaxCalls:
                 if field_name in kwargs:
                     fn_args.append(convertV(kwargs[field_name]))
                 else:
-                    log.warning("Field %s not found in kwargs. this will probably not work out")
+                    log.warning("Field %s not found in kwargs. this will probably not work out" % field_name)
 
         try:
             log("calling %s with %s" % (p_function, fn_args))
@@ -92,7 +93,7 @@ class AjaxCalls:
         name = element.getName()
         element.deleteWithChildren()
         return json.dumps({'result': True, 'data': {}, 'msg': 'Deleted %s' % name})
-    
+
     @cherrypy.expose
     def addElement(self, id):
         element = Element.get(Element.id == id)
@@ -149,7 +150,7 @@ class AjaxCalls:
         mtm = common.PM.getMediaTypeManager(mt)[0]
         if mtm.searcher is not None:
             progress = mtm.searcher.progress
-            #print progress.count, progress.total, progress.percent
+            # print progress.count, progress.total, progress.percent
             return json.dumps({'count': progress.count, 'percent': progress.percent, 'total': progress.total})
         return json.dumps({'count': 0, 'percent': 0, 'total': 0})
 
@@ -301,12 +302,12 @@ class AjaxCalls:
             except UnicodeDecodeError:
                 k = k.decode('latin-1') # for some obscure reason cherrypy (i think) encodes param key into latin-1 some times
                 k = k.encode('utf-8') # but i like utf-8
-            #print k, repr(k)
-            #print v, repr(v)
+            # print k, repr(k)
+            # print v, repr(v)
 
             log(u"config K:%s V:%s" % (k, v))
             parts = k.split('-')
-            #print parts
+            # print parts
             # parts[0] plugin class name
             # parts[1] plugin instance name
             # parts[2] config name

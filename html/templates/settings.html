@@ -49,7 +49,7 @@
                 {{plugin.getConfigHtml()}}
                 </div>
                 <p class="muted">{{plugin['config_meta']['plugin_desc']|striptags|urlize|dereferMeText}}</p>
-                <div class="plugin {{ plugin._type }}" id="{{ plugin.name.replace(' ', '_').replace('(', '').replace(')', '') }}_content">
+                <div class="plugin {{ plugin._type }}" id="{{ plugin.name|idSafe }}_content">
                 {% for config in plugin.c.configs %}
                 {% if plugin['config_meta'][config.name]['on_live_change'] %}
                 {% set onChange = "pluginAjaxCall(this, '"~plugin.type~"', '"~plugin.instance~"', '"~plugin.name.replace(' ', '_').replace('(', '').replace(')', '')~"_content', '"~plugin['config_meta'][config.name]['on_live_change'].__name__~"')" %}
