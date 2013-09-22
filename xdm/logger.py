@@ -120,7 +120,7 @@ class LogWrapper():
             elif type(censor) == str:
                 msg = msg.replace(censor, '##censored##')
 
-        if (xdm.common.SYSTEM is None or (xdm.common.SYSTEM.c.censor_xdm_path)) and xdm.APP_PATH:
+        if (xdm.common.SYSTEM is None or (xdm.common.SYSTEM.c.censor_xdm_dir)) and xdm.APP_PATH:
             msg = msg.replace(xdm.APP_PATH, '##xdm_path##')
 
         curframe = inspect.currentframe()

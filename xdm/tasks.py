@@ -3,21 +3,21 @@
 #
 # This file is part of XDM: eXtentable Download Manager.
 #
-#XDM: eXtentable Download Manager. Plugin based media collection manager.
-#Copyright (C) 2013  Dennis Lutter
+# XDM: eXtentable Download Manager. Plugin based media collection manager.
+# Copyright (C) 2013  Dennis Lutter
 #
-#XDM is free software: you can redistribute it and/or modify
-#it under the terms of the GNU General Public License as published by
-#the Free Software Foundation, either version 3 of the License, or
-#(at your option) any later version.
+# XDM is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
 #
-#XDM is distributed in the hope that it will be useful,
-#but WITHOUT ANY WARRANTY; without even the implied warranty of
-#MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#GNU General Public License for more details.
+# XDM is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
 #
-#You should have received a copy of the GNU General Public License
-#along with this program.  If not, see http://www.gnu.org/licenses/.
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see http://www.gnu.org/licenses/.
 
 from xdm.logger import *
 from xdm import common, helper
@@ -27,7 +27,7 @@ from xdm.jsonHelper import MyEncoder
 import threading
 import datetime
 from babel.dates import format_timedelta
-import Queue 
+import Queue
 
 
 class TaskThread(threading.Thread):
@@ -62,9 +62,13 @@ def coreUpdateCheck():
     log.info('%s' % updateResponse)
     if updateResponse.needUpdate == True:
         common.MM.createInfo('%s Update now?' % updateResponse.message, confirmJavascript='modalCoreUpdate(this)', role="coreUpdate")
-        for notifier in common.PM.N:
-            if notifier.c.on_update:
-                notifier.sendMessage(updateResponse.message)
+        if common.SYSTEM.c.auto_update_core:
+            t = TaskThread(common.UPDATER.update)
+            t.start()
+        else:
+            for notifier in common.PM.N:
+                if notifier.c.on_update:
+                    notifier.sendMessage(updateResponse.message)
     elif updateResponse.needUpdate is None:
         common.MM.createWarning(updateResponse.message, role="coreUpdate")
 
@@ -135,7 +139,7 @@ def searchElement(ele):
         else: # its not the first option(0) and not a timedelta, so it is the last option which tells us to ignore it completely
             _ignoreRD = True
 
-    #TODO: clean this
+    # TODO: clean this
     if not _ignoreRD and (ele.getReleaseDate() - _thresholdRD) > datetime.datetime.now():
         log(u"%s is not yet released it will be released at %s. Not searching!" % (ele, ele.getReleaseDate()))
         return ele.status
@@ -152,7 +156,7 @@ def searchElement(ele):
     for indexer in common.PM.getIndexers(runFor=ele.manager):
         createGenericEvent(ele, 'search', u'Searching %s on %s' % (ele, indexer))
         log.info(u"Init search of %s on %s" % (ele, indexer))
-        downloads.extend(indexer.searchForElement(ele)) #intensiv
+        downloads.extend(indexer.searchForElement(ele)) # intensiv
         createGenericEvent(ele, 'result', u'%s found %s results' % (indexer, len(downloads)))
         didSearch = True
 
@@ -185,7 +189,7 @@ def snatchOne(ele, downloads):
                 log(u'%s snatched %s' % (downloader, download))
                 createGenericEvent(download, 'snatch', u'%s snatched me' % (downloader))
                 notify(ele)
-                return ele.status #exit on first success
+                return ele.status # exit on first success
             triedSnatch = True
         if triedSnatch and downloads:
             log.warning(u"No Downloaders active/available for %s (or they all failed)" % download.type)
@@ -201,7 +205,7 @@ def _filterBadDownloads(downloads):
         try:
             old_download = Download.get(Download.url == download.url)
         except Download.DoesNotExist:
-            #no download with that url found
+            # no download with that url found
             pass
 
         if not old_download:
@@ -230,7 +234,7 @@ def _filterBadDownloads(downloads):
             filterResult = curFilterPlugin.compare(element=download.element, download=download)
             if not filterResult.result:
                 log.info(u'%s did not like %s, reason: %s' % (curFilterPlugin, download, filterResult.reason))
-                #createGenericEvent(download.element, 'filter', '%s did not like %s, reason: %s' % (curFilterPlugin, download, filterResult.reason))
+                # createGenericEvent(download.element, 'filter', '%s did not like %s, reason: %s' % (curFilterPlugin, download, filterResult.reason))
                 createGenericEvent(download, 'filter', u'%s did not like me, reason: %s' % (curFilterPlugin, filterResult.reason))
                 break
             else:
@@ -313,15 +317,15 @@ def ppElement(element, download, path):
     return False
 
 
-def updateElement(element, force=False, downloadImages=True, withDecendents=True):
+def updateElement(element, force=False, withDecendents=True):
     for p in common.PM.getProvider(runFor=element.manager):
-        #TODO: make sure we use the updated element after one provider is done
+        # TODO: make sure we use the updated element after one provider is done
         for suported_tag in p.tags:
             pID = element.getField('id', suported_tag)
             if not pID:
                 log.info(u'we dont have this element(%s) on provider(%s) with tag %s' % (element, p, suported_tag))
-                #TODO search element by name or with help of xem ... yeah wishful thinking
-                #new_e = p.searchForElement(element.getName())
+                # TODO search element by name or with help of xem ... yeah wishful thinking
+                # new_e = p.searchForElement(element.getName())
                 log.warning('getting an element by name is not implemented can not refresh')
                 continue
             log(u'Getting %s with provider id %s on %s' % (element, pID, p))
@@ -331,7 +335,8 @@ def updateElement(element, force=False, downloadImages=True, withDecendents=True
                 log.info(u"%s returned an element" % p)
             else:
                 log.info(u"%s returned NO element" % p)
-            
+                continue
+
             log("Processing new data tree %s" % new_e)
             new_nodes = helper.getNewNodes(element, new_e)
             log("Processing %s done" % new_e)
@@ -342,35 +347,33 @@ def updateElement(element, force=False, downloadImages=True, withDecendents=True
                     log.debug("attaching %s to %s" % (new_node, new_parent))
                     new_node.parent = new_parent
                     new_node.save()
-                    if downloadImages:
-                        common.Q.put(('image.download', {'id': new_node.id}))
+                    common.Q.put(('image.download', {'id': new_node.id}))
             else:
                 log("No new nodes found in %s" % new_e)
-            
+
             log("Clearing cache from %s" % element)
             element.clearTreeCache()
             log("Clearing cache from %s" % new_e)
             new_e.clearTreeCache()
-            
+
             for updated_node in [new_e] + new_e.decendants:
                 old_node = helper.findOldNode(updated_node, element)
                 if old_node is None:
                     log.error("NO old node found for %s in %s" % (updated_node, element))
                     continue
-                
+
                 if not helper.sameElements(old_node, updated_node):
                     log.info(u"Found new version of %s" % old_node)
                     for f in list(updated_node.fields):
                         old_node.setField(f.name, f.value, f.provider)
-                    if downloadImages:
-                        common.Q.put(('image.download', {'id': old_node.id}))
+                    common.Q.put(('image.download', {'id': old_node.id}))
 
 
-def updateAllElements(downloadImages=False):
+def updateAllElements():
     log('updating all elements')
     for mtm in common.PM.MTM:
-        for element in mtm.getDownloadableElements(True):
-            updateElement(element, downloadImages=downloadImages)
+        for element in mtm.getUpdateableElements(True):
+            updateElement(element)
 
 
 def runMediaAdder():
@@ -378,10 +381,10 @@ def runMediaAdder():
         medias = adder.runShedule()
         successfulAdd = []
         for media in medias:
-            #print '######'
-            #print media.mediaTypeIdentifier
-            #print media.externalID
-            #print media.name
+            # print '######'
+            # print media.mediaTypeIdentifier
+            # print media.externalID
+            # print media.name
             mtm = common.PM.getMediaTypeManager(media.mediaTypeIdentifier)[0]
             try:
                 new_e = Element.getWhereField(mtm.mt, media.elementType, {'id': media.externalID}, media.providerTag, mtm.root)

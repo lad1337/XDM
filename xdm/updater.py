@@ -4,21 +4,21 @@
 #
 # This file is part of XDM: eXtentable Download Manager.
 #
-#XDM: eXtentable Download Manager. Plugin based media collection manager.
-#Copyright (C) 2013  Dennis Lutter
+# XDM: eXtentable Download Manager. Plugin based media collection manager.
+# Copyright (C) 2013  Dennis Lutter
 #
-#XDM is free software: you can redistribute it and/or modify
-#it under the terms of the GNU General Public License as published by
-#the Free Software Foundation, either version 3 of the License, or
-#(at your option) any later version.
+# XDM is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
 #
-#XDM is distributed in the hope that it will be useful,
-#but WITHOUT ANY WARRANTY; without even the implied warranty of
-#MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#GNU General Public License for more details.
+# XDM is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
 #
-#You should have received a copy of the GNU General Public License
-#along with this program.  If not, see http://www.gnu.org/licenses/.
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see http://www.gnu.org/licenses/.
 
 import sys
 import os
@@ -34,10 +34,10 @@ import subprocess
 import shutil
 
 
-install_type_exe = 0# any compiled windows build
-install_type_mac = 1# any compiled mac osx build
-install_type_git = 2# running from source using git
-install_type_src = 3# running from source without git
+install_type_exe = 0 # any compiled windows build
+install_type_mac = 1 # any compiled mac osx build
+install_type_git = 2 # running from source using git
+install_type_src = 3 # running from source without git
 install_type_names = {install_type_exe: 'Windows Binary',
                       install_type_mac: 'Mac App',
                       install_type_git: 'Git',
@@ -67,14 +67,14 @@ class CoreUpdater(object):
 
     def migrate(self):
         xdm.common.addState(1)
-        #common.SM.reset()
+        # common.SM.reset()
         try:
             self._migrate()
         except:
             log.error("Error during migration")
             log.info("Shutting down because migration did not work sorry")
             actionManager.executeAction('shutdown', 'failed migration')
-        #common.SM.reset()
+        # common.SM.reset()
         xdm.common.removeState(1)
 
     def _migrate(self):
@@ -88,8 +88,14 @@ class CoreUpdater(object):
             log.info(msg)
             self.backupDatabases('pre-0.4.19-migration')
             migrate_0_4_19()
-
         # add more migrate function calls here
+
+        # send out messages if we updated only if it was a autoupdate
+        if last_known_version < cur_version and xdm.common.SYSTEM.c.auto_update_core:
+            common.MM.createInfo('Update to version %s complete' % xdm.common.getVersionHuman(), role="coreUpdate")
+            for notifier in xdm.common.PM.N:
+                if notifier.c.on_update:
+                    notifier.sendMessage("Update to version %s complete" % xdm.common.getVersionHuman())
         common.SYSTEM.hc.last_known_version = ".".join([str(x) for x in xdm.common.getVersionTuple(noBuild=True)])
 
     def backupDatabases(self, reason):
@@ -240,7 +246,7 @@ class MacUpdateManager(BinaryUpdateManager):
             msg = "Downloading update file..."
             log(msg)
             common.SM.setNewMessage(msg)
-            (filename, headers) = urllib.urlretrieve(new_link) #@UnusedVariable
+            (filename, headers) = urllib.urlretrieve(new_link) # @UnusedVariable
             msg = "New dmg at %s" % filename
             log(msg)
             common.SM.setNewMessage(msg)
@@ -297,7 +303,7 @@ class GitUpdateManager(UpdateManager):
         UpdateManager.__init__(self)
 
     def _getBranch(self):
-        branch = self.git('symbolic-ref','--short','--quiet','HEAD',_cwd=xdm.APP_PATH,_ok_code=[0,1])
+        branch = self.git('symbolic-ref', '--short', '--quiet', 'HEAD', _cwd=xdm.APP_PATH, _ok_code=[0, 1])
         if branch.exit_code:
             log.warning(u"assuming master branch !")
             branch = 'master'
@@ -327,7 +333,7 @@ class GitUpdateManager(UpdateManager):
             self.response.message = 'No update needed'
             self.response.needUpdate = False
             return self.response
-        behind, ahead = map(int,self.git('rev-list','--left-right','--count','@{upstream}...HEAD').rstrip('\n').split('\t'))
+        behind, ahead = map(int, self.git('rev-list', '--left-right', '--count', '@{upstream}...HEAD').rstrip('\n').split('\t'))
         if ahead and behind:
             self.response.message = "Ahead by %d commits, behind by %d commits.  You should probably update manually."
         elif behind:
