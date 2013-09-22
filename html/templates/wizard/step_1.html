@@ -29,6 +29,26 @@
                     <input data-belongsto="SystemConfig_Default" name="SystemConfig-Default-login_password" data-configname="login_password" type="password" value="{{common.SYSTEM.c.login_password}}" onchange="" title="">
                 </div>
             </div>
+            <div class="control-group">
+                <label class="control-label" title="" for="13798387422995441372857894748">port</label>
+                <div class="controls">
+                    <input data-belongsto="SystemConfig_Default" name="SystemConfig-Default-port" data-configname="port" type="number" step="any" value="{{common.SYSTEM.c.port}}" onchange="" title="" data-original-title="" id="13798387422995441372857894748">
+                </div>
+            </div>
+            <div class="control-group">
+                <label class="control-label" title="" for="1379839514901055782558396458626">auto update core</label>
+                <div class="controls">
+                    <input name="SystemConfig-Default-auto_update_core" type="hidden" value="off" data-original-title="" title="">
+                    <input data-belongsto="SystemConfig_Default" name="SystemConfig-Default-auto_update_core" data-configname="auto_update_core" type="checkbox" {%if common.SYSTEM.c.auto_update_core%}checked="checked"{%endif%} onchange="" title="" data-original-title="" id="1379839514901055782558396458626">
+                </div>
+            </div>
+            <div class="control-group">
+                <label class="control-label" title="" for="13798395149014828332669567317">auto update plugins</label>
+                <div class="controls">
+                    <input name="SystemConfig-Default-auto_update_plugins" type="hidden" value="off" data-original-title="" title="">
+                    <input data-belongsto="SystemConfig_Default" name="SystemConfig-Default-auto_update_plugins" data-configname="auto_update_plugins" type="checkbox" {%if common.SYSTEM.c.auto_update_plugins%}checked="checked"{%endif%} onchange="" title="" data-original-title="" id="13798395149014828332669567317">
+                </div>
+            </div>
             <div class="control-group human">
                 <label class="control-label" title="" for="137292439863917425643606111407">
                 Dont open the browser on start

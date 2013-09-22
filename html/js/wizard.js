@@ -64,12 +64,18 @@ step_2 = function(){
 }
 
 step_3 = function(){
-    data = {1: 'getDownloaders',
+    var data = {1: 'getDownloaders',
             2: 'getIndexers',
-            3: 'getProvider',
-            4: 'getMediaTypeManager'}
+            3: 'getNotifiers',
+            4: 'getProvider',
+            5: 'getMediaTypeManager'}
     $('#settings-in-here').load(webRoot +'/settings/?'+ $.param(data) + ' #content', function() {
         init_settings();
+        $.get(webRoot +'/settingsPluginHtml/?'+ $.param(data), function(data, status){
+            console.log(data);
+            $('head').append(data);
+        });
+        
     });
     $('#container').addClass('settings')
     $('#content > .wizard-main.well').removeClass('well')
