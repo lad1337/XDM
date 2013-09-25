@@ -3,21 +3,21 @@
 #
 # This file is part of XDM: eXtentable Download Manager.
 #
-#XDM: eXtentable Download Manager. Plugin based media collection manager.
-#Copyright (C) 2013  Dennis Lutter
+# XDM: eXtentable Download Manager. Plugin based media collection manager.
+# Copyright (C) 2013  Dennis Lutter
 #
-#XDM is free software: you can redistribute it and/or modify
-#it under the terms of the GNU General Public License as published by
-#the Free Software Foundation, either version 3 of the License, or
-#(at your option) any later version.
+# XDM is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
 #
-#XDM is distributed in the hope that it will be useful,
-#but WITHOUT ANY WARRANTY; without even the implied warranty of
-#MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#GNU General Public License for more details.
+# XDM is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
 #
-#You should have received a copy of the GNU General Public License
-#along with this program.  If not, see http://www.gnu.org/licenses/.
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see http://www.gnu.org/licenses/.
 
 import os
 import xdm
@@ -44,7 +44,7 @@ class Plugin(object):
     single = False
     """if True the gui will not give the option for more configurations. but there is no logic to stop you do it anyways"""
     _config = {}
-    """The configuration defining dict""" 
+    """The configuration defining dict"""
     config_meta = {}
     """Meta information on the the config keys"""
     version = "0.1"
@@ -91,22 +91,22 @@ class Plugin(object):
 
     elementConfig = {}
     elementConfig_meta = {}
-    
+
     _hidden_config = {}
     _hidden_config_meta = {}
 
     def __init__(self, instance='Default'):
         """returns a new instance of the Plugin with the config loaded get the configuration as self.c.<name_of_config>"""
-        #setup names
+        # setup names
         if not self.screenName:
             self.screenName = self.__class__.__name__
         self.name = "%s (%s)" % (self.screenName, instance)
         self.type = self.__class__.__name__
         self.instance = instance.replace('.', '_')
 
-        #setup other config options from mediatypes
+        # setup other config options from mediatypes
         if self.addMediaTypeOptions:
-            self._create_media_type_configs() #this adds the configs for media types
+            self._create_media_type_configs() # this adds the configs for media types
 
         self._claimed_configs = []
         # plugin configs
@@ -120,7 +120,7 @@ class Plugin(object):
         # element configs
         self.e = ConfigWrapper(self, self.elementConfig)
         self.elementConfig_meta = ConfigMeta(self.elementConfig_meta)
-        #self._collect_element_configs()
+        # self._collect_element_configs()
 
         # hidden configs
         self.hc = ConfigWrapper(self, self._hidden_config)
@@ -131,7 +131,7 @@ class Plugin(object):
         methodList = [method for method in dir(self) if isinstance(
             getattr(self, method), (types.FunctionType, types.BuiltinFunctionType, types.MethodType, types.BuiltinMethodType, types.UnboundMethodType)
             ) and not method.startswith('_')]
-        
+
         for method_name in methodList:
             alternative = getattr(super(self.__class__, self), method_name)
             method = getattr(self, method_name)
@@ -149,7 +149,7 @@ class Plugin(object):
     def _collect_plugin_configs(self):
         enabled_obj = None
         for k, v in self._config.items():
-            #print "looking for", self.__class__.__name__, 'Plugin', k, instance
+            # print "looking for", self.__class__.__name__, 'Plugin', k, instance
             try:
                 cur_c = Config.get(Config.section == self.__class__.__name__,
                                   Config.module == 'Plugin',
@@ -194,7 +194,7 @@ class Plugin(object):
 
     def _collect_hidden_configs(self):
         for k, v in self._hidden_config.items():
-            #print "looking for", self.__class__.__name__, 'Plugin', k, instance
+            # print "looking for", self.__class__.__name__, 'Plugin', k, instance
             try:
                 cur_c = Config.get(Config.section == self.__class__.__name__,
                                   Config.module == 'Plugin',
@@ -277,15 +277,15 @@ class Plugin(object):
             if type(self.addMediaTypeOptions) is list and mtm.identifier not in self.addMediaTypeOptions:
                 continue
 
-            #enable options for mediatype on this plugin
-            #log('Creating runFor field on %s from %s' % (self.__class__, mtm.__class__))
+            # enable options for mediatype on this plugin
+            # log('Creating runFor field on %s from %s' % (self.__class__, mtm.__class__))
             name = helper.replace_some('%s_runfor' % mtm.name)
             self._config[name] = False
             self.config_meta[name] = {'human': 'Run for %s' % mtm.type, 'type': 'enabled', 'mediaType': mtm.mt}
             if self.addMediaTypeOptions == 'runFor':
                 continue
 
-            #log('Creating multi config fields on %s from %s' % (self.__class__, mtm.__class__))
+            # log('Creating multi config fields on %s from %s' % (self.__class__, mtm.__class__))
             for configType in [x.__name__ for x in mtm.elementConfigsFor]:
                 for element in Element.select().where(Element.type == configType, Element.status != common.TEMP):
                     prefix = self.useConfigsForElementsAs
@@ -409,7 +409,7 @@ class Plugin(object):
             xdm_version = common.getVersionTuple()
         else:
             xdm_version = self.xdm_version
-        #http://stackoverflow.com/a/4402799/729059
+        # http://stackoverflow.com/a/4402799/729059
         data = collections.OrderedDict([("major_version", self.major_version),
                                         ("minor_version", self.minor_version),
                                         ("name", self.screenName),
@@ -520,7 +520,7 @@ class Indexer(DownloadTyped):
     name = "Does Noting"
 
     def __init__(self, instance='Default'):
-        #TODO: dont repeat this function make it wor with one
+        # TODO: dont repeat this function make it wor with one
         # wrap function
         def downloadWrapperSingle(*args, **kwargs):
             res = self._searchForElement(*args, **kwargs)
@@ -549,7 +549,7 @@ class Indexer(DownloadTyped):
         self.getLatestRss = downloadWrapperRSS
         DownloadTyped.__init__(self, instance=instance)
 
-    #TODO: implement / define / use
+    # TODO: implement / define / use
     def getLatestRss(self):
         """return list of Dowloads"""
         return []
@@ -779,7 +779,7 @@ class MediaTypeManager(Plugin):
         self._config['default_new_status_select'] = common.WANTED.id
         self.config_meta['default_new_status_select'] = {'human': 'Status for newly added %s' % self.__class__.__name__}
 
-        self._config['release_threshold_select'] = 2 #default to two days see self._release_threshold_select()
+        self._config['release_threshold_select'] = 2 # default to two days see self._release_threshold_select()
         self.config_meta['release_threshold_select'] = {'human': 'Time to ignore the release date prior the release date.'}
 
         super(MediaTypeManager, self).__init__(instance)
@@ -835,8 +835,8 @@ class MediaTypeManager(Plugin):
                         e.save()
 
     def checkElementFields(self):
-        #FIXME
-        return 
+        # FIXME
+        return
         for cur_class in self.order:
             for element in self.getElementsWithStatusIn(common.getEveryStatusBut([common.TEMP])):
                 for attrName in self.s[element.type]['attr']:
@@ -847,7 +847,10 @@ class MediaTypeManager(Plugin):
                         element.setField(attrName, getattr(cur_class, attrName), 'XDM')
 
     def getDownloadableElements(self, asList=True):
-        return self.getElementsWithStatusIn(common.getHomeStatuses(), asList, [self.download.__name__])
+        return self.getElementsWithStatusIn(self.homeStatuses(), asList, [self.download.__name__])
+
+    def getUpdateableElements(self, asList=True):
+        return self.getElementsWithStatusIn(self.homeStatuses(), asList, [self.order[0].__name__])
 
     def getElementsWithStatusIn(self, status, asList=True, types=None):
         if types is None:
@@ -913,7 +916,7 @@ class MediaTypeManager(Plugin):
 
     def homeStatuses(self):
         return common.getHomeStatuses()
-    
+
     def completedStatues(self):
         return common.getCompletedStatuses()
 
@@ -932,15 +935,15 @@ class MediaTypeManager(Plugin):
     def search(self, search_query):
         log.info('Init search on %s for %s' % (self, search_query))
         self.searcher = None
-        #xdm.DATABASE.set_autocommit(False)
+        # xdm.DATABASE.set_autocommit(False)
         rootElement = None
         for provider in common.PM.P:
             if not provider.runFor(self) or self.identifier not in provider.types:
                 continue
             self.searcher = provider
             rootElement = provider.searchForElement(term=search_query)
-        #xdm.DATABASE.commit()
-        #xdm.DATABASE.set_autocommit(True)
+        # xdm.DATABASE.commit()
+        # xdm.DATABASE.set_autocommit(True)
         self.searcher = None
         return rootElement
 
