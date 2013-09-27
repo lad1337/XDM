@@ -242,7 +242,10 @@ class App():
         else:
             log.info("Starting the XDM http web server")
 
-        common.CHERRYPY_APP = cherrypy.tree.mount(WebRoot(app_path), config=conf)
+        app_root = '/'
+        if common.SYSTEM.c.webRoot:
+            app_root = common.SYSTEM.c.webRoot
+        common.CHERRYPY_APP = cherrypy.tree.mount(WebRoot(app_path), app_root, config=conf)
         helper.updateCherrypyPluginDirs()
         cherrypy.server.socket_host = common.SYSTEM.c.socket_host
 
