@@ -86,7 +86,8 @@ function init_settings(){
     $( ".nav-list" ).sortable({
         stop: function(event, ui) {
             $('.nav.nav-list a[data-toggle="tab"]').each(function(k,i){
-                var input = $('input[name=' + $(i).data('type') + '-' + $(i).data('instance') + '-plugin_order]').val(k)
+                var input = $('input[name=' + $(i).data('type') + '-' + $(i).data('instance') + '-plugin_order]').val(k);
+                console.log($(i).data('type') + '-' + $(i).data('instance'), "is now order", k);
             })
         }
     });
@@ -108,7 +109,10 @@ function init_settings(){
         
         saveButtons = $('input[type="submit"]')
         saveButtons.addClass('btn-striped animate')
-        data = $('#theSettingsForm').serialize()
+        data = $('.tab-pane.active input, input.plugin_order').serialize()
+        
+        console.log($('.tab-pane.active input, input.plugin_order'), data);
+        
         $.post(webRoot+'/ajax/save', data, function(res, textStatus) {
             if(res['result']){
                 $(this).button('loading');

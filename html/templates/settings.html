@@ -55,7 +55,7 @@
                 {% set onChange = "pluginAjaxCall(this, '"~plugin.type~"', '"~plugin.instance~"', '"~plugin.name.replace(' ', '_').replace('(', '').replace(')', '')~"_content', '"~plugin['config_meta'][config.name]['on_live_change'].__name__~"')" %}
                 {%endif%}
                 {% if config.name == 'plugin_order'%}
-                <input name="{{ plugin.type }}-{{ plugin.instance }}-{{ config.name}}" type="hidden" {% if config.value %}value="{{ config.value }}"{% endif %}/>
+                <input class="plugin_order" name="{{ plugin.type }}-{{ plugin.instance }}-{{ config.name}}" type="hidden" {% if config.value %}value="{{ config.value }}"{% endif %}/>
                 
                 {% else %}
                 <div class="control-group{% if plugin['config_meta'][config.name]['human'] %} human{% endif %}{% if 'filepath' in config.name %} filepath{%elif 'path' in config.name%} path{% endif %}">
