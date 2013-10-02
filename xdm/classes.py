@@ -4,21 +4,21 @@
 #
 # This file is part of XDM: eXtentable Download Manager.
 #
-#XDM: eXtentable Download Manager. Plugin based media collection manager.
-#Copyright (C) 2013  Dennis Lutter
+# XDM: eXtentable Download Manager. Plugin based media collection manager.
+# Copyright (C) 2013  Dennis Lutter
 #
-#XDM is free software: you can redistribute it and/or modify
-#it under the terms of the GNU General Public License as published by
-#the Free Software Foundation, either version 3 of the License, or
-#(at your option) any later version.
+# XDM is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
 #
-#XDM is distributed in the hope that it will be useful,
-#but WITHOUT ANY WARRANTY; without even the implied warranty of
-#MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#GNU General Public License for more details.
+# XDM is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
 #
-#You should have received a copy of the GNU General Public License
-#along with this program.  If not, see http://www.gnu.org/licenses/.
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see http://www.gnu.org/licenses/.
 
 from lib.peewee import *
 from lib.peewee import QueryCompiler
@@ -33,13 +33,13 @@ from jsonHelper import MyEncoder
 from xdm.helper import dict_diff
 import types
 
-#from jinja2 import FileSystemBytecodeCache
+# from jinja2 import FileSystemBytecodeCache
 from jinja2.environment import Environment
 from jinja2.loaders import FileSystemLoader, DictLoader
 import urllib
 
-#bcc = FileSystemBytecodeCache(pattern='%s.cache')
-#, bytecode_cache=bcc
+# bcc = FileSystemBytecodeCache(pattern='%s.cache')
+# , bytecode_cache=bcc
 
 WIDGET_PATH = os.path.join('html', 'templates', 'widget')
 elementWidgetEnvironment = Environment(loader=FileSystemLoader(WIDGET_PATH), extensions=['jinja2.ext.i18n'])
@@ -142,7 +142,7 @@ class BaseModel(Model):
             if '_tmp_fields' in dic:
                 del dic['_tmp_fields']
                 pass
-            #TODO: rather check for bound method type
+            # TODO: rather check for bound method type
             for method in self._overwriteableFunctions:
                 if method in dic:
                     del dic[method]
@@ -152,7 +152,7 @@ class BaseModel(Model):
 
     def _getEvents(self):
         return History.select().where(History.obj_class == self.__class__.__name__, History.obj_id == self.id)
-    #events = property(_getEvents)
+    # events = property(_getEvents)
 
 
 class Status_V0(BaseModel):
@@ -273,7 +273,7 @@ class Element(BaseModel):
             return self._replaceFn(name)
         try:
             return BaseModel.__getattribute__(self, name)
-        except AttributeError: #WARNING this can hide Attribute errors of other classes / instances down the road and will report a false error message!
+        except AttributeError: # WARNING this can hide Attribute errors of other classes / instances down the road and will report a false error message!
             if 'image' in name:
                 img = self.getImage(name)
                 if img is not None:
@@ -350,14 +350,18 @@ class Element(BaseModel):
             self.status = common.UNKNOWN
         super(Element, self).save()
         for f in self._tmp_fields:
-            #print 'saving tmp field on', self.id, f.name, f.value
+            # print 'saving tmp field on', self.id, f.name, f.value
             f.element = self
             f.save()
         self._tmp_fields = []
         self.clearCache()
 
     def _getMyManager(self):
-        return common.PM.getMediaTypeManager(self.mediaType.identifier)[0]
+        try:
+            return common.PM.getMediaTypeManager(self.mediaType.identifier)[0]
+        except IndexError:
+            log.error("Could not find MediaTypeManager %s" % self.mediaType.identifier)
+            raise
     manager = property(_getMyManager)
 
     def _amIaLeaf(self):
@@ -399,9 +403,9 @@ class Element(BaseModel):
             tpl = self.getSearchTemplate()
         else:
             tpl = self.getTemplate()
-        #print "template for %s is #####:\n%s\n" % (self, tpl)
+        # print "template for %s is #####:\n%s\n" % (self, tpl)
 
-        #TODO: find a way to not initialise a new Environment every time !
+        # TODO: find a way to not initialise a new Environment every time !
         webRoot = common.SYSTEM.c.webRoot
         env = Environment(loader=DictLoader({'this': tpl}), extensions=['jinja2.ext.i18n'])
         env.install_gettext_callables(_, ngettext, newstyle=True)
@@ -429,7 +433,7 @@ class Element(BaseModel):
                         webRoot=webRoot,
                         common=common)
 
-        #Static infos / render stuff
+        # Static infos / render stuff
         # status class
         statusCssClass = 'status-any status-%s' % self.status.name.lower()
         # add the field values to the widgets dict. this makes the <field_name> available as {{<field_name>}} in the templates
@@ -498,10 +502,10 @@ class Element(BaseModel):
         return out
 
     orderFieldValues = property(_getOrderFieldValues)
-    
+
     def _getOrderReverse(self):
         return self.manager.getOrderReverse(self.type)
-    
+
     orderReverse = property(_getOrderReverse)
 
     def _getAllAncestorss(self):
@@ -602,7 +606,7 @@ class Element(BaseModel):
                 continue
             if last_e != f.element:
                 if lastAttributeOK:
-                    #last one was cool
+                    # last one was cool
                     return last_e
                 lastAttributeOK = False
                 last_e = f.element
@@ -1003,7 +1007,7 @@ class Image(BaseModel):
             os.remove(self.getPath())
         except OSError:
             pass
-        
+
     def delete_instance(self):
         self.deleteFile()
         super(Image, self).delete_instance()
@@ -1036,13 +1040,13 @@ class Image(BaseModel):
 
     def _isSaved(self):
         return os.path.isfile(self.getPath())
-    
+
     saved = property(_isSaved)
 
     def getSrc(self):
         if self.saved: # type is only set after we down loaded the image
             # TODO: figure this out
-            # there was a 
+            # there was a
             # .replace(xdm.PROGDIR, '')
             # on the url why was this here ? is this needed ?
             url = u'/'.join((xdm.IMAGEPATH_RELATIVE,
