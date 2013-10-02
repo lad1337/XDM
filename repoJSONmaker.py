@@ -4,24 +4,24 @@
 #
 # This file is part of XDM: eXtentable Download Manager.
 #
-#XDM: eXtentable Download Manager. Plugin based media collection manager.
-#Copyright (C) 2013  Dennis Lutter
+# XDM: eXtentable Download Manager. Plugin based media collection manager.
+# Copyright (C) 2013  Dennis Lutter
 #
-#XDM is free software: you can redistribute it and/or modify
-#it under the terms of the GNU General Public License as published by
-#the Free Software Foundation, either version 3 of the License, or
-#(at your option) any later version.
+# XDM is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
 #
-#XDM is distributed in the hope that it will be useful,
-#but WITHOUT ANY WARRANTY; without even the implied warranty of
-#MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#GNU General Public License for more details.
+# XDM is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
 #
-#You should have received a copy of the GNU General Public License
-#along with this program.  If not, see http://www.gnu.org/licenses/.
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see http://www.gnu.org/licenses/.
 
 
-#WARNING oh boy is this hacked !!! but since this is for the lazy i am lazy on this here
+# WARNING oh boy is this hacked !!! but since this is for the lazy i am lazy on this here
 
 import argparse
 import json
@@ -32,7 +32,7 @@ p = argparse.ArgumentParser(prog='XDM-repo-creator')
 p.add_argument('--name', dest='name', default="Some repo and the dev gave it no name", help="Repo name")
 p.add_argument('--info_url', dest='info_url', default="## enter your info url here ##", help="The info url")
 p.add_argument('--download_url', dest='download_url', default="## enter your download url here", help="I you use one download url for all plugins set this.")
-p.add_argument('--path', dest='path', default=None, help="Port the api runs on")
+p.add_argument('--path', dest='path', default=None, help="Path to the plugins")
 
 
 options = p.parse_args()
@@ -62,10 +62,10 @@ jsons = {
 common.PM.cache(extra_plugin_path=options.path)
 
 for plugin in common.PM.getAll(returnAll=True):
-    #print "checking %s" % plugin
+    # print "checking %s" % plugin
     pPath = plugin.get_plugin_isntall_path()['path']
     if not pPath.startswith(options.path):
-        #print "%s not in the path you want to use plugin path:%s" % (plugin, plugin.get_plugin_isntall_path()['path'])
+        # print "%s not in the path you want to use plugin path:%s" % (plugin, plugin.get_plugin_isntall_path()['path'])
         continue
 
     if not plugin.identifier:
@@ -88,7 +88,7 @@ print "#############"
 print "WARNING i will (over)write the file %s. i hope you use a svc!" % metaPath
 print "#############"
 
-# Write mode creates a new file or overwrites the existing content of the file. 
+# Write mode creates a new file or overwrites the existing content of the file.
 # Write mode will _always_ destroy the existing contents of a file.
 try:
     # This will create a new file or **overwrite an existing file**.
