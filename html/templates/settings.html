@@ -27,14 +27,10 @@
                     </a>
                 </li>
                 {%if loop.last%}
-                    <li class="divider"></li>
                 </ul>
                 {%endif%}        
                 {% set last_type = plugin._type -%}
             {% endfor %}
-            <div style="width: 100%;text-align: center;">
-                <input class="btn btn-success" type="submit" value="Save Settings" style="width:90%;"/>
-            </div>
         </div>
         <fieldset class="span9 tab-content well form-horizontal" action="/saveSettings" method="POST">
             {% for plugin in plugins -%}
