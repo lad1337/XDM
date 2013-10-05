@@ -4,21 +4,21 @@
 #
 # This file is part of XDM: eXtentable Download Manager.
 #
-#XDM: eXtentable Download Manager. Plugin based media collection manager.
-#Copyright (C) 2013  Dennis Lutter
+# XDM: eXtentable Download Manager. Plugin based media collection manager.
+# Copyright (C) 2013  Dennis Lutter
 #
-#XDM is free software: you can redistribute it and/or modify
-#it under the terms of the GNU General Public License as published by
-#the Free Software Foundation, either version 3 of the License, or
-#(at your option) any later version.
+# XDM is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
 #
-#XDM is distributed in the hope that it will be useful,
-#but WITHOUT ANY WARRANTY; without even the implied warranty of
-#MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#GNU General Public License for more details.
+# XDM is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
 #
-#You should have received a copy of the GNU General Public License
-#along with this program.  If not, see http://www.gnu.org/licenses/.
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see http://www.gnu.org/licenses/.
 
 import os
 import re
@@ -48,7 +48,7 @@ def getSystemDataDir(progdir):
         else:
             return progdir
     elif sys.platform == "win32":
-        #TODO: implement
+        # TODO: implement
         return progdir
 
 
@@ -63,7 +63,7 @@ def idSafe(text):
 
 
 def replace_all(text):
-    dic = {'...':'', ' & ':' ', ' = ': ' ', '?':'', '$':'s', ' + ':' ', '"':'', ',':'', '*':'', '.':'', ':':'', "'":'', "#":''}	
+    dic = {'...':'', ' & ':' ', ' = ': ' ', '?':'', '$':'s', ' + ':' ', '"':'', ',':'', '*':'', '.':'', ':':'', "'":'', "#":''}
     return replace_x(text, dic)
 
 
@@ -134,12 +134,12 @@ def create_https_certificates(ssl_cert, ssl_key):
     # Create the CA Certificate
     cakey = createKeyPair(TYPE_RSA, 1024)
     careq = createCertRequest(cakey, CN='Certificate Authority')
-    cacert = createCertificate(careq, (careq, cakey), serial, (0, 60*60*24*365*10)) # ten years
+    cacert = createCertificate(careq, (careq, cakey), serial, (0, 60 * 60 * 24 * 365 * 10)) # ten years
 
     cname = 'XDM'
     pkey = createKeyPair(TYPE_RSA, 1024)
     req = createCertRequest(pkey, CN=cname)
-    cert = createCertificate(req, (cacert, cakey), serial, (0, 60*60*24*365*10)) # ten years
+    cert = createCertificate(req, (cacert, cakey), serial, (0, 60 * 60 * 24 * 365 * 10)) # ten years
 
     # Save the key and certificate to disk
     try:
@@ -174,8 +174,8 @@ def reltime(date):
         return "reltime needs a date or datetime we got: '%s'" % repr(date)
     return format_timedelta(date - datetime.now(), locale=common.getLocale())
 
-#http://code.activestate.com/recipes/576644-diff-two-dictionaries/
-KEYNOTFOUND = '<KEYNOTFOUND>'       # KeyNotFound for dictDiff
+# http://code.activestate.com/recipes/576644-diff-two-dictionaries/
+KEYNOTFOUND = '<KEYNOTFOUND>' # KeyNotFound for dictDiff
 
 
 def dict_diff(first, second):
@@ -210,13 +210,13 @@ def daemonize():
     # pylint: disable=E1101
     # Make a non-session-leader child process
     try:
-        pid = os.fork()  # @UndefinedVariable - only available in UNIX
+        pid = os.fork() # @UndefinedVariable - only available in UNIX
         if pid != 0:
             sys.exit(0)
     except OSError, e:
         raise RuntimeError("1st fork failed: %s [%d]" % (e.strerror, e.errno))
 
-    os.setsid()  # @UndefinedVariable - only available in UNIX
+    os.setsid() # @UndefinedVariable - only available in UNIX
 
     # Make sure I can read my own files and shut out others
     prev = os.umask(0)
@@ -224,7 +224,7 @@ def daemonize():
 
     # Make the child a session-leader by detaching from the terminal
     try:
-        pid = os.fork()  # @UndefinedVariable - only available in UNIX
+        pid = os.fork() # @UndefinedVariable - only available in UNIX
         if pid != 0:
             sys.exit(0)
     except OSError, e:
@@ -252,7 +252,7 @@ def webVars(obj):
 
 
 def generateApiKey():
-    return base64.b64encode(hashlib.sha256( str(random.getrandbits(256)) ).digest(), random.choice(['rA','aZ','gQ','hH','hG','aR','DD'])).rstrip('==')
+    return base64.b64encode(hashlib.sha256(str(random.getrandbits(256))).digest(), random.choice(['rA', 'aZ', 'gQ', 'hH', 'hG', 'aR', 'DD'])).rstrip('==')
 
 
 def dereferMe(url):
@@ -317,4 +317,42 @@ releaseThresholdDelta = {1: timedelta(days=1),
                         3: timedelta(days=7), # a week
                         4: timedelta(days=30), # a month
                         5: timedelta(days=60)} # two months
+
+# http://code.activestate.com/recipes/440514-dictproperty-properties-for-dictionary-attributes/
+class dictproperty(object):
+
+    class proxy(object):
+        def __init__(self, fget, fset, fdel):
+            self._fget = fget
+            self._fset = fset
+            self._fdel = fdel
+            self._obj = None
+
+        def setObj(self, obj):
+            self._obj = obj
+
+        def __getitem__(self, key):
+            if self._fget is None:
+                raise TypeError("can't read item")
+            return self._fget(self._obj, key)
+
+        def __setitem__(self, key, value):
+            if self._fset is None:
+                raise TypeError("can't set item")
+            self._fset(self._obj, key, value)
+
+        def __delitem__(self, key):
+            if self._fdel is None:
+                raise TypeError("can't delete item")
+            self._fdel(self._obj, key)
+
+    def __init__(self, fget=None, fset=None, fdel=None, doc=None):
+        self._proxy = dictproperty.proxy(fget, fset, fdel)
+        self.__doc__ = doc
+
+    def __get__(self, obj, objtype=None):
+        if obj is None: return self
+        self._proxy.setObj(obj)
+        return self._proxy
+
 

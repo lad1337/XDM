@@ -30,7 +30,7 @@ from xdm import common, helper, profileMeMaybe
 import datetime
 import json
 from jsonHelper import MyEncoder
-from xdm.helper import dict_diff
+from xdm.helper import dict_diff, dictproperty
 import types
 
 # from jinja2 import FileSystemBytecodeCache
@@ -840,8 +840,11 @@ class Download_V0(BaseModel):
             num /= 1024.0
 
 
-class Download(Download_V0):
+class Download_v1(Download_V0):
     pp_log = TextField(True)
+
+    class Meta:
+        db_table = 'Download'
 
     @classmethod
     def _migrate(cls):
@@ -852,6 +855,36 @@ class Download(Download_V0):
         cls._meta.database.execute_sql('ALTER TABLE %s ADD COLUMN %s' % (table, field))
         return True
 
+
+class Download(Download_v1):
+    _extra_data = TextField(True)
+
+    @classmethod
+    def _migrate(cls):
+        return cls._migrateNewField(cls._extra_data)
+
+    def _getExtraData(self, key):
+        if self._extra_data:
+            return json.loads(self._extra_data)[key]
+        raise AttributeError
+
+    def _setExtraData(self, key, value):
+        if self._extra_data:
+            d = json.loads(self._extra_data)
+            d[key] = value
+        else:
+            d = {}
+            d[key] = value
+        self._extra_data = json.dumps(d)
+
+    def _delExtraData(self, key):
+        if self._extra_data:
+            d = json.loads(self._extra_data)
+            del d[key]
+            self._extra_data = json.dumps(d)
+        raise AttributeError
+
+    extra_data = dictproperty(_getExtraData, _setExtraData, _delExtraData)
 
 class History(BaseModel):
     time = DateTimeField(default=datetime.datetime.now())
