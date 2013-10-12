@@ -866,7 +866,7 @@ class Download(Download_v1):
     def _getExtraData(self, key):
         if self._extra_data:
             return json.loads(self._extra_data)[key]
-        raise AttributeError
+        raise KeyError
 
     def _setExtraData(self, key, value):
         if self._extra_data:
@@ -882,9 +882,38 @@ class Download(Download_v1):
             d = json.loads(self._extra_data)
             del d[key]
             self._extra_data = json.dumps(d)
-        raise AttributeError
+        raise KeyError
 
     extra_data = dictproperty(_getExtraData, _setExtraData, _delExtraData)
+
+    @classmethod
+    def where_extra_data(cls, items):
+        """let items be a dict with the keys and values you want"""
+        def check_downloads(downloads, items):
+            for d in downloads:
+                # but we check on the values
+                for key, value in items.items():
+                    if (not key in d.extra_data) or (d.extra_data[key] != value):
+                        break
+                else:
+                    return d
+
+        # first we try a dirty string search in the json string
+        filters = []
+        for key, value in items.items():
+            json_item = json.dumps({key:value})[1:-1]
+            filters.append(Download._extra_data % json_item)
+
+        d = check_downloads(Download.select().where(*filters), items)
+        if d is not None:
+            return d
+
+        # slow version
+        d = check_downloads(Download.select(), items)
+        if d is not None:
+            return d
+
+        raise Download.DoesNotExist
 
 class History(BaseModel):
     time = DateTimeField(default=datetime.datetime.now())

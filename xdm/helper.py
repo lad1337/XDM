@@ -344,6 +344,15 @@ class dictproperty(object):
                 raise TypeError, "can't delete item"
             self._fdel(self._obj, key)
 
+        def __contains__(self, key):
+            if self._fget is None:
+                raise TypeError, "can't read item"
+            try:
+                self._fget(self._obj, key)
+                return True
+            except KeyError:
+                return False
+
     def __init__(self, fget=None, fset=None, fdel=None, doc=None):
         self._fget = fget
         self._fset = fset
