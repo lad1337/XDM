@@ -3,21 +3,21 @@
 #
 # This file is part of XDM: eXtentable Download Manager.
 #
-#XDM: eXtentable Download Manager. Plugin based media collection manager.
-#Copyright (C) 2013  Dennis Lutter
+# XDM: eXtentable Download Manager. Plugin based media collection manager.
+# Copyright (C) 2013  Dennis Lutter
 #
-#XDM is free software: you can redistribute it and/or modify
-#it under the terms of the GNU General Public License as published by
-#the Free Software Foundation, either version 3 of the License, or
-#(at your option) any later version.
+# XDM is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
 #
-#XDM is distributed in the hope that it will be useful,
-#but WITHOUT ANY WARRANTY; without even the implied warranty of
-#MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#GNU General Public License for more details.
+# XDM is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
 #
-#You should have received a copy of the GNU General Public License
-#along with this program.  If not, see http://www.gnu.org/licenses/.
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see http://www.gnu.org/licenses/.
 
 from xdm.logger import *
 import collections
@@ -58,7 +58,7 @@ class ConfigWrapper(object):
     def getConfigsFor(self, element):
         out = []
         for cur_element in element.ancestors:
-            print "checking ancestor '%s' from '%s'" % (cur_element, element)
+            # print "checking ancestor '%s' from '%s'" % (cur_element, element)
             for k, v in self._configDefinition.items():
                 try:
                     cur_c = Config.get(Config.section == self._plugin.__class__.__name__,
@@ -72,8 +72,8 @@ class ConfigWrapper(object):
                 self.addConfig(cur_c)
             # print "element configs for %s" % element
         if out:
-            for c in out:
-                print c
+            # for c in out:
+            #    print c
             return out
 
         for k, v in self._configDefinition.items():
@@ -98,8 +98,8 @@ class ConfigWrapper(object):
             out.append(cur_c)
             self.addConfig(cur_c)
         # print "element configs for %s" % element
-        for c in out:
-            print c
+        # for c in out:
+        #    print c
         return out
 
     def __getattr__(self, name):
@@ -158,9 +158,9 @@ def pluginMethodWrapper(caller_name, run, alternative):
         try:
             return run(*args, **kwargs)
         except Exception as ex:
-            print ex, args, kwargs
+            # print ex, args, kwargs
             tb = traceback.format_exc()
-            print tb
+            # print tb
             out = alternative(*args, **kwargs)
             try:
                 log.error("Error during %s of %s \nError: %s\n\n%s\nNew value:%s" % (run.__name__, caller_name, ex, tb, out), traceback=tb, new_out=out, exception=ex)

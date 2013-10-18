@@ -679,27 +679,31 @@ class System(Plugin):
     _type = 'System'
     name = "Does Noting"
 
-    def getBlacklistForPlatform(self, p):
-        return []
-
-    def getCheckPathForPlatform(self, p):
-        return ''
-
-    def getWhitelistForPlatform(self, p):
-        return []
-
 
 class DownloadFilter(Plugin):
+    _pre_search = 1
+    _post_search = 2
+
     _type = 'DownloadFilter'
     addMediaTypeOptions = 'runFor'
     name = 'Does Nothing'
+    stages = [_post_search]
 
     class FilterResult(object):
         def __init__(self, result=False, reason=''):
             self.result = result
             self.reason = reason
 
-    def compare(self, element, download):
+        def __bool__(self):
+            return self.result
+
+    def __init__(self, instance='Default'):
+        if DownloadFilter._pre_search in self.stages:
+            self._config['skip_on_forced_search'] = True
+            self.config_meta['skip_on_forced_search'] = {'desc': 'If true this filter will be skipped when you manualy started a search.'}
+        Plugin.__init__(self, instance=instance)
+
+    def compare(self, element, download=None, string=None):
         return self.FilterResult()
 
 
@@ -779,16 +783,13 @@ class MediaTypeManager(Plugin):
         self._config['default_new_status_select'] = common.WANTED.id
         self.config_meta['default_new_status_select'] = {'human': 'Status for newly added %s' % self.__class__.__name__}
 
-        self._config['release_threshold_select'] = 2 # default to two days see self._release_threshold_select()
-        self.config_meta['release_threshold_select'] = {'human': 'Time to ignore the release date prior the release date.'}
-
         super(MediaTypeManager, self).__init__(instance)
 
         self.searcher = None
         self.s = {'root': self.__class__.__name__}
         l = list(self.order)
         for i, e in enumerate(l):
-            attributes = [attr for attr in dir(e) if isinstance(getattr(e, attr), (types.IntType, types.StringType)) and not attr.startswith('_')]
+            attributes = [attr for attr in dir(e) if isinstance(getattr(e, attr), (int, str)) and not attr.startswith('_')]
             if not i:
                 if len(l) > 1:
                     self.s[e.__name__] = {'parent': 'root', 'child': l[i + 1], 'class': e, 'attr': attributes}
@@ -972,7 +973,7 @@ class MediaTypeManager(Plugin):
         root.type = self.__class__.__name__
         root.parent = None
         root.mediaType = self.mt
-        root.setField('term', term)
+        root.setField('term', term, 'XDM')
         root.saveTemp()
         return root
 
@@ -981,14 +982,6 @@ class MediaTypeManager(Plugin):
                 common.WANTED.id: common.WANTED.screenName,
                 common.IGNORE.id: common.IGNORE.screenName}
 
-    def _release_threshold_select(self):
-        return {0: "Don't ignore.",
-                1: format_timedelta(helper.releaseThresholdDelta[1], locale=common.getLocale()),
-                2: format_timedelta(helper.releaseThresholdDelta[2], locale=common.getLocale()),
-                3: format_timedelta(helper.releaseThresholdDelta[3], locale=common.getLocale()),
-                4: format_timedelta(helper.releaseThresholdDelta[4], locale=common.getLocale()),
-                5: format_timedelta(helper.releaseThresholdDelta[5], locale=common.getLocale()),
-                6: 'Completely ignore'}
 
     def getTemplate(self):
         if self.leaf:

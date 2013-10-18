@@ -130,26 +130,11 @@ def commentOnDownload(download):
             indexer.commentOnDownload('XDM snatched this and it downloaded successfully (automtic notice)', download)
 
 
-def searchElement(ele):
-    _ignoreRD = False
-    _thresholdRD = datetime.timedelta()
-    if ele.manager.c.release_threshold_select:
-        if ele.manager.c.release_threshold_select in helper.releaseThresholdDelta:
-            _thresholdRD = helper.releaseThresholdDelta[ele.manager.c.release_threshold_select]
-        else: # its not the first option(0) and not a timedelta, so it is the last option which tells us to ignore it completely
-            _ignoreRD = True
-
-    # TODO: clean this
-    if not _ignoreRD and (ele.getReleaseDate() - _thresholdRD) > datetime.datetime.now():
-        log(u"%s is not yet released it will be released at %s. Not searching!" % (ele, ele.getReleaseDate()))
-        return ele.status
-    else:
-        if _ignoreRD:
-            log(u"%s is released at %s but we are supposed to ignore the release date" % (ele, ele.getReleaseDate()))
-        elif _thresholdRD:
-            log(u"%s is released at %s but we are supposed to search %s ahead" % (ele, ele.getReleaseDate(), format_timedelta(_thresholdRD, locale="en_US")))
-        else:
-            log(u"%s was released at %s" % (ele, ele.getReleaseDate()))
+def searchElement(ele, forced=False):
+    for pre_filter in common.PM.getDownloadFilters(runFor=ele.manager, stages=[DownloadFilter._pre_search]):
+        pre_result = pre_filter.compare(ele, forced=forced)
+        if not pre_result:
+            return ele.status
 
     didSearch = False
     downloads = []
@@ -198,7 +183,7 @@ def snatchOne(ele, downloads):
     return ele.status
 
 
-def _filterBadDownloads(downloads):
+def _filterBadDownloads(downloads, forced=False):
     clean = []
     for download in downloads:
         old_download = None

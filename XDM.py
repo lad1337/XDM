@@ -73,7 +73,7 @@ class App():
 
         p = argparse.ArgumentParser(prog='XDM')
         p.add_argument('-d', '--daemonize', action="store_true", dest='daemonize', help="Run the server as a daemon.")
-        p.add_argument('-v', '--version', action="store_true", dest='version', help="Print Version and exit.")
+        p.add_argument('-v', '--version', action="version", version='%s' % common.getVersionHuman())
         p.add_argument('-D', '--debug', action="store_true", dest='debug', help="Print debug log to screen.")
         p.add_argument('-p', '--pidfile', dest='pidfile', default=None, help="Store the process id in the given file.")
         p.add_argument('-P', '--port', dest='port', type=int, default=None, help="Force webinterface to listen on this port.")
@@ -93,9 +93,6 @@ class App():
         self.options = options
         common.STARTOPTIONS = options
 
-        if options.version:
-            print common.getVersionHuman()
-            exit()
         log.info('Starting XDM %s' % common.getVersionHuman())
 
         # Set the Paths
@@ -204,7 +201,7 @@ class App():
                 '/img': {'tools.staticdir.on': True, 'tools.staticdir.dir': images_path},
                 '/favicon.ico': {'tools.staticfile.on': True, 'tools.staticfile.filename': os.path.join(images_path, 'favicon.ico')}
                }
-        common.PUBLIC_PATHS = conf.keys()
+        common.PUBLIC_PATHS = list(conf.keys())
 
         if common.SYSTEM.c.webRoot: # if this is always set even when False then https does not work
             options_dict = {'global': {'tools.proxy.on': True}}

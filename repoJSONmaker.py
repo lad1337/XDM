@@ -33,16 +33,41 @@ p.add_argument('--name', dest='name', default="Some repo and the dev gave it no 
 p.add_argument('--info_url', dest='info_url', default="## enter your info url here ##", help="The info url")
 p.add_argument('--download_url', dest='download_url', default="## enter your download url here", help="I you use one download url for all plugins set this.")
 p.add_argument('--path', dest='path', default=None, help="Path to the plugins")
+p.add_argument('--read', dest='old_json', default=False, help="Path to the old repo json")
 
 
 options = p.parse_args()
 
-if not options.path:
+if options.old_json:
+    if not os.path.isfile(options.old_json):
+        print "%s is not a file. sorry" % options.old_json
+        exit(1)
+    json_raw = open(options.old_json).read()
+    old_json_data = json.loads(json_raw)
+
+    name = old_json_data['name']
+    info_url = old_json_data['info_url']
+    download_url = options.download_url
+    # lets try to get the download url from the FIRST plugin
+    if len(old_json_data) and len(old_json_data['plugins']):
+        download_url = old_json_data['plugins'].itervalues().next()[0]['download_url']
+    plugin_path = os.path.abspath(os.path.dirname(options.old_json))
+
+
+else:
+    name = options.name
+    info_url = options.info_url
+    download_url = options.download_url
+    plugin_path = options.path
+
+
+if not plugin_path:
     print "I am sorry but i kinda need the path to all the plugins"
     exit(1)
+else:
+    print "using %s as plugin path" % plugin_path
 
-
-sys.path.append(options.path)
+sys.path.append(plugin_path)
 
 
 sys.argv = []
@@ -55,16 +80,16 @@ from xdm import actionManager
 
 
 jsons = {
-    "name": options.name,
-    "info_url": options.info_url,
+    "name": name,
+    "info_url": info_url,
     "plugins": {}}
 
-common.PM.cache(extra_plugin_path=options.path)
+common.PM.cache(extra_plugin_path=plugin_path)
 
 for plugin in common.PM.getAll(returnAll=True):
     # print "checking %s" % plugin
     pPath = plugin.get_plugin_isntall_path()['path']
-    if not pPath.startswith(options.path):
+    if not pPath.startswith(plugin_path):
         # print "%s not in the path you want to use plugin path:%s" % (plugin, plugin.get_plugin_isntall_path()['path'])
         continue
 
@@ -77,12 +102,12 @@ for plugin in common.PM.getAll(returnAll=True):
         continue
 
     info = plugin.createRepoJSON(True)[plugin.identifier]
-    info[0]['download_url'] = options.download_url
+    info[0]['download_url'] = download_url
     jsons['plugins'][plugin.identifier] = info
 
 json = json.dumps(jsons, indent=4, sort_keys=False)
 
-metaPath = os.path.join(options.path, "meta.json")
+metaPath = os.path.join(plugin_path, "meta.json")
 print
 print "#############"
 print "WARNING i will (over)write the file %s. i hope you use a svc!" % metaPath
