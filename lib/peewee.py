@@ -641,7 +641,7 @@ class ReverseRelationDescriptor(object):
 
     def __get__(self, instance, instance_type=None):
         if instance is not None:
-            return self.rel_model.select().where(self.field==instance.get_id())
+            return self.rel_model.select().where(self.field == instance.get_id())
         return self
 
 class ForeignKeyField(IntegerField):
@@ -685,9 +685,19 @@ class ForeignKeyField(IntegerField):
                      'field of the same name.')
             params = self.model_class._meta.name, self.name, self.related_name
             raise AttributeError(error % params)
-        if self.related_name in self.rel_model._meta.reverse_rel:
+
+
+        print()
+        print("#"*5, " %s.%s.%s " % (model_class, self.rel_model, self.related_name), "#"*5)
+        print("fields of %s: %s" % (self.rel_model, self.rel_model._meta.reverse_rel))
+        if self.related_name in self.rel_model._meta.reverse_rel\
+            and model_class.__name__.startswith(self.rel_model._meta.reverse_rel[self.related_name].model_class.__name__):
             error = ('Foreign key: %s.%s related name "%s" collision with '
                      'foreign key using same related_name.')
+
+
+            print("%s vs %s" % (model_class.__name__, self.rel_model._meta.reverse_rel[self.related_name].model_class.__name__))
+            print("da field -%s-" % self.rel_model._meta.reverse_rel[self.related_name])
             params = self.model_class._meta.name, self.name, self.related_name
             raise AttributeError(error % params)
 
@@ -893,7 +903,7 @@ class QueryCompiler(object):
             # here, if the node is *not* a special object, we'll pass thru
             # parse_node and let db_value handle it
             if not isinstance(value, (Node, Model, Query)):
-                value = Param(value)  # passthru to the field's db_value func
+                value = Param(value) # passthru to the field's db_value func
             val_sql, val_params = self.parse_node(value)
             val_params = [field.db_value(vp) for vp in val_params]
             sets.append((field_sql, val_sql))
@@ -2066,7 +2076,7 @@ class MySQLDatabase(Database):
     }
     for_update = True
     interpolation = '%s'
-    limit_max = 2 ** 64 - 1  # MySQL quirk
+    limit_max = 2 ** 64 - 1 # MySQL quirk
     op_overrides = {
         OP_LIKE: 'LIKE BINARY',
         OP_ILIKE: 'LIKE',
@@ -2574,9 +2584,9 @@ def sort_models_topologically(models):
             seen.add(model)
             for foreign_key in model._meta.reverse_rel.values():
                 dfs(foreign_key.model_class)
-            ordering.append(model)  # parent will follow descendants
+            ordering.append(model) # parent will follow descendants
     # order models by name and table initially to guarantee a total ordering
     names = lambda m: (m._meta.name, m._meta.db_table)
     for m in sorted(models, key=names, reverse=True):
         dfs(m)
-    return list(reversed(ordering))  # want parents first in output ordering
+    return list(reversed(ordering)) # want parents first in output ordering

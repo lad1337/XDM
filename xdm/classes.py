@@ -36,7 +36,11 @@ import types
 # from jinja2 import FileSystemBytecodeCache
 from jinja2.environment import Environment
 from jinja2.loaders import FileSystemLoader, DictLoader
-import urllib
+
+try:
+    from urllib import quote as url_quote
+except ImportError:
+    from urllib.parse import quote as url_quote
 
 # bcc = FileSystemBytecodeCache(pattern='%s.cache')
 # , bytecode_cache=bcc
@@ -180,7 +184,7 @@ class Status(Status_V0):
         return True
 
     def _screenName(self):
-        return lgettext(self.name)
+        return str(lgettext(self.name))
     screenName = property(_screenName)
 
     def __str__(self):
@@ -671,7 +675,7 @@ class Element(BaseModel):
 
 
 class Field_V0(BaseModel):
-    element = ForeignKeyField(Element)
+    element = ForeignKeyField(Element, related_name='fields')
     name = CharField()
     provider = CharField()
     _value_int = FloatField(True)
@@ -816,7 +820,7 @@ class Config(BaseModel):
         return u"(%s) Name: %s Value: %s" % (self.id, self.name, self.value)
 
 class Download_V0(BaseModel):
-    element = ForeignKeyField(Element)
+    element = ForeignKeyField(Element, related_name="downloads")
     name = CharField()
     url = CharField(unique=True)
     size = IntegerField(True)
@@ -1094,7 +1098,7 @@ class Image(BaseModel):
                     f.write(chunk)
 
     def getPath(self):
-        directory = os.path.join(xdm.IMAGEPATH, unicode(self.element.mediaType))
+        directory = os.path.join(xdm.IMAGEPATH, str(self.element.mediaType))
         if not os.path.exists(directory):
             os.makedirs(directory)
 
@@ -1107,21 +1111,17 @@ class Image(BaseModel):
 
     def getSrc(self):
         if self.saved: # type is only set after we down loaded the image
-            # TODO: figure this out
-            # there was a
-            # .replace(xdm.PROGDIR, '')
-            # on the url why was this here ? is this needed ?
-            url = u'/'.join((xdm.IMAGEPATH_RELATIVE,
-                             unicode(self.element.mediaType),
-                             unicode(self.imgName())
+            url = '/'.join((xdm.IMAGEPATH_RELATIVE,
+                             str(self.element.mediaType),
+                             str(self.imgName())
                              ))
-            webrooted_url = u'%s/%s' % (common.SYSTEM.c.webRoot, url)
-            return urllib.quote(webrooted_url.encode('utf-8'))
+            webrooted_url = '%s/%s' % (common.SYSTEM.c.webRoot, url)
+            return url_quote(webrooted_url)
         else:
             return self.url
 
     def imgName(self):
-        return helper.fileNameClean(u"%s (%s) %s.%s" % (helper.replace_all(self.element.getName()),
+        return helper.fileNameClean("%s (%s) %s.%s" % (helper.replace_all(self.element.getName()),
                                                         self.element.id,
                                                         self.name,
                                                         self.type))

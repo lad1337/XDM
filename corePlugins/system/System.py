@@ -84,7 +84,7 @@ class SystemConfig(System):
     def _defaut_mt_select(self):
         out = {}
         for mt in common.PM.MTM:
-            out[mt.identifier] = unicode(mt)
+            out[mt.identifier] = str(mt)
         return out
 
     def _setLocale(self, setting):
@@ -113,7 +113,7 @@ class SystemConfig(System):
         log.info(u"Using i18n path %s" % translationPath)
 
         if not os.path.isdir(translationPath):
-            log.error("%s is not a path. where is the i18n folder?" % translationPath)
+            log.warning("%s is not a path. where is the i18n folder?" % translationPath)
             return
         fallback = common.STARTOPTIONS.dev
         try:

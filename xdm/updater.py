@@ -129,7 +129,7 @@ class CoreUpdater(object):
         try:
             self.info = self.updater.need_update()
         except Exception as e:
-            log.critical(unicode(e))
+            log.critical(str(e))
             if not common.STARTOPTIONS.dev:
                 raise
             self.info = UpdateResponse()

@@ -30,12 +30,16 @@ import xdm
 import traceback
 
 LOGLINECACHESIZE = 20
+
+logging.EXCEPTION = logging.ERROR + 1
+
 # "c" is for console "p" is for i forgot, but it is used for the file logger
 # the "c" strings have terminal control strings that change the color ^_^
-lvlNames = {    logging.ERROR:      {'c': '   \x1b[31;1mERROR\x1b[0m', 'p': 'ERROR'},
-                logging.WARNING:    {'c': ' \x1b[35;1mWARNING\x1b[0m', 'p': 'WARNING'},
-                logging.INFO:       {'c': '    \x1b[32;1mINFO\x1b[0m', 'p': 'INFO'},
-                logging.DEBUG:      {'c': '   \x1b[36;1mDEBUG\x1b[0m', 'p': 'DEBUG'},
+lvlNames = {    logging.ERROR:      {'c': '    \x1b[31;1mERROR\x1b[0m', 'p': 'ERROR'},
+                logging.EXCEPTION:  {'c': '\x1b[31;1mEXCEPTION\x1b[0m', 'p': 'EXCEPTION'},
+                logging.WARNING:    {'c': '  \x1b[35;1mWARNING\x1b[0m', 'p': 'WARNING'},
+                logging.INFO:       {'c': '     \x1b[32;1mINFO\x1b[0m', 'p': 'INFO'},
+                logging.DEBUG:      {'c': '    \x1b[36;1mDEBUG\x1b[0m', 'p': 'DEBUG'},
                 logging.CRITICAL:   {'c': '\x1b[43;1m\x1b[31;1mCRITICAL\x1b[49\x1b[0m', 'p': 'CRITICAL'}
                 }
 
@@ -127,7 +131,7 @@ class LogWrapper():
         curframe = inspect.currentframe()
         calframe = inspect.getouterframes(curframe, 0)
         sm = StructuredMessage(lvl, msg, calframe, **kwargs)
-        cLogger.log(lvl, sm.console(), exc_info=bool(lvl >= logging.ERROR))
+        cLogger.log(lvl, sm.console(), exc_info=bool(lvl >= logging.EXCEPTION))
         _line = '%s' % sm
         fLogger.log(lvl, _line)
         self._logLineCache.append(_line)
@@ -167,6 +171,10 @@ class LogWrapper():
 
     def critical(self, msg, censor=None, **kwargs):
         self._log(logging.CRITICAL, msg, censor=censor, **kwargs)
+        return msg
+
+    def exception(self, msg, censor=None, **kwargs):
+        self._log(logging.EXCEPTION, msg, censor=censor, **kwargs)
         return msg
 
     def __call__(self, msg, censor=None, **kwargs):

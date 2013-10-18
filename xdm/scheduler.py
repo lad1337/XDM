@@ -89,7 +89,7 @@ class Task(threading.Thread):
                         raise AttributeError("fake error on first run")"""
                 except:
                     self._fails += 1
-                    self._failMessage = log.error('Error in the scheduler thread of %s. %s fails so far.' % (self.name, self._fails))
+                    self._failMessage = log.exception('Error in the scheduler thread of %s. %s fails so far.' % (self.name, self._fails))
                     if self._fails >= MAXIMUM_FAILS:
                         log.error('This scheduler %s is dead to me!' % self.name)
                         self._running = 0

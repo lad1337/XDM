@@ -228,8 +228,13 @@ class PluginManager(object):
                 else:
                     pass
                     # log("%s is disabled" % cur_c.__name__)
-        # print cls, wanted_i, returnAll, plugin_instances, sorted(plugin_instances, key=lambda x: x.c.plugin_order, reverse=False)
-        return sorted(plugin_instances, key=lambda x: x.c.plugin_order, reverse=False)
+
+        def fix_order(order):
+            if order == "":
+                return 0
+            else:
+                return int(order)
+        return sorted(plugin_instances, key=lambda x: fix_order(x.c.plugin_order), reverse=False)
 
     def _getTyped(self, plugins, types=[]):
         if not types:

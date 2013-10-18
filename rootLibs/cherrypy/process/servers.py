@@ -376,13 +376,16 @@ def check_port(host, port, timeout=1.0):
             # See http://groups.google.com/group/cherrypy-users/
             #        browse_frm/thread/bbfe5eb39c904fe0
             s.settimeout(timeout)
-            print("connecting %s:%s" % (host, port))
+            # s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 0)
+            # s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 0)
             s.connect((host, port))
             s.close()
             raise IOError("Port %s is in use on %s; perhaps the previous "
                           "httpserver did not shut down properly." %
                           (repr(port), repr(host)))
-        except socket.error:
+        except socket.error as ex:
+            if type(ex) == OSError:
+                raise
             if s:
                 s.close()
 
