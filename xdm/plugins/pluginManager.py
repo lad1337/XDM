@@ -3,31 +3,37 @@
 #
 # This file is part of XDM: eXtentable Download Manager.
 #
-#XDM: eXtentable Download Manager. Plugin based media collection manager.
-#Copyright (C) 2013  Dennis Lutter
+# XDM: eXtentable Download Manager. Plugin based media collection manager.
+# Copyright (C) 2013  Dennis Lutter
 #
-#XDM is free software: you can redistribute it and/or modify
-#it under the terms of the GNU General Public License as published by
-#the Free Software Foundation, either version 3 of the License, or
-#(at your option) any later version.
+# XDM is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
 #
-#XDM is distributed in the hope that it will be useful,
-#but WITHOUT ANY WARRANTY; without even the implied warranty of
-#MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#GNU General Public License for more details.
+# XDM is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
 #
-#You should have received a copy of the GNU General Public License
-#along with this program.  If not, see http://www.gnu.org/licenses/.
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see http://www.gnu.org/licenses/.
 
-import bases as plugins
+from . import bases as plugins
 import os
 import traceback
 from xdm.classes import *
 from xdm.logger import *
 from xdm import common
 import threading
-from cStringIO import StringIO
-from pylint import lint
+try:
+    from cStringIO import StringIO
+except ImportError:
+    from io import StringIO
+try:
+    from pylint import lint
+except SyntaxError:
+    pass
 import sys
 
 
@@ -50,6 +56,7 @@ class PluginManager(object):
         self.crashed_on_init_cache = {}
 
     def _getPylintScore(self, path):
+        return -1
         old_stdout = sys.stdout
         old_stderr = sys.stderr
         sys.stdout = mystdout = StringIO()
@@ -72,7 +79,6 @@ class PluginManager(object):
                 finally:
                     logFile.close()
             except IOError as exe:
-                print exe
                 log.error("Error during writing of the pylint output")
         return s
 
@@ -111,14 +117,14 @@ class PluginManager(object):
                            plugins.Downloader, plugins.DownloadFilter, plugins.SearchTermFilter,
                            plugins.MediaAdder, plugins.Indexer, plugins.Provider,
                            plugins.PostProcessor, plugins.DownloadType)
-            for cur_plugin_type in classes: #for plugin types
+            for cur_plugin_type in classes: # for plugin types
                 cur_plugin_type_name = cur_plugin_type.__name__
                 cur_classes = self.find_subclasses(cur_plugin_type, reloadModules, debug=debug)
                 if extra_plugin_path is None and common.SYSTEM is not None:
                     extra_plugin_path = common.SYSTEM.c.extra_plugin_path
                 if not systemOnly and extra_plugin_path is not None and os.path.isdir(extra_plugin_path):
                     if debug:
-                        print '###### extra path %s #######' % extra_plugin_path
+                        print('###### extra path %s #######' % extra_plugin_path)
                     cur_classes.extend(self.find_subclasses(cur_plugin_type, reloadModules, debug=debug, path=extra_plugin_path))
 
                 if cur_classes:
@@ -150,7 +156,7 @@ class PluginManager(object):
                         final_instances = []
                         for instance in instances:
                             try:
-                                #log("Creating %s (%s)" % (cur_class, instance))
+                                # log("Creating %s (%s)" % (cur_class, instance))
                                 i = cur_class(instance)
                             except Exception as ex:
                                 tb = traceback.format_exc()
@@ -169,14 +175,14 @@ class PluginManager(object):
                     else:
                         final_instances = [cur_class.identifier.replace('.', '_')]
                     self._cache[cur_plugin_type][cur_class] = final_instances
-                    #TODO: have a look at this ... it is used in bases again ... i dont like this switch
+                    # TODO: have a look at this ... it is used in bases again ... i dont like this switch
                     if cur_class.identifier:
                         path_cache_key = cur_class.identifier
                     else:
                         path_cache_key = cur_class.__name__
                     self.path_cache[path_cache_key] = {'path': os.path.dirname(cur_path), 'version': cur_class.version}
                     log("I found %s instances for %s(v%s): %s" % (len(final_instances), cur_class.__name__, cur_class.version, self._cache[cur_plugin_type][cur_class]))
-            #log("Final plugin cache %s" % self._cache)
+            # log("Final plugin cache %s" % self._cache)
 
     def _checkElementFields(self):
         for mtm in self.MTM:
@@ -188,7 +194,7 @@ class PluginManager(object):
         return 0
 
     def _getAny(self, cls, wanted_i='', returnAll=False, runFor=''):
-        """may return a list with instances or just one instance if wanted_i is given
+        """may return a list with instances
         only gives back enabeld plugins by default set returnAll to True to get all
         WARNING: "disabeld" plugins are still instantiated
         """
@@ -200,14 +206,14 @@ class PluginManager(object):
         for cur_c, instances in self._cache[cls].items():
             for cur_instance in instances:
                 cur_instance = cur_instance.replace('_', '.')
-                #log("Will create new instance (%s) from %s" % (cur_instance, cur_c.__name__))
+                # log("Will create new instance (%s) from %s" % (cur_instance, cur_c.__name__))
                 if cls == plugins.MediaTypeManager:
                     if cur_c not in self._mt_cache:
                         log('Creating and caching instance from %s' % cur_c)
                         new = cur_c(cur_instance.replace('_', '.'))
                         self._mt_cache[cur_c] = new
                     else:
-                        #log('Using cached instance from %s' % cur_c)
+                        # log('Using cached instance from %s' % cur_c)
                         new = self._mt_cache[cur_c]
                 else:
                     new = cur_c(cur_instance)
@@ -221,8 +227,8 @@ class PluginManager(object):
                     plugin_instances.append(new)
                 else:
                     pass
-                    #log("%s is disabled" % cur_c.__name__)
-        #print cls, wanted_i, returnAll, plugin_instances, sorted(plugin_instances, key=lambda x: x.c.plugin_order, reverse=False)
+                    # log("%s is disabled" % cur_c.__name__)
+        # print cls, wanted_i, returnAll, plugin_instances, sorted(plugin_instances, key=lambda x: x.c.plugin_order, reverse=False)
         return sorted(plugin_instances, key=lambda x: x.c.plugin_order, reverse=False)
 
     def _getTyped(self, plugins, types=[]):
@@ -230,9 +236,17 @@ class PluginManager(object):
             return plugins
         filtered = []
         for cur_cls in plugins:
-            for cur_type in types:
-                if cur_type in cur_cls.types:
-                    filtered.append(cur_cls)
+            if set(cur_cls.types).intersection(set(types)):
+                filtered.append(cur_cls)
+        return filtered
+
+    def _getStage(self, plugins, stages=[]):
+        if not stages:
+            return plugins
+        filtered = []
+        for cur_cls in plugins:
+            if set(cur_cls.stages).intersection(set(stages)):
+                filtered.append(cur_cls)
         return filtered
 
     def _getRunners(self, plugins, mediaTypeManager=None):
@@ -262,8 +276,8 @@ class PluginManager(object):
         return self._getRunners(self._getAny(plugins.Provider, i, returnAll), runFor)
     P = property(getProvider)
 
-    def getDownloadFilters(self, i='', returnAll=False, runFor=None):
-        return self._getRunners(self._getAny(plugins.DownloadFilter, i, returnAll), runFor)
+    def getDownloadFilters(self, i='', returnAll=False, runFor=None, stages=[]):
+        return self._getStage(self._getRunners(self._getAny(plugins.DownloadFilter, i, returnAll), runFor), stages)
     DF = property(getDownloadFilters)
 
     def getSearchTermFilters(self, i='', returnAll=False, runFor=None):
@@ -292,16 +306,16 @@ class PluginManager(object):
     MA = property(getMediaAdder)
 
     def getAll(self, returnAll=False, instance=""):
-        return self.getSystem(returnAll=returnAll, i=instance) +\
-                self.getIndexers(returnAll=returnAll, i=instance) +\
-                self.getDownloaders(returnAll=returnAll, i=instance) +\
-                self.getDownloadFilters(returnAll=returnAll, i=instance) +\
-                self.getSearchTermFilters(returnAll=returnAll, i=instance) +\
-                self.getPostProcessors(returnAll=returnAll, i=instance) +\
-                self.getMediaAdder(returnAll=returnAll, i=instance) +\
-                self.getNotifiers(returnAll=returnAll, i=instance) +\
-                self.getProvider(returnAll=returnAll, i=instance) +\
-                self.getDownloaderTypes(returnAll=returnAll, i=instance) +\
+        return self.getSystem(returnAll=returnAll, i=instance) + \
+                self.getIndexers(returnAll=returnAll, i=instance) + \
+                self.getDownloaders(returnAll=returnAll, i=instance) + \
+                self.getDownloadFilters(returnAll=returnAll, i=instance) + \
+                self.getSearchTermFilters(returnAll=returnAll, i=instance) + \
+                self.getPostProcessors(returnAll=returnAll, i=instance) + \
+                self.getMediaAdder(returnAll=returnAll, i=instance) + \
+                self.getNotifiers(returnAll=returnAll, i=instance) + \
+                self.getProvider(returnAll=returnAll, i=instance) + \
+                self.getDownloaderTypes(returnAll=returnAll, i=instance) + \
                 self.getMediaTypeManager(returnAll=returnAll, i=instance)
     getAll.order = ['System',
                     'Indexer',
@@ -350,7 +364,7 @@ class PluginManager(object):
             externalPath = False
 
         if debug:
-            print "searching for subclasses of", cls, cls.__name__, 'in', path
+            print("searching for subclasses of", cls, cls.__name__, 'in', path)
         org_cls = cls
         subclasses = []
 
@@ -360,19 +374,19 @@ class PluginManager(object):
 
             try:
                 module = __import__(modulename)
-            except Exception as ex:# catch everything we dont know what kind of error a plugin might have
+            except Exception as ex: # catch everything we dont know what kind of error a plugin might have
                 tb = traceback.format_exc()
                 log.error("Error during importing of %s" % modulename, traceback=tb, exception=ex)
                 return
 
-            #walk the dictionaries to get to the last one
+            # walk the dictionaries to get to the last one
             d = module.__dict__
             for m in modulename.split('.')[1:]:
                 d = d[m].__dict__
 
-            #look through this dictionary for things
-            #that are subclass of Job
-            #but are not Job itself
+            # look through this dictionary for things
+            # that are subclass of Job
+            # but are not Job itself
             for key, entry in d.items():
                 if key == cls.__name__:
                     continue
@@ -386,9 +400,9 @@ class PluginManager(object):
                             reload(module)
                         subclasses.append((entry, cur_path))
                 except TypeError:
-                    #this happens when a non-type is passed in to issubclass. We
-                    #don't care as it can't be a subclass of Job if it isn't a
-                    #type
+                    # this happens when a non-type is passed in to issubclass. We
+                    # don't care as it can't be a subclass of Job if it isn't a
+                    # type
                     continue
 
         followlinks = common.STARTOPTIONS.dev
@@ -396,8 +410,8 @@ class PluginManager(object):
             if 'pluginRootLibarys' in root or '__old__' in root:
                 continue
             if debug:
-                print dirs
-                print files
+                print(dirs)
+                print(files)
             if 'pluginRootLibarys' in dirs:
                 extra_root_path = os.path.join(root, 'pluginRootLibarys')
                 if extra_root_path not in sys.path:
@@ -417,8 +431,7 @@ class PluginManager(object):
                     look_for_subclass(modulename, cur_path)
 
         if debug:
-            print "final subclasses for", org_cls, subclasses
+            print("final subclasses for", org_cls, subclasses)
 
         return subclasses
-
 

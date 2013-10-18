@@ -27,6 +27,11 @@ from xdm.logger import log
 import datetime
 import uuid as uuidModule
 
+try:
+    list(xrange())
+except NameError:
+    xrange = range
+
 MAXIMUM_FAILS = 3
 
 

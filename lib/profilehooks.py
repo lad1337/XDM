@@ -302,7 +302,7 @@ class FuncProfile(object):
         self.dirs = dirs
         self.sort = sort or ('cumulative', 'time', 'calls')
         if isinstance(self.sort, str):
-            self.sort = (self.sort, )
+            self.sort = (self.sort,)
         self.entries = entries
         self.reset_stats()
         atexit.register(self.atexit)
@@ -335,15 +335,15 @@ class FuncProfile(object):
         funcname = self.fn.__name__
         filename = self.fn.func_code.co_filename
         lineno = self.fn.func_code.co_firstlineno
-        print
-        print "*** PROFILER RESULTS ***"
-        print "%s (%s:%s)" % (funcname, filename, lineno)
-        print "function called %d times" % self.ncalls,
+        print()
+        print("*** PROFILER RESULTS ***")
+        print("%s (%s:%s)" % (funcname, filename, lineno))
+        print("function called %d times" % self.ncalls,)
         if self.skipped:
-            print "(%d calls not profiled)" % self.skipped
+            print("(%d calls not profiled)" % self.skipped)
         else:
-            print
-        print
+            print()
+        print()
         stats = self.stats
         if self.filename:
             stats.dump_stats(self.filename)
@@ -438,15 +438,15 @@ if hotshot is not None:
             funcname = self.fn.__name__
             filename = self.fn.func_code.co_filename
             lineno = self.fn.func_code.co_firstlineno
-            print
-            print "*** PROFILER RESULTS ***"
-            print "%s (%s:%s)" % (funcname, filename, lineno)
-            print "function called %d times" % self.ncalls,
+            print()
+            print("*** PROFILER RESULTS ***")
+            print("%s (%s:%s)" % (funcname, filename, lineno))
+            print("function called %d times" % self.ncalls,)
             if self.skipped:
-                print "(%d calls not profiled)" % self.skipped
+                print("(%d calls not profiled)" % self.skipped)
             else:
-                print
-            print
+                print()
+            print()
             stats = hotshot.stats.load(self.logfilename)
             # hotshot.stats.load takes ages, and the .prof file eats megabytes, but
             # a saved stats object is small and fast
@@ -501,11 +501,11 @@ if hotshot is not None:
             funcname = self.fn.__name__
             filename = self.fn.func_code.co_filename
             lineno = self.fn.func_code.co_firstlineno
-            print
-            print "*** COVERAGE RESULTS ***"
-            print "%s (%s:%s)" % (funcname, filename, lineno)
-            print "function called %d times" % self.ncalls
-            print
+            print()
+            print("*** COVERAGE RESULTS ***")
+            print("%s (%s:%s)" % (funcname, filename, lineno))
+            print("function called %d times" % self.ncalls)
+            print()
             fs = FuncSource(self.fn)
             reader = hotshot.log.LogReader(self.logfilename)
             for what, (filename, lineno, funcname), tdelta in reader:
@@ -522,7 +522,7 @@ if hotshot is not None:
                         lineno = fs.firstcodelineno
                     fs.mark(lineno)
             reader.close()
-            print fs
+            print(fs)
 
 
 class TraceFuncCoverage:
@@ -575,20 +575,20 @@ class TraceFuncCoverage:
         funcname = self.fn.__name__
         filename = self.fn.func_code.co_filename
         lineno = self.fn.func_code.co_firstlineno
-        print
-        print "*** COVERAGE RESULTS ***"
-        print "%s (%s:%s)" % (funcname, filename, lineno)
-        print "function called %d times" % self.ncalls
-        print
+        print()
+        print("*** COVERAGE RESULTS ***")
+        print("%s (%s:%s)" % (funcname, filename, lineno))
+        print("function called %d times" % self.ncalls)
+        print()
         fs = FuncSource(self.fn)
         for (filename, lineno), count in self.tracer.counts.items():
             if filename != fs.filename:
                 continue
             fs.mark(lineno, count)
-        print fs
+        print(fs)
         never_executed = fs.count_never_executed()
         if never_executed:
-            print "%d lines were not executed." % never_executed
+            print("%d lines were not executed." % never_executed)
 
 
 class FuncSource:

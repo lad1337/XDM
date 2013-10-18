@@ -25,7 +25,7 @@ import json
 import logging
 import logging.handlers
 import inspect
-from jsonHelper import MyEncoder
+from xdm.jsonHelper import MyEncoder
 import xdm
 import traceback
 
@@ -120,13 +120,14 @@ class LogWrapper():
             elif type(censor) == str:
                 msg = msg.replace(censor, '##censored##')
 
-        if (xdm.common.SYSTEM is None or (xdm.common.SYSTEM.c.censor_xdm_dir)) and xdm.APP_PATH:
+        if (xdm.common.SYSTEM is None or (xdm.common.SYSTEM.c.censor_xdm_dir)) and xdm.APP_PATH and (
+            xdm.common.STARTOPTIONS is None or (not xdm.common.STARTOPTIONS.dev)):
             msg = msg.replace(xdm.APP_PATH, '##xdm_path##')
 
         curframe = inspect.currentframe()
         calframe = inspect.getouterframes(curframe, 0)
         sm = StructuredMessage(lvl, msg, calframe, **kwargs)
-        cLogger.log(lvl, sm.console())
+        cLogger.log(lvl, sm.console(), exc_info=bool(lvl >= logging.ERROR))
         _line = '%s' % sm
         fLogger.log(lvl, _line)
         self._logLineCache.append(_line)
@@ -146,8 +147,9 @@ class LogWrapper():
                         n.sendMessage('%s: %s' % (lvlNames[lvl]['p'], msg))
 
     def error(self, msg, censor=None, **kwargs):
-        tb = traceback.format_exc()
-        msg = '%s\nTraceback:\n%s' % (msg, tb)
+        # tb = traceback.format_exc()
+        # sys.exc_info()
+        # msg = '%s\nTraceback:\n%s' % (msg, tb)
         self._log(logging.ERROR, msg, censor=censor, **kwargs)
         return msg
 

@@ -38,7 +38,7 @@ locale.setlocale(locale.LC_ALL, '')
 # init _ and other i18n functions the real language set based on the config is done in init.py -> system plugin
 import gettext
 t = gettext.translation('messages', os.path.join(app_path, 'i18n'), languages=None, fallback=True)
-t.install(1, ('gettext', 'ngettext', 'lgettext', 'lngettext'))
+t.install(('gettext', 'ngettext', 'lgettext', 'lngettext'))
 
 import argparse
 import cherrypy

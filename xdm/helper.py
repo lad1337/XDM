@@ -25,7 +25,7 @@ import re
 import sys
 import webbrowser
 import math
-from logger import *
+from xdm.logger import *
 from datetime import datetime, timedelta
 import inspect
 import urllib
@@ -69,7 +69,7 @@ def replace_all(text):
 
 def replace_x(text, dic):
     text = u'%s' % text
-    for bad, good in dic.iteritems():
+    for bad, good in dic.items():
         text = text.replace(bad, good)
     return text
 
@@ -213,7 +213,7 @@ def daemonize():
         pid = os.fork() # @UndefinedVariable - only available in UNIX
         if pid != 0:
             sys.exit(0)
-    except OSError, e:
+    except OSError as e:
         raise RuntimeError("1st fork failed: %s [%d]" % (e.strerror, e.errno))
 
     os.setsid() # @UndefinedVariable - only available in UNIX
@@ -227,7 +227,7 @@ def daemonize():
         pid = os.fork() # @UndefinedVariable - only available in UNIX
         if pid != 0:
             sys.exit(0)
-    except OSError, e:
+    except OSError as e:
         raise RuntimeError("2nd fork failed: %s [%d]" % (e.strerror, e.errno))
 
     dev_null = file('/dev/null', 'r')
@@ -312,12 +312,6 @@ def guiGlobals(self):
             'webRoot': common.SYSTEM.c.webRoot}
 
 
-releaseThresholdDelta = {1: timedelta(days=1),
-                        2: timedelta(days=2),
-                        3: timedelta(days=7), # a week
-                        4: timedelta(days=30), # a month
-                        5: timedelta(days=60)} # two months
-
 # http://code.activestate.com/recipes/440514-dictproperty-properties-for-dictionary-attributes/
 class dictproperty(object):
 
@@ -331,22 +325,22 @@ class dictproperty(object):
 
         def __getitem__(self, key):
             if self._fget is None:
-                raise TypeError, "can't read item"
+                raise TypeError("can't read item")
             return self._fget(self._obj, key)
 
         def __setitem__(self, key, value):
             if self._fset is None:
-                raise TypeError, "can't set item"
+                raise TypeError("can't set item")
             self._fset(self._obj, key, value)
 
         def __delitem__(self, key):
             if self._fdel is None:
-                raise TypeError, "can't delete item"
+                raise TypeError("can't delete item")
             self._fdel(self._obj, key)
 
         def __contains__(self, key):
             if self._fget is None:
-                raise TypeError, "can't read item"
+                raise TypeError("can't read item")
             try:
                 self._fget(self._obj, key)
                 return True

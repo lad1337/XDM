@@ -1,4 +1,4 @@
-# Copyright (c) 2003-2012 LOGILAB S.A. (Paris, FRANCE).
+# Copyright (c) 2003-2013 LOGILAB S.A. (Paris, FRANCE).
 # http://www.logilab.fr/ -- mailto:contact@logilab.fr
 #
 # This program is free software; you can redistribute it and/or modify it under
@@ -23,7 +23,7 @@ from threading import Thread
 from Tkinter import (Tk, Frame, Listbox, Entry, Label, Button, Scrollbar,
                      Checkbutton, Radiobutton, IntVar, StringVar)
 from Tkinter import (TOP, LEFT, RIGHT, BOTTOM, END, X, Y, BOTH, SUNKEN, W,
-                     HORIZONTAL, DISABLED, NORMAL, W, E)
+                     HORIZONTAL, DISABLED, NORMAL, W)
 from tkFileDialog import askopenfilename, askdirectory
 
 import pylint.lint
@@ -39,12 +39,12 @@ COLORS = {'(I)':'lightblue',
 
 def convert_to_string(msg):
     """make a string representation of a message"""
-    if (msg[2] != ""):
-        return "(" + msg[0] + ") " + msg[1] + "." + msg[2] + " [" + msg[3] + "]: " + msg[4]
+    if (msg[4] != ""):
+        return "(" + msg[0] + ") " + msg[3] + "." + msg[4] + " [" + msg[5] + "]: " + msg[6]
     else:
-        return "(" + msg[0] + ") " + msg[1] + " [" + msg[3] + "]: " + msg[4]
+        return "(" + msg[0] + ") " + msg[3] + " [" + msg[5] + "]: " + msg[6]
 
-class BasicStream:
+class BasicStream(object):
     '''
     used in gui reporter instead of writing to stdout, it is written to
     this stream and saved in contents
@@ -86,7 +86,7 @@ class BasicStream:
         """finalize what the contents of the dict should look like before output"""
         for item in self.outdict:
             numEmpty = self.outdict[item].count('')
-            for i in xrange(numEmpty):
+            for _ in xrange(numEmpty):
                 self.outdict[item].remove('')
             if self.outdict[item]:
                 self.outdict[item].pop(0)
@@ -108,7 +108,7 @@ class BasicStream:
         self.nextTitle = None
 
 
-class LintGui:
+class LintGui(object):
     """Build and control a window to interact with pylint"""
 
     def __init__(self, root=None):
@@ -120,6 +120,7 @@ class LintGui:
         #message queue for output from reporter
         self.msg_queue = Queue.Queue()
         self.msgs = []
+        self.visible_msgs = []
         self.filenames = []
         self.rating = StringVar()
         self.tabs = {}
@@ -174,6 +175,7 @@ class LintGui:
                   yscrollcommand=rightscrollbar.set,
                   xscrollcommand=bottomscrollbar.set,
                   bg="white")
+        self.lbMessages.bind("<Double-Button-1>", self.show_sourcefile)
         self.lbMessages.pack(expand=True, fill=BOTH)
         rightscrollbar.config(command=self.lbMessages.yview)
         bottomscrollbar.config(command=self.lbMessages.xview)
@@ -284,14 +286,17 @@ class LintGui:
                              command=self.refresh_results_window)
         msg = Radiobutton(radio_frame, text="Messages", variable=self.box,
                             value="Messages", command=self.refresh_results_window)
+        sourceFile = Radiobutton(radio_frame, text="Source File", variable=self.box,
+                                   value="Source File", command=self.refresh_results_window)
         report.select()
         report.grid(column=0, row=0, sticky=W)
         rawMet.grid(column=1, row=0, sticky=W)
         dup.grid(column=2, row=0, sticky=W)
-        msg.grid(column=3, row=0, sticky=E)
+        msg.grid(column=3, row=0, sticky=W)
         stat.grid(column=0, row=1, sticky=W)
         msgCat.grid(column=1, row=1, sticky=W)
-        ext.grid(column=2, row=1, columnspan=2, sticky=W)
+        ext.grid(column=2, row=1, sticky=W)
+        sourceFile.grid(column=3, row=1, sticky=W)
 
         #dictionary for check boxes and associated error term
         self.msg_type_dict = {
@@ -320,6 +325,7 @@ class LintGui:
         """refresh the message window with current output"""
         #clear the window
         self.lbMessages.delete(0, END)
+        self.visible_msgs = []
         for msg in self.msgs:
 
             # Obtaining message type (pylint's '--include-ids' appends the
@@ -327,6 +333,7 @@ class LintGui:
             msg_type = msg[0][0]
 
             if (self.msg_type_dict.get(msg_type)()):
+                self.visible_msgs.append(msg)
                 msg_str = convert_to_string(msg)
                 self.lbMessages.insert(END, msg_str)
                 fg_color = COLORS.get(msg_str[:3], 'black')
@@ -360,6 +367,7 @@ class LintGui:
 
                 #displaying msg if message type is selected in check box
                 if (self.msg_type_dict.get(msg_type)()):
+                    self.visible_msgs.append(msg)
                     msg_str = convert_to_string(msg)
                     self.lbMessages.insert(END, msg_str)
                     fg_color = COLORS.get(msg_str[:3], 'black')
@@ -444,6 +452,7 @@ class LintGui:
 
         #cleaning up msgs and windows
         self.msgs = []
+        self.visible_msgs = []
         self.lbMessages.delete(0, END)
         self.tabs = {}
         self.results.delete(0, END)
@@ -462,6 +471,25 @@ class LintGui:
         self.set_history_window()
 
         self.root.configure(cursor='')
+
+    def show_sourcefile(self, event=None):
+        selected = self.lbMessages.curselection()
+        if not selected:
+            return
+
+        msg = self.visible_msgs[int(selected[0])]
+        filename = msg[2]
+        fileline = int(msg[5])
+
+        scroll = fileline - 3
+        if scroll < 0:
+            scroll = 0
+
+        self.tabs["Source File"] = open(filename, "r").readlines()
+        self.box.set("Source File")
+        self.refresh_results_window()
+        self.results.yview(scroll)
+        self.results.select_set(fileline - 1)
 
 
 def lint_thread(module, reporter, gui):

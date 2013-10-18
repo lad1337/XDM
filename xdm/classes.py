@@ -25,11 +25,11 @@ from lib.peewee import QueryCompiler
 import os
 import xdm
 from lib import requests, dateutil
-from logger import *
+from xdm.logger import *
 from xdm import common, helper, profileMeMaybe
 import datetime
 import json
-from jsonHelper import MyEncoder
+from xdm.jsonHelper import MyEncoder
 from xdm.helper import dict_diff, dictproperty
 import types
 
@@ -105,7 +105,7 @@ class BaseModel(Model):
         log("Create the final class: %s" % cls.__name__)
         try:
             cls.select().execute()
-        except Exception, e:
+        except Exception as e:
             log("Error migrating: %s" % cls.__name__)
             raise e
         else:
@@ -598,7 +598,7 @@ class Element(BaseModel):
 
     @classmethod
     def getWhereField(cls, mt, type, attributes, provider='', parent=0):
-        fs = list(Field.select().where(Field.name << attributes.keys(), Field.provider == provider).order_by(Field.element))
+        fs = list(Field.select().where(Field.name << list(attributes.keys()), Field.provider == provider).order_by(Field.element))
         last_e = None
         lastAttributeOK = False
         for f in fs:
@@ -671,7 +671,7 @@ class Element(BaseModel):
 
 
 class Field_V0(BaseModel):
-    element = ForeignKeyField(Element, related_name='fields')
+    element = ForeignKeyField(Element)
     name = CharField()
     provider = CharField()
     _value_int = FloatField(True)
@@ -816,7 +816,7 @@ class Config(BaseModel):
         return u"(%s) Name: %s Value: %s" % (self.id, self.name, self.value)
 
 class Download_V0(BaseModel):
-    element = ForeignKeyField(Element, related_name='downloads')
+    element = ForeignKeyField(Element)
     name = CharField()
     url = CharField(unique=True)
     size = IntegerField(True)

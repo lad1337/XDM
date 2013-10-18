@@ -27,7 +27,11 @@ from xdm.jsonHelper import MyEncoder
 import threading
 import datetime
 from babel.dates import format_timedelta
-import Queue
+try:
+    import Queue
+except ImportError:
+    import queue as Queue
+from xdm.plugins.bases import DownloadFilter
 
 
 class TaskThread(threading.Thread):
@@ -148,7 +152,7 @@ def searchElement(ele, forced=False):
     if not didSearch:
         log.warning(u"No Indexer active/available for %s" % ele.manager)
     else:
-        _downloads = _filterBadDownloads(downloads)
+        _downloads = _filterBadDownloads(downloads, forced)
         if _downloads:
             return snatchOne(ele, _downloads)
         else:

@@ -20,7 +20,10 @@
 # along with this program.  If not, see http://www.gnu.org/licenses/.
 
 import zipfile
-import StringIO
+try:
+    import StringIO
+except ImportError:
+    from io import StringIO
 import xdm
 import os
 import shutil

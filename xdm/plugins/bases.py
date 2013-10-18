@@ -26,12 +26,17 @@ import types
 from xdm import common, helper
 from xdm.classes import *
 from xdm.logger import *
-from meta import *
+from .meta import *
 from xdm.helper import replace_all
 import json
 import collections
 from babel.dates import format_timedelta
 import datetime
+
+try:
+    from types import UnboundMethodType
+except ImportError:
+    from types import FunctionType as UnboundMethodType
 
 
 """plugins should not set the status of an element !!! it will be done in the loops that call / use the plugins"""
@@ -129,7 +134,7 @@ class Plugin(object):
 
         # method wrapping
         methodList = [method for method in dir(self) if isinstance(
-            getattr(self, method), (types.FunctionType, types.BuiltinFunctionType, types.MethodType, types.BuiltinMethodType, types.UnboundMethodType)
+            getattr(self, method), (types.FunctionType, types.BuiltinFunctionType, types.MethodType, types.BuiltinMethodType, UnboundMethodType)
             ) and not method.startswith('_')]
 
         for method_name in methodList:

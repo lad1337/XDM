@@ -128,22 +128,22 @@ class ServerAdapter(object):
         s2.subscribe()
         bus.start()
     """
-    
+
     def __init__(self, bus, httpserver=None, bind_addr=None):
         self.bus = bus
         self.httpserver = httpserver
         self.bind_addr = bind_addr
         self.interrupt = None
         self.running = False
-    
+
     def subscribe(self):
         self.bus.subscribe('start', self.start)
         self.bus.subscribe('stop', self.stop)
-    
+
     def unsubscribe(self):
         self.bus.unsubscribe('start', self.start)
         self.bus.unsubscribe('stop', self.stop)
-    
+
     def start(self):
         """Start the HTTP server."""
         if self.bind_addr is None:
@@ -153,29 +153,29 @@ class ServerAdapter(object):
             on_what = "%s:%s" % (host, port)
         else:
             on_what = "socket file: %s" % self.bind_addr
-        
+
         if self.running:
             self.bus.log("Already serving on %s" % on_what)
             return
-        
+
         self.interrupt = None
         if not self.httpserver:
             raise ValueError("No HTTP server has been created.")
-        
+
         # Start the httpserver in a new thread.
         if isinstance(self.bind_addr, tuple):
             wait_for_free_port(*self.bind_addr)
-        
+
         import threading
         t = threading.Thread(target=self._start_http_thread)
         t.setName("HTTPServer " + t.getName())
         t.start()
-        
+
         self.wait()
         self.running = True
         self.bus.log("Serving on %s" % on_what)
     start.priority = 75
-    
+
     def _start_http_thread(self):
         """HTTP servers MUST be running in new threads, so that the
         main thread persists to receive KeyboardInterrupt's. If an
@@ -200,19 +200,19 @@ class ServerAdapter(object):
                          traceback=True, level=40)
             self.bus.exit()
             raise
-    
+
     def wait(self):
         """Wait until the HTTP server is ready to receive requests."""
         while not getattr(self.httpserver, "ready", False):
             if self.interrupt:
                 raise self.interrupt
             time.sleep(.1)
-        
+
         # Wait for port to be occupied
         if isinstance(self.bind_addr, tuple):
             host, port = self.bind_addr
             wait_for_occupied_port(host, port)
-    
+
     def stop(self):
         """Stop the HTTP server."""
         if self.running:
@@ -226,7 +226,7 @@ class ServerAdapter(object):
         else:
             self.bus.log("HTTP Server %s already shut down" % self.httpserver)
     stop.priority = 25
-    
+
     def restart(self):
         """Restart the HTTP server."""
         self.stop()
@@ -235,22 +235,22 @@ class ServerAdapter(object):
 
 class FlupCGIServer(object):
     """Adapter for a flup.server.cgi.WSGIServer."""
-   
+
     def __init__(self, *args, **kwargs):
         self.args = args
         self.kwargs = kwargs
         self.ready = False
-    
+
     def start(self):
         """Start the CGI server."""
         # We have to instantiate the server class here because its __init__
         # starts a threadpool. If we do it too early, daemonize won't work.
         from flup.server.cgi import WSGIServer
-       
+
         self.cgiserver = WSGIServer(*self.args, **self.kwargs)
         self.ready = True
         self.cgiserver.run()
-    
+
     def stop(self):
         """Stop the HTTP server."""
         self.ready = False
@@ -258,7 +258,7 @@ class FlupCGIServer(object):
 
 class FlupFCGIServer(object):
     """Adapter for a flup.server.fcgi.WSGIServer."""
-    
+
     def __init__(self, *args, **kwargs):
         if kwargs.get('bindAddress', None) is None:
             import socket
@@ -270,7 +270,7 @@ class FlupFCGIServer(object):
         self.args = args
         self.kwargs = kwargs
         self.ready = False
-    
+
     def start(self):
         """Start the FCGI server."""
         # We have to instantiate the server class here because its __init__
@@ -290,7 +290,7 @@ class FlupFCGIServer(object):
         self.fcgiserver._oldSIGs = []
         self.ready = True
         self.fcgiserver.run()
-    
+
     def stop(self):
         """Stop the HTTP server."""
         # Forcibly stop the fcgi server main event loop.
@@ -302,12 +302,12 @@ class FlupFCGIServer(object):
 
 class FlupSCGIServer(object):
     """Adapter for a flup.server.scgi.WSGIServer."""
-    
+
     def __init__(self, *args, **kwargs):
         self.args = args
         self.kwargs = kwargs
         self.ready = False
-    
+
     def start(self):
         """Start the SCGI server."""
         # We have to instantiate the server class here because its __init__
@@ -327,7 +327,7 @@ class FlupSCGIServer(object):
         self.scgiserver._oldSIGs = []
         self.ready = True
         self.scgiserver.run()
-    
+
     def stop(self):
         """Stop the HTTP server."""
         self.ready = False
@@ -354,9 +354,9 @@ def check_port(host, port, timeout=1.0):
         raise ValueError("Host values of '' or None are not allowed.")
     host = client_host(host)
     port = int(port)
-    
+
     import socket
-    
+
     # AF_INET or AF_INET6 socket
     # Get the correct address family for our host (allows IPv6 addresses)
     try:
@@ -367,7 +367,7 @@ def check_port(host, port, timeout=1.0):
             info = [(socket.AF_INET6, socket.SOCK_STREAM, 0, "", (host, port, 0, 0))]
         else:
             info = [(socket.AF_INET, socket.SOCK_STREAM, 0, "", (host, port))]
-    
+
     for res in info:
         af, socktype, proto, canonname, sa = res
         s = None
@@ -376,6 +376,7 @@ def check_port(host, port, timeout=1.0):
             # See http://groups.google.com/group/cherrypy-users/
             #        browse_frm/thread/bbfe5eb39c904fe0
             s.settimeout(timeout)
+            print("connecting %s:%s" % (host, port))
             s.connect((host, port))
             s.close()
             raise IOError("Port %s is in use on %s; perhaps the previous "
@@ -396,7 +397,7 @@ def wait_for_free_port(host, port, timeout=None):
         raise ValueError("Host values of '' or None are not allowed.")
     if timeout is None:
         timeout = free_port_timeout
-    
+
     for trial in range(50):
         try:
             # we are expecting a free port, so reduce the timeout
@@ -406,7 +407,7 @@ def wait_for_free_port(host, port, timeout=None):
             time.sleep(timeout)
         else:
             return
-    
+
     raise IOError("Port %r not free on %r" % (port, host))
 
 def wait_for_occupied_port(host, port, timeout=None):
@@ -415,7 +416,7 @@ def wait_for_occupied_port(host, port, timeout=None):
         raise ValueError("Host values of '' or None are not allowed.")
     if timeout is None:
         timeout = occupied_port_timeout
-    
+
     for trial in range(50):
         try:
             check_port(host, port, timeout=timeout)
@@ -423,5 +424,5 @@ def wait_for_occupied_port(host, port, timeout=None):
             return
         else:
             time.sleep(timeout)
-    
+
     raise IOError("Port %r not bound on %r" % (port, host))

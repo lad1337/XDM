@@ -24,7 +24,7 @@ import sys
 import os
 import xdm
 from xdm.logger import *
-from core_migrate import *
+from xdm.core_migrate import *
 from lib import requests
 from xdm import version, common, actionManager
 import re

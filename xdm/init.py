@@ -22,12 +22,12 @@
 import sys
 import os
 import xdm
-from classes import *
-from classes import __all__ as allClasses
+from xdm.classes import *
+from xdm.classes import __all__ as allClasses
 from xdm import common, tasks, helper
-from logger import *
-from plugins.pluginManager import PluginManager
-from updater import CoreUpdater
+from xdm.logger import *
+from xdm.plugins.pluginManager import PluginManager
+from xdm.updater import CoreUpdater
 from xdm.plugins.repository import RepoManager
 from xdm.garbage_collector import soFreshAndSoClean
 
@@ -212,17 +212,17 @@ def runTasks():
 
 def _checkDefaults(resave=False):
 
-    default_statuss = [ {'setter': 'WANTED',      'name': 'Wanted',               'hidden': False},
-                        {'setter': 'SNATCHED',    'name': 'Snatched',             'hidden': False},
-                        {'setter': 'DOWNLOADED',  'name': 'Downloaded',           'hidden': False},
-                        {'setter': 'COMPLETED',   'name': 'Completed',            'hidden': True},
-                        {'setter': 'FAILED',      'name': 'Failed',               'hidden': True},
-                        {'setter': 'PP_FAIL',     'name': 'Post Processing Fail', 'hidden': True},
-                        {'setter': 'UNKNOWN',     'name': 'Unknown',              'hidden': True},
-                        {'setter': 'DELETED',     'name': 'Deleted',              'hidden': True},
-                        {'setter': 'IGNORE',      'name': 'Ignore',               'hidden': False},
-                        {'setter': 'TEMP',        'name': 'Temp',                 'hidden': True},
-                        {'setter': 'DOWNLOADING', 'name': 'Downloading',          'hidden': True}
+    default_statuss = [ {'setter': 'WANTED', 'name': 'Wanted', 'hidden': False},
+                        {'setter': 'SNATCHED', 'name': 'Snatched', 'hidden': False},
+                        {'setter': 'DOWNLOADED', 'name': 'Downloaded', 'hidden': False},
+                        {'setter': 'COMPLETED', 'name': 'Completed', 'hidden': True},
+                        {'setter': 'FAILED', 'name': 'Failed', 'hidden': True},
+                        {'setter': 'PP_FAIL', 'name': 'Post Processing Fail', 'hidden': True},
+                        {'setter': 'UNKNOWN', 'name': 'Unknown', 'hidden': True},
+                        {'setter': 'DELETED', 'name': 'Deleted', 'hidden': True},
+                        {'setter': 'IGNORE', 'name': 'Ignore', 'hidden': False},
+                        {'setter': 'TEMP', 'name': 'Temp', 'hidden': True},
+                        {'setter': 'DOWNLOADING', 'name': 'Downloading', 'hidden': True}
                       ]
     _('Wanted')
     _('Snatched')

@@ -28,6 +28,7 @@ import gettext
 import locale
 import traceback
 import inspect
+import babel
 
 
 # this class is special because it will be set to SYSTEM in the whole app
@@ -67,6 +68,14 @@ class SystemConfig(System):
                       'setup_wizard_step': 0 # starting point of wizard step, when the wizard only has like 5 steps but a later has an additional step 6 it should start at that step
                       }
     """this is the attr for hidden config it can be used just as the _config but is not visable to the user / settings page"""
+
+    def __init__(self, instance='Default'):
+        System.__init__(self, instance=instance)
+        try:
+            Locale.parse(self._locale, sep='_')
+        except babel.UnknownLocaleError:
+            self.c.language_select = "en_US"
+            self._switchLanguage()
 
     def _clearAllUnsedConfgs(self):
         amount = common.PM.clearAllUnsedConfgs()
@@ -121,7 +130,7 @@ class SystemConfig(System):
         else:
             log.warning(u'Installing a NULL translator because we could not find any matching .mo files not even for en_US :(')
         self._setLocale(self.c.language_select)
-        t.install(True, ('gettext', 'ngettext', 'lgettext', 'lngettext'))
+        t.install(('gettext', 'ngettext', 'lgettext', 'lngettext'))
         # we need to re install the functions becuase they have changed
         # this is a very close binding of a plugin and the core XDM
         # but since this is the SYSTEM plugin i consider this ok

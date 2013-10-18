@@ -30,10 +30,10 @@ import os
 import re
 import datetime
 import xdm
-from fileBrowser import WebFileBrowser
-from wizard import Wizard
+from .fileBrowser import WebFileBrowser
+from .wizard import Wizard
 
-from ajax import AjaxCalls
+from .ajax import AjaxCalls
 from jinja2 import Environment, FileSystemLoader
 from xdm.classes import *
 from xdm import common, tasks, helper
@@ -85,10 +85,11 @@ def stateCheck():
         messages = ""
         for msg in common.SM.system_messages:
             messages += u'%s<br>' % msg[1]
-        cherrypy.response.body = "<html>" \
-                                 "<head><title>Not now</title></head>" \
-                                 "<body>XDM is in a state of '%s' please wait...<br>%s</body>" \
-                                 "</html>" % (common.STATES, messages)
+        _body = "<html>" \
+                 "<head><title>Not now</title></head>" \
+                 "<body>XDM is in a state of '%s' please wait...<br>%s</body>" \
+                 "</html>" % (common.STATES, messages)
+        cherrypy.response.body = _body.encode()
         try:
             del cherrypy.response.headers["Content-Length"]
         except KeyError:
@@ -228,7 +229,7 @@ class WebRoot:
         c = None
         for cur_plugin in common.PM.getAll(True):
             if cur_plugin.type == plugin and not cur_plugin.single:
-                cleanInstance = re.sub(ur'[\W]+', u'_', instance, flags=re.UNICODE)
+                cleanInstance = re.sub(r'[\W]+', '_', instance, flags=re.UNICODE)
                 c = cur_plugin.__class__(instance=cleanInstance)
                 break
         common.PM.cache()

@@ -1,5 +1,5 @@
 # -*- coding: utf-8; mode: python; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=python:et:sw=4:ts=4:sts=4
-# Copyright (c) 2003-2012 LOGILAB S.A. (Paris, FRANCE).
+# Copyright (c) 2003-2013 LOGILAB S.A. (Paris, FRANCE).
 # http://www.logilab.fr/ -- mailto:contact@logilab.fr
 #
 # This program is free software; you can redistribute it and/or modify it under
@@ -74,9 +74,9 @@ def lint(filename):
     # Start pylint
     # Ensure we use the python and pylint associated with the running epylint
     lintPath = os.path.join(os.path.dirname(__file__), 'lint.py')
-    cmd = [sys.executable, lintPath, '-f', 'parseable', '-r', 'n',
+    cmd = [sys.executable, lintPath, '--msg-template', '{path}:{line}: [{symbol}, {obj}] {msg}', '-r', 'n',
            '--disable=C,R,I', childPath]
-    process = Popen(cmd, stdout=PIPE, stderr=PIPE, cwd=parentPath)
+    process = Popen(cmd, stdout=PIPE, cwd=parentPath, universal_newlines=True)
 
     # The parseable line format is '%(path)s:%(line)s: [%(sigle)s%(obj)s] %(msg)s'
     # NOTE: This would be cleaner if we added an Emacs reporter to pylint.reporters.text ..
@@ -150,7 +150,7 @@ def py_run(command_options='', return_std=False, stdout=None, stderr=None,
         else:
             stderr = sys.stderr
     # Call pylint in a subprocess
-    p = Popen(command_line, shell=True, stdout=stdout, stderr=stderr)
+    p = Popen(command_line, shell=True, stdout=stdout, stderr=stderr, universal_newlines=True)
     p.wait()
     # Return standart output and error
     if return_std:
