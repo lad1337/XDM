@@ -687,17 +687,17 @@ class ForeignKeyField(IntegerField):
             raise AttributeError(error % params)
 
 
-        print()
+        """print()
         print("#"*5, " %s.%s.%s " % (model_class, self.rel_model, self.related_name), "#"*5)
-        print("fields of %s: %s" % (self.rel_model, self.rel_model._meta.reverse_rel))
+        print("fields of %s: %s" % (self.rel_model, self.rel_model._meta.reverse_rel))"""
         if self.related_name in self.rel_model._meta.reverse_rel\
             and model_class.__name__.startswith(self.rel_model._meta.reverse_rel[self.related_name].model_class.__name__):
             error = ('Foreign key: %s.%s related name "%s" collision with '
                      'foreign key using same related_name.')
 
 
-            print("%s vs %s" % (model_class.__name__, self.rel_model._meta.reverse_rel[self.related_name].model_class.__name__))
-            print("da field -%s-" % self.rel_model._meta.reverse_rel[self.related_name])
+            """print("%s vs %s" % (model_class.__name__, self.rel_model._meta.reverse_rel[self.related_name].model_class.__name__))
+            print("da field -%s-" % self.rel_model._meta.reverse_rel[self.related_name])"""
             params = self.model_class._meta.name, self.name, self.related_name
             raise AttributeError(error % params)
 

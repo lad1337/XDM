@@ -59,7 +59,7 @@ from xdm import core_string_for_i18n
 from xdm import common
 from xdm import logger # need this to set the log level
 from xdm import tasks
-from xdm.logger import *
+from xdm.logger import log
 from xdm.web import WebRoot
 from xdm.helper import launchBrowser, daemonize
 
@@ -92,6 +92,9 @@ class App():
         options = p.parse_args(args)
         self.options = options
         common.STARTOPTIONS = options
+
+        if options.dev:
+            from xdm import dev
 
         log.info('Starting XDM %s' % common.getVersionHuman())
 

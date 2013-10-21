@@ -45,8 +45,6 @@ class PluginManager(object):
     path_cache = {}
     pylintScoreWarning = 7
     """send a warning when score is bellow or equal this"""
-    pylintScoreError = 4
-    """send an error when score is bellow or equal this"""
 
     def __init__(self, path='corePlugins'):
         self._caching = threading.Semaphore()
@@ -135,9 +133,7 @@ class PluginManager(object):
                     if cur_plugin_type not in self._score_cache:
                         if calculateScore:
                             score = self._getPylintScore(cur_path)
-                            if score <= self.pylintScoreError:
-                                log.error('Pylint Score for %s is only %.2f' % (cur_class.__name__, score))
-                            elif score <= self.pylintScoreWarning:
+                            if score <= self.pylintScoreWarning:
                                 log.warning('Pylint Score for %s is only %.2f' % (cur_class.__name__, score))
                             else:
                                 log.info('Pylint Score for %s is %.2f' % (cur_class.__name__, score))

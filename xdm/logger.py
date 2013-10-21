@@ -35,12 +35,12 @@ logging.EXCEPTION = logging.ERROR + 1
 
 # "c" is for console "p" is for i forgot, but it is used for the file logger
 # the "c" strings have terminal control strings that change the color ^_^
-lvlNames = {    logging.ERROR:      {'c': '    \x1b[31;1mERROR\x1b[0m', 'p': 'ERROR'},
-                logging.EXCEPTION:  {'c': '\x1b[31;1mEXCEPTION\x1b[0m', 'p': 'EXCEPTION'},
-                logging.WARNING:    {'c': '  \x1b[35;1mWARNING\x1b[0m', 'p': 'WARNING'},
-                logging.INFO:       {'c': '     \x1b[32;1mINFO\x1b[0m', 'p': 'INFO'},
-                logging.DEBUG:      {'c': '    \x1b[36;1mDEBUG\x1b[0m', 'p': 'DEBUG'},
-                logging.CRITICAL:   {'c': '\x1b[43;1m\x1b[31;1mCRITICAL\x1b[49\x1b[0m', 'p': 'CRITICAL'}
+lvlNames = {    logging.ERROR:      {'c': '      \x1b[31;1mERROR\x1b[0m', 'p': 'ERROR'},
+                logging.EXCEPTION:  {'c': '  \x1b[35;1mEXCEPTION\x1b[0m', 'p': 'EXCEPTION'},
+                logging.WARNING:    {'c': '    \x1b[33;1mWARNING\x1b[0m', 'p': 'WARNING'},
+                logging.INFO:       {'c': '       \x1b[32;1mINFO\x1b[0m', 'p': 'INFO'},
+                logging.DEBUG:      {'c': '      \x1b[36;1mDEBUG\x1b[0m', 'p': 'DEBUG'},
+                logging.CRITICAL:   {'c': '   \x1b[43;1m\x1b[31;1mCRITICAL\x1b[49\x1b[0m', 'p': 'CRITICAL'}
                 }
 
 
