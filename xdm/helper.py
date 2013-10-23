@@ -302,6 +302,19 @@ def sameElements(a, b):
             return False
     return True
 
+def convertV(cur_v):
+    """helper function to convert kwargs to python typed values"""
+    try:
+        f = float(cur_v)
+        if f.is_integer():
+            return int(f)
+        return f
+    except TypeError: # its a list for bools / checkboxes "on" and "off"... "on" is only send when checked "off" is always send
+        return True
+    except ValueError:
+        if cur_v in ('None', 'off'):
+            cur_v = False
+        return cur_v
 
 def guiGlobals(self):
     return {'mtms': common.PM.MTM,

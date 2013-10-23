@@ -3,25 +3,27 @@
 #
 # This file is part of XDM: eXtentable Download Manager.
 #
-#XDM: eXtentable Download Manager. Plugin based media collection manager.
-#Copyright (C) 2013  Dennis Lutter
+# XDM: eXtentable Download Manager. Plugin based media collection manager.
+# Copyright (C) 2013  Dennis Lutter
 #
-#XDM is free software: you can redistribute it and/or modify
-#it under the terms of the GNU General Public License as published by
-#the Free Software Foundation, either version 3 of the License, or
-#(at your option) any later version.
+# XDM is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
 #
-#XDM is distributed in the hope that it will be useful,
-#but WITHOUT ANY WARRANTY; without even the implied warranty of
-#MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#GNU General Public License for more details.
+# XDM is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
 #
-#You should have received a copy of the GNU General Public License
-#along with this program.  If not, see http://www.gnu.org/licenses/.
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see http://www.gnu.org/licenses/.
 
 import sys
 import os
 import xdm
+from xdm import common
+from xdm.helper import convertV
 from xdm.logger import *
 from jsonrpclib.SimpleJSONRPCServer import SimpleJSONRPCServer
 import threading
@@ -31,6 +33,7 @@ import json
 from jsonrpclib.jsonrpc import ProtocolError, Fault
 import types
 import re
+import traceback
 
 
 DONTNEEDAPIKEY = ('ping', 'version')
@@ -43,7 +46,65 @@ class WebApi:
 
     @cherrypy.expose
     def index(self, *args, **kwargs):
-        pass
+        print "foo"
+        return "bla"
+
+
+    @cherrypy.expose
+    def default(self, *args):
+        print args
+        return args
+
+    @cherrypy.expose
+    def rest(self, *args, **kwargs):
+        identifier = args[0]
+        instance = args[1]
+        method = args[2]
+
+        p = common.PM.getPluginByIdentifier(identifier, instance)
+        if p is None:
+            cherrypy.response.status = 501
+            return "No plugin with identifier %s and instance %s found." % (identifier, instance)
+
+        p_function = getattr(p, "_%s" % method)
+        fn_args = []
+        if not (hasattr(p_function, 'rest') and p_function.rest):
+            return "no such method"
+
+        if hasattr(p_function, 'args'):
+            for name in p_function.args:
+                log('function %s needs %s' % (method, name))
+                if name in kwargs:
+                    fn_args.append(convertV(kwargs[name]))
+
+        try:
+            log("calling %s with %s" % (p_function, fn_args))
+            output = p_function(*fn_args)
+        except Exception as ex:
+            tb = traceback.format_exc()
+            log.error("Error during %s of %s(%s) \nError: %s\n\n%s\n" % (method, identifier, instance, ex, tb))
+            cherrypy.response.status = 500
+            return json.dumps({'result': False, 'data': {}, 'msg': 'Internal Error in plugin'})
+        if isinstance(output, dict):
+            cherrypy.response.headers['Content-Type'] = 'application/json'
+            return json.dumps(output)
+        elif isinstance(output, tuple):
+            if len(output) == 2:
+                headers = output[1]
+                for header_name, header_value in headers.items():
+                    cherrypy.response.headers[header_name] = header_value
+                return output[0]
+            elif len(output) == 3:
+                cherrypy.response.headers['Content-Type'] = 'application/json'
+                return json.dumps({'result': output[0], 'data': output[1], 'msg': output[2]})
+        return output
+
+
+
+        print args
+        print kwargs
+
+        return "blupp"
 
     def __getattr__(self, name):
         if name == common.SYSTEM.c.api_key:
@@ -68,7 +129,7 @@ class ApiDispatcher(object):
         return self._exposed[functionName]
 
     def _dispatch(self, method, params):
-        #TODO: log api calls
+        # TODO: log api calls
         checkApiKey = True
         if method in DONTNEEDAPIKEY:
             checkApiKey = False
@@ -78,13 +139,13 @@ class ApiDispatcher(object):
                 if  params and type(params) is types.ListType:
                     if params[0] != common.SYSTEM.c.api_key:
                         return Fault(-31121, "Missing or wrong API key")
-                    else:# correct api key as list
+                    else: # correct api key as list
                         del params[0]
                 elif 'apikey' not in params:
                     return Fault(-31121, "Missing API key")
                 elif params['apikey'] != common.APIKEY:
                     return Fault(-31123, "API key denied access")
-                else:# correct api key as keyword
+                else: # correct api key as keyword
                     del params['apikey']
             try:
                 if type(params) is types.ListType:
@@ -102,7 +163,7 @@ apiDispatcher = ApiDispatcher()
 
 
 # thanks to Yhg1s from #python
-#http://bpaste.net/show/ZYJPEBU6LeBITS0vKfyS/
+# http://bpaste.net/show/ZYJPEBU6LeBITS0vKfyS/
 def expose(f):
     """Exposes the function by adding it to the apiDispatcher
     Use this as a decorator like: @expose

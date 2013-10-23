@@ -25,6 +25,7 @@ import xdm
 from xdm import common, tasks, actionManager
 from xdm.logger import *
 from xdm.classes import *
+from xdm.helper import convertV
 import traceback
 from xdm.plugins.repository import RepoManager
 import threading
@@ -323,10 +324,10 @@ class AjaxCalls:
                 _plugin_cache[_cacheName] = plugin
             if plugin:
                 log(u"We have a plugin: %s (%s)" % (class_name, instance_name))
-                new_value = convertV(v)
+                new_value = helper.convertV(v)
                 if element is None: # normal settings page
                     old_value = getattr(plugin.c, config_name)
-                    new_value = convertV(v)
+                    new_value = helper.convertV(v)
                     if old_value == new_value:
                         continue
                 if element is not None: # we got an element id so its an element config
@@ -373,16 +374,4 @@ class AjaxCalls:
         return json.dumps({'result': True, 'data': {}, 'msg': 'Configuration saved.'})
 
 
-def convertV(cur_v):
-    try:
-        f = float(cur_v)
-        if f.is_integer():
-            return int(f)
-        return f
-    except TypeError: # its a list for bools / checkboxes "on" and "off"... "on" is only send when checked "off" is always send
-        return True
-    except ValueError:
-        if cur_v in ('None', 'off'):
-            cur_v = False
-        return cur_v
 
