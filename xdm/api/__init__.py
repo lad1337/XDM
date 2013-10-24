@@ -46,14 +46,33 @@ class WebApi:
 
     @cherrypy.expose
     def index(self, *args, **kwargs):
-        print "foo"
-        return "bla"
+        return "jo"
 
 
     @cherrypy.expose
     def default(self, *args):
-        print args
         return args
+
+    @cherrypy.expose
+    def introspect(self):
+        out = {}
+        # rest plugin calls
+        out['rest'] = {}
+        _checked = []
+        for plugin in common.PM.getAll(returnAll=True):
+            if plugin.identifier in _checked or not plugin.identifier:
+                continue
+            for method_name in [m for m in plugin.getMethods() if m.startswith("_")]:
+                method = getattr(plugin, method_name)
+                if hasattr(method, 'rest') and method.rest:
+                    if plugin.identifier not in out['rest']:
+                        out['rest'][plugin.identifier] = {}
+                    out['rest'][plugin.identifier][method_name[1:]] = []
+                    if hasattr(method, 'args'):
+                        out['rest'][plugin.identifier][method_name[1:]] = method.args
+            _checked.append(plugin.identifier)
+        cherrypy.response.headers['Content-Type'] = 'application/json'
+        return json.dumps(out)
 
     @cherrypy.expose
     def rest(self, *args, **kwargs):
