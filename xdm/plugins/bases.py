@@ -128,9 +128,7 @@ class Plugin(object):
         self._collect_hidden_configs()
 
         # method wrapping
-        methodList = [method for method in dir(self) if isinstance(
-            getattr(self, method), (types.FunctionType, types.BuiltinFunctionType, types.MethodType, types.BuiltinMethodType, types.UnboundMethodType)
-            ) and not method.startswith('_')]
+        methodList = [method for method in self.getMethods() if not method.startswith('_')]
 
         for method_name in methodList:
             alternative = getattr(super(self.__class__, self), method_name)
@@ -220,6 +218,10 @@ class Plugin(object):
             self._claimed_configs.append(cur_c.get_id())
             self.hc.addConfig(cur_c)
         self.hc.finalSort()
+
+    def getMethods(self):
+        return [method for method in dir(self) if isinstance(
+            getattr(self, method), (types.FunctionType, types.BuiltinFunctionType, types.MethodType, types.BuiltinMethodType, types.UnboundMethodType))]
 
     def deleteInstance(self):
         for c in self.c.configs:
