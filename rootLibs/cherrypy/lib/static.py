@@ -9,6 +9,8 @@ mimetypes.types_map['.dwg']='image/x-dwg'
 mimetypes.types_map['.ico']='image/x-icon'
 mimetypes.types_map['.bz2']='application/x-bzip2'
 mimetypes.types_map['.gz']='application/x-gzip'
+mimetypes.types_map['.svg'] = 'image/svg+xml'
+mimetypes.types_map['.svgz'] = 'image/svg+xml'
 
 import os
 import re
