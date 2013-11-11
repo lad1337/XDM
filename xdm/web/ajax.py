@@ -3,21 +3,21 @@
 #
 # This file is part of XDM: eXtentable Download Manager.
 #
-#XDM: eXtentable Download Manager. Plugin based media collection manager.
-#Copyright (C) 2013  Dennis Lutter
+# XDM: eXtentable Download Manager. Plugin based media collection manager.
+# Copyright (C) 2013  Dennis Lutter
 #
-#XDM is free software: you can redistribute it and/or modify
-#it under the terms of the GNU General Public License as published by
-#the Free Software Foundation, either version 3 of the License, or
-#(at your option) any later version.
+# XDM is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
 #
-#XDM is distributed in the hope that it will be useful,
-#but WITHOUT ANY WARRANTY; without even the implied warranty of
-#MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#GNU General Public License for more details.
+# XDM is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
 #
-#You should have received a copy of the GNU General Public License
-#along with this program.  If not, see http://www.gnu.org/licenses/.
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see http://www.gnu.org/licenses/.
 
 import cherrypy
 import json
@@ -25,6 +25,7 @@ import xdm
 from xdm import common, tasks, actionManager
 from xdm.logger import *
 from xdm.classes import *
+from xdm.helper import convertV
 import traceback
 from xdm.plugins.repository import RepoManager
 import threading
@@ -44,6 +45,7 @@ class AjaxCalls:
 
     @cherrypy.expose
     def pluginCall(self, **kwargs):
+        log("Plugin ajay call with: %s" % kwargs)
         p_type = kwargs['p_type']
         p_instance = kwargs['p_instance']
         action = kwargs['action']
@@ -63,7 +65,7 @@ class AjaxCalls:
                 if field_name in kwargs:
                     fn_args.append(convertV(kwargs[field_name]))
                 else:
-                    log.warning("Field %s not found in kwargs. this will probably not work out")
+                    log.warning("Field %s not found in kwargs. this will probably not work out" % field_name)
 
         try:
             log("calling %s with %s" % (p_function, fn_args))
@@ -92,7 +94,7 @@ class AjaxCalls:
         name = element.getName()
         element.deleteWithChildren()
         return json.dumps({'result': True, 'data': {}, 'msg': 'Deleted %s' % name})
-    
+
     @cherrypy.expose
     def addElement(self, id):
         element = Element.get(Element.id == id)
@@ -149,7 +151,7 @@ class AjaxCalls:
         mtm = common.PM.getMediaTypeManager(mt)[0]
         if mtm.searcher is not None:
             progress = mtm.searcher.progress
-            #print progress.count, progress.total, progress.percent
+            # print progress.count, progress.total, progress.percent
             return json.dumps({'count': progress.count, 'percent': progress.percent, 'total': progress.total})
         return json.dumps({'count': 0, 'percent': 0, 'total': 0})
 
@@ -301,12 +303,12 @@ class AjaxCalls:
             except UnicodeDecodeError:
                 k = k.decode('latin-1') # for some obscure reason cherrypy (i think) encodes param key into latin-1 some times
                 k = k.encode('utf-8') # but i like utf-8
-            #print k, repr(k)
-            #print v, repr(v)
+            # print k, repr(k)
+            # print v, repr(v)
 
             log(u"config K:%s V:%s" % (k, v))
             parts = k.split('-')
-            #print parts
+            # print parts
             # parts[0] plugin class name
             # parts[1] plugin instance name
             # parts[2] config name
@@ -322,10 +324,10 @@ class AjaxCalls:
                 _plugin_cache[_cacheName] = plugin
             if plugin:
                 log(u"We have a plugin: %s (%s)" % (class_name, instance_name))
-                new_value = convertV(v)
+                new_value = helper.convertV(v)
                 if element is None: # normal settings page
                     old_value = getattr(plugin.c, config_name)
-                    new_value = convertV(v)
+                    new_value = helper.convertV(v)
                     if old_value == new_value:
                         continue
                 if element is not None: # we got an element id so its an element config
@@ -354,7 +356,12 @@ class AjaxCalls:
                 continue
 
         if element is None:
-            common.PM.cache()
+            # TODO check if plugin recaching needs to be done at all !
+            def recache_and_set_system():
+                common.PM.cache()
+                common.SYSTEM = common.PM.getSystem('Default')[0] # yeah SYSTEM is a plugin
+            t = tasks.TaskThread(recache_and_set_system)
+            t.start()
         final_actions = {}
         for cur_class_name, cur_actions in actions.items():
             for cur_action in cur_actions:
@@ -363,20 +370,8 @@ class AjaxCalls:
                 final_actions[cur_action].append(cur_class_name)
         for action, plugins_that_called_it  in final_actions.items():
             actionManager.executeAction(action, plugins_that_called_it)
-        common.SYSTEM = common.PM.getSystem('Default')[0] # yeah SYSTEM is a plugin
+
         return json.dumps({'result': True, 'data': {}, 'msg': 'Configuration saved.'})
 
 
-def convertV(cur_v):
-    try:
-        f = float(cur_v)
-        if f.is_integer():
-            return int(f)
-        return f
-    except TypeError: # its a list for bools / checkboxes "on" and "off"... "on" is only send when checked "off" is always send
-        return True
-    except ValueError:
-        if cur_v in ('None', 'off'):
-            cur_v = False
-        return cur_v
 

@@ -3,21 +3,21 @@
 #
 # This file is part of XDM: eXtentable Download Manager.
 #
-#XDM: eXtentable Download Manager. Plugin based media collection manager.
-#Copyright (C) 2013  Dennis Lutter
+# XDM: eXtentable Download Manager. Plugin based media collection manager.
+# Copyright (C) 2013  Dennis Lutter
 #
-#XDM is free software: you can redistribute it and/or modify
-#it under the terms of the GNU General Public License as published by
-#the Free Software Foundation, either version 3 of the License, or
-#(at your option) any later version.
+# XDM is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
 #
-#XDM is distributed in the hope that it will be useful,
-#but WITHOUT ANY WARRANTY; without even the implied warranty of
-#MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#GNU General Public License for more details.
+# XDM is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
 #
-#You should have received a copy of the GNU General Public License
-#along with this program.  If not, see http://www.gnu.org/licenses/.
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see http://www.gnu.org/licenses/.
 
 import traceback
 import inspect
@@ -58,10 +58,10 @@ def stateCheck():
         if not r.path_info.startswith('/wizard'):
             for path in common.PUBLIC_PATHS + ['/ajax']:
                 if r.path_info.startswith(path) and len(r.path_info) > 1:
-                    #print 'path looks fine %s' % r.path_info
+                    # print 'path looks fine %s' % r.path_info
                     break
             else:
-                #print "redirecting %s to %s" % (r.path_info, '%s%s' % (common.SYSTEM.c.webRoot, '/wizard/%s' % common.SYSTEM.hc.setup_wizard_step))
+                # print "redirecting %s to %s" % (r.path_info, '%s%s' % (common.SYSTEM.c.webRoot, '/wizard/%s' % common.SYSTEM.hc.setup_wizard_step))
                 raise cherrypy.HTTPRedirect('%s%s' % (common.SYSTEM.c.webRoot, '/wizard/%s' % common.SYSTEM.hc.setup_wizard_step))
 
     if not (xdm.xdm_states[0] in xdm.common.STATES or\
@@ -74,7 +74,7 @@ def stateCheck():
             xdm.common.addState(7)
             raise cherrypy.HTTPRedirect('%s%s' % (common.SYSTEM.c.webRoot, '/wizard/%s' % common.SYSTEM.hc.setup_wizard_step))
 
-        # i dont want to rewrite every header of a function just to allow pjax 
+        # i dont want to rewrite every header of a function just to allow pjax
         if '_pjax' in cherrypy.request.params:
             del cherrypy.request.params['_pjax']
         return False
@@ -154,11 +154,29 @@ class WebRoot:
     def settings(self, **kwargs):
         plugins = []
         if kwargs:
-            for index, pluginClassGetter in kwargs.items():
+            indexes = sorted(kwargs.keys())
+            for index in indexes:
+                pluginClassGetter = kwargs[index]
                 plugins.extend(getattr(common.PM, pluginClassGetter)(returnAll=True))
         else:
             plugins = common.PM.getAll(True)
         template = env.get_template('settings.html')
+        return template.render(plugins=plugins, **self._globals())
+
+    @cherrypy.expose
+    def settingsPluginHtml(self, **kwargs):
+        plugins = []
+        if kwargs:
+            indexes = sorted(kwargs.keys())
+            for index in indexes:
+                pluginClassGetter = kwargs[index]
+                try:
+                    plugins.extend(getattr(common.PM, pluginClassGetter)(returnAll=True))
+                except AttributeError:
+                    pass
+        else:
+            return ""
+        template = env.get_template('settingsPlugin.html')
         return template.render(plugins=plugins, **self._globals())
 
     @cherrypy.expose
@@ -178,7 +196,7 @@ class WebRoot:
             search_query = search_query.replace('All: ', '')
         else:
             for mtm in templateGlobals['mtms']:
-                if search_query.startswith( '%s: ' % mtm.type) :
+                if search_query.startswith('%s: ' % mtm.type) :
                     search_query = search_query.replace('%s: ' % mtm.type, '')
                     searchers = [mtm]
                     break
@@ -187,7 +205,7 @@ class WebRoot:
 
     @cherrypy.expose
     def getMediaTypePaint(self, identifier, status=''):
-        
+
         mt = common.PM.getMediaTypeManager(identifier)[0]
         if status == 'home':
             status = mt.homeStatuses()
@@ -308,7 +326,7 @@ class WebRoot:
         self.redirect(redirect_to)
 
 
-        #actions = list(set(actions))
+        # actions = list(set(actions))
         common.PM.cache()
         final_actions = {}
         for cur_class_name, cur_actions in actions.items():

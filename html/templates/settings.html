@@ -27,14 +27,10 @@
                     </a>
                 </li>
                 {%if loop.last%}
-                    <li class="divider"></li>
                 </ul>
                 {%endif%}        
                 {% set last_type = plugin._type -%}
             {% endfor %}
-            <div style="width: 100%;text-align: center;">
-                <input class="btn btn-success" type="submit" value="Save Settings" style="width:90%;"/>
-            </div>
         </div>
         <fieldset class="span9 tab-content well form-horizontal" action="/saveSettings" method="POST">
             {% for plugin in plugins -%}
@@ -49,13 +45,13 @@
                 {{plugin.getConfigHtml()}}
                 </div>
                 <p class="muted">{{plugin['config_meta']['plugin_desc']|striptags|urlize|dereferMeText}}</p>
-                <div class="plugin {{ plugin._type }}" id="{{ plugin.name.replace(' ', '_').replace('(', '').replace(')', '') }}_content">
+                <div class="plugin {{ plugin._type }}" id="{{ plugin.name|idSafe }}_content">
                 {% for config in plugin.c.configs %}
                 {% if plugin['config_meta'][config.name]['on_live_change'] %}
                 {% set onChange = "pluginAjaxCall(this, '"~plugin.type~"', '"~plugin.instance~"', '"~plugin.name.replace(' ', '_').replace('(', '').replace(')', '')~"_content', '"~plugin['config_meta'][config.name]['on_live_change'].__name__~"')" %}
                 {%endif%}
                 {% if config.name == 'plugin_order'%}
-                <input name="{{ plugin.type }}-{{ plugin.instance }}-{{ config.name}}" type="hidden" {% if config.value %}value="{{ config.value }}"{% endif %}/>
+                <input class="plugin_order" name="{{ plugin.type }}-{{ plugin.instance }}-{{ config.name}}" type="hidden" {% if config.value %}value="{{ config.value }}"{% endif %}/>
                 
                 {% else %}
                 <div class="control-group{% if plugin['config_meta'][config.name]['human'] %} human{% endif %}{% if 'filepath' in config.name %} filepath{%elif 'path' in config.name%} path{% endif %}">

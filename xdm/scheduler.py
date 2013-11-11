@@ -3,23 +3,23 @@
 #
 # This file is part of XDM: eXtentable Download Manager.
 #
-#XDM: eXtentable Download Manager. Plugin based media collection manager.
-#Copyright (C) 2013  Dennis Lutter
+# XDM: eXtentable Download Manager. Plugin based media collection manager.
+# Copyright (C) 2013  Dennis Lutter
 #
-#XDM is free software: you can redistribute it and/or modify
-#it under the terms of the GNU General Public License as published by
-#the Free Software Foundation, either version 3 of the License, or
-#(at your option) any later version.
+# XDM is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
 #
-#XDM is distributed in the hope that it will be useful,
-#but WITHOUT ANY WARRANTY; without even the implied warranty of
-#MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#GNU General Public License for more details.
+# XDM is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
 #
-#You should have received a copy of the GNU General Public License
-#along with this program.  If not, see http://www.gnu.org/licenses/.
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see http://www.gnu.org/licenses/.
 
-#based on http://code.activestate.com/recipes/114644/
+# based on http://code.activestate.com/recipes/114644/
 import time
 import threading
 import xdm
@@ -32,7 +32,7 @@ MAXIMUM_FAILS = 3
 
 class Task(threading.Thread):
 
-    def __init__(self, action, loopdelay, initdelay, uuid, name=None):
+    def __init__(self, action, loopdelay, initdelay, uuid, name=None, description=''):
         self._action = action
         self._loopdelay = loopdelay
         self._initdelay = initdelay
@@ -51,6 +51,7 @@ class Task(threading.Thread):
             self.name = name
         else:
             self.name = self._action.__name__
+        self.description = description
 
     def _calcNextRun(self, sleepTime):
         return datetime.datetime.now() + datetime.timedelta(seconds=sleepTime)
@@ -63,7 +64,7 @@ class Task(threading.Thread):
 
     def run(self):
         if self._initdelay:
-            time.sleep(self._initdelay)
+            self._standby(self._initdelay)
         self._runtime = time.time()
         while self._running:
             start = time.time()
@@ -96,7 +97,7 @@ class Task(threading.Thread):
             self._sleeping = 1
 
             if self._neverRun and self._initdelay:
-                # this will create times like -10 and -20 ater this will be -(-20) = 20
+                # this will create times like -10 and -20 later this will be -(-20) = 20
                 timeDelta = min(5 * 60, (self._blockCount * self._initdelay))
                 sleepTime = max(0, self._initdelay + timeDelta)
             else:
@@ -111,17 +112,21 @@ class Task(threading.Thread):
             if self._blockCount:
                 # these lines are from hell
                 if self._neverRun:
-                    log("Adding %s seconds because %s has been blocked, before it's first run, %s times. I will sleep for %ss instead of %ss thats %s%% if the normal time" %\
+                    log("Adding %s seconds because %s has been blocked, before it's first run, %s times. I will sleep for %ss instead of %ss thats %s%% if the normal time" % \
                         (timeDelta, self.name, self._blockCount, sleepTime, self._initdelay, int((sleepTime / self._initdelay) * 100)))
                 else:
-                    log("Removing %s seconds because %s has been blocked %s times. I will sleep for %ss instead of %ss thats %s%% if the normal time" %\
+                    log("Removing %s seconds because %s has been blocked %s times. I will sleep for %ss instead of %ss thats %s%% if the normal time" % \
                         (timeDelta, self.name, self._blockCount, sleepTime, self._loopdelay, 100 - int((sleepTime / self._loopdelay) * 100)))
 
             self._nextRun = self._calcNextRun(sleepTime)
-            for second in xrange(int(sleepTime / 2)):
-                time.sleep(2)
-                if (not self._running) or self._runNow:
-                    break
+            self._standby(sleepTime)
+
+    def _standby(self, sleepTime):
+        for second in xrange(int(sleepTime / 2)):
+            time.sleep(2)
+            if (not self._running) or self._runNow:
+                log("Who dares to break the slumber of %s the great thread!" % self.name)
+                break
 
     def stop(self):
         self._running = 0
@@ -155,7 +160,7 @@ class Task(threading.Thread):
 
     def getUuid(self):
         return self._uuid
-    
+
     def getLastRun(self):
         return self._lastRun
 
@@ -174,7 +179,7 @@ class Scheduler:
             rep += '%s\n' % task
         return rep
 
-    def addTask(self, action, loopdelay, initdelay=0, name=None):
+    def addTask(self, action, loopdelay, initdelay=0, name=None, description=''):
         """add a task
 
         Params:
@@ -191,8 +196,11 @@ class Scheduler:
         name
             name (default = None). will default to action.__name__
 
+        description
+            description (default = "")
+
         """
-        task = Task(action, loopdelay, initdelay, str(uuidModule.uuid4()), name)
+        task = Task(action, loopdelay, initdelay, str(uuidModule.uuid4()), name, description)
         self._tasks.append(task)
 
     def getTasks(self):

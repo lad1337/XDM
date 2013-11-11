@@ -365,6 +365,8 @@ td.download-size,
     width: -moz-calc(100% - 325px);
     width: -o-calc(100% - 325px);
     position: relative;
+    vertical-align: bottom;
+    margin-bottom: 1px;
 }
 
 .news.error:before{

@@ -3,21 +3,21 @@
 #
 # This file is part of XDM: eXtentable Download Manager.
 #
-#XDM: eXtentable Download Manager. Plugin based media collection manager.
-#Copyright (C) 2013  Dennis Lutter
+# XDM: eXtentable Download Manager. Plugin based media collection manager.
+# Copyright (C) 2013  Dennis Lutter
 #
-#XDM is free software: you can redistribute it and/or modify
-#it under the terms of the GNU General Public License as published by
-#the Free Software Foundation, either version 3 of the License, or
-#(at your option) any later version.
+# XDM is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
 #
-#XDM is distributed in the hope that it will be useful,
-#but WITHOUT ANY WARRANTY; without even the implied warranty of
-#MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#GNU General Public License for more details.
+# XDM is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
 #
-#You should have received a copy of the GNU General Public License
-#along with this program.  If not, see http://www.gnu.org/licenses/.
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see http://www.gnu.org/licenses/.
 
 import sys
 import os
@@ -33,7 +33,7 @@ from xdm.garbage_collector import soFreshAndSoClean
 
 
 def preDB(app_path, datadir):
-    #paths
+    # paths
     xdm.APP_PATH = app_path
     xdm.DATADIR = datadir
     xdm.HOME_PATH = os.path.expanduser("~")
@@ -72,7 +72,7 @@ def preDB(app_path, datadir):
     log('Set HISTORY_DATABASE_PATH to %s' % xdm.HISTORY_DATABASE_PATH)
 
 
-    #databases FILE init
+    # databases FILE init
     xdm.DATABASE.init(xdm.DATABASE_PATH)
     xdm.CONFIG_DATABASE.init(xdm.CONFIG_DATABASE_PATH)
     xdm.HISTORY_DATABASE.init(xdm.HISTORY_DATABASE_PATH)
@@ -162,28 +162,28 @@ def schedule():
 
     # element updater
     # TODO: implement a all Element updater
-    """
-    rate = common.SYSTEM.c.interval_update * 60
-    log.info("Setting up element list update scheduler every %s seconds" % rate)
-    common.SCHEDULER.addTask(tasks.runUpdater, rate, 'Element Updater')
-    """
-    
+
+    rate = 60 * 60 * 24 # one day!
+    common.SCHEDULER.addTask(tasks.updateAllElements, rate, rate / 2, 'Element Updater')
+
+
+    # queue worker
     common.SCHEDULER.addTask(tasks.checkQ, 2, 10, 'queue worker')
 
-    
     # media adder schedule
     rate = common.SYSTEM.c.interval_mediaadder * 60
     log.info("Setting up mediaadder scheduler every %s seconds" % rate)
-    common.SCHEDULER.addTask(tasks.runMediaAdder, rate, rate, 'media adder')
+    common.SCHEDULER.addTask(tasks.runMediaAdder, rate, rate,
+        'media adder', "Add media from from external sources")
 
     # news feed schedule
     if common.SYSTEM.c.show_feed:
-        rate = 4 * 60 * 60
+        rate = 60 * 60 * 6 # six hours
         log.info("Setting up news feed scheduler every %s seconds" % rate)
         common.SCHEDULER.addTask(common.NM.cache, rate, 15, 'news feed')
 
     # plugin repo cacher
-    rate = 60 * 60 * 12
+    rate = 60 * 60 * 12 # 12 hours
     log.info("Setting up plugin repo / plugin update scheduler every %s seconds" % rate)
     common.SCHEDULER.addTask(common.REPOMANAGER.autoCache, rate, 10, 'repository cache')
 
@@ -196,14 +196,14 @@ def schedule():
     rate = common.SYSTEM.c.interval_core_update * 60
     if rate:
         log.info("Setting up core update scheduler every %s seconds" % rate)
-        common.SCHEDULER.addTask(tasks.coreUpdateCheck, rate, 5, 'core updater') # 10 = run in 10s for the first time
+        common.SCHEDULER.addTask(tasks.coreUpdateCheck, rate, 5, 'core updater') # 5 = run in 10s for the first time
     else:
         log.info("Core update scheduler should never run on its own, because interval is set to 0")
 
     common.SCHEDULER.startAllTasks()
 
 
-#TODO: this will be moved entirely into schedule as scheduled task
+# TODO: this will be moved entirely into schedule as scheduled task
 def runTasks():
     """tasks to run on boot"""
     t = tasks.TaskThread(tasks.removeTempElements)
@@ -238,7 +238,7 @@ def _checkDefaults(resave=False):
                       'url': 'https://raw.github.com/lad1337/XDM-main-plugin-repo/master/meta.json',
                       'info_url': 'https://github.com/lad1337/XDM-main-plugin-repo/'}]
 
-    #create default Status
+    # create default Status
     for cur_s in default_statuss:
         new = False
         try:

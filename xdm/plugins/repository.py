@@ -3,21 +3,21 @@
 #
 # This file is part of XDM: eXtentable Download Manager.
 #
-#XDM: eXtentable Download Manager. Plugin based media collection manager.
-#Copyright (C) 2013  Dennis Lutter
+# XDM: eXtentable Download Manager. Plugin based media collection manager.
+# Copyright (C) 2013  Dennis Lutter
 #
-#XDM is free software: you can redistribute it and/or modify
-#it under the terms of the GNU General Public License as published by
-#the Free Software Foundation, either version 3 of the License, or
-#(at your option) any later version.
+# XDM is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
 #
-#XDM is distributed in the hope that it will be useful,
-#but WITHOUT ANY WARRANTY; without even the implied warranty of
-#MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#GNU General Public License for more details.
+# XDM is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
 #
-#You should have received a copy of the GNU General Public License
-#along with this program.  If not, see http://www.gnu.org/licenses/.
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see http://www.gnu.org/licenses/.
 
 import zipfile
 import StringIO
@@ -286,9 +286,9 @@ class ZipPluginInstaller():
                     manager.setNewMessage('error', 'Security error. Path of file is absolute or contains ".." !')
                     manager.setNewMessage('error', 'Please report this repository !')
                     return False
-            manager.setNewMessage('info', 'Extrating...')
+            manager.setNewMessage('info', 'Extracting...')
             z.extractall(xdm.TEMPPATH)
-            manager.setNewMessage('info', 'Extration done.')
+            manager.setNewMessage('info', 'Extraction done.')
 
         plugin_folder = ''
         for root, dirs, files in os.walk(xdm.TEMPPATH):
@@ -348,7 +348,7 @@ class Repo(object):
             for version_info in plugin_versions:
                 _plugins.append(ExternalPlugin(identifier, version_info))
 
-        #FIXME: make this not loop thru the plugins more then needed
+        # FIXME: make this not loop thru the plugins more then needed
         for pType in common.PM.getAll.order:
             for plugin in _plugins:
                 if plugin.type == pType:
@@ -366,7 +366,7 @@ class RepoPlugin(object):
         self.type = info['type']
         self.identifier = identifier
 
-        #new stuff has to check is if its there
+        # new stuff has to check is if its there
         # or better use get with a default
         self.xdm_version = tuple(info.get('xdm_version', [0, 0, 0]))
 

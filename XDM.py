@@ -4,21 +4,21 @@
 #
 # This file is part of XDM: eXtentable Download Manager.
 #
-#XDM: eXtentable Download Manager. Plugin based media collection manager.
-#Copyright (C) 2013  Dennis Lutter
+# XDM: eXtentable Download Manager. Plugin based media collection manager.
+# Copyright (C) 2013  Dennis Lutter
 #
-#XDM is free software: you can redistribute it and/or modify
-#it under the terms of the GNU General Public License as published by
-#the Free Software Foundation, either version 3 of the License, or
-#(at your option) any later version.
+# XDM is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
 #
-#XDM is distributed in the hope that it will be useful,
-#but WITHOUT ANY WARRANTY; without even the implied warranty of
-#MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#GNU General Public License for more details.
+# XDM is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
 #
-#You should have received a copy of the GNU General Public License
-#along with this program.  If not, see http://www.gnu.org/licenses/.
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see http://www.gnu.org/licenses/.
 
 import sys
 import os
@@ -35,7 +35,7 @@ os.chdir(app_path)
 
 import locale
 locale.setlocale(locale.LC_ALL, '')
-#init _ and other i18n functions the real language set based on the config is done in init.py -> system plugin
+# init _ and other i18n functions the real language set based on the config is done in init.py -> system plugin
 import gettext
 t = gettext.translation('messages', os.path.join(app_path, 'i18n'), languages=None, fallback=True)
 t.install(1, ('gettext', 'ngettext', 'lgettext', 'lngettext'))
@@ -73,7 +73,7 @@ class App():
 
         p = argparse.ArgumentParser(prog='XDM')
         p.add_argument('-d', '--daemonize', action="store_true", dest='daemonize', help="Run the server as a daemon.")
-        p.add_argument('-v', '--version', action="store_true", dest='version', help="Print Version and exit.")
+        p.add_argument('-v', '--version', action="version", version='%s' % common.getVersionHuman())
         p.add_argument('-D', '--debug', action="store_true", dest='debug', help="Print debug log to screen.")
         p.add_argument('-p', '--pidfile', dest='pidfile', default=None, help="Store the process id in the given file.")
         p.add_argument('-P', '--port', dest='port', type=int, default=None, help="Force webinterface to listen on this port.")
@@ -93,12 +93,9 @@ class App():
         self.options = options
         common.STARTOPTIONS = options
 
-        if options.version:
-            print common.getVersionHuman()
-            exit()
         log.info('Starting XDM %s' % common.getVersionHuman())
 
-        #Set the Paths
+        # Set the Paths
         if options.datadir:
             datadir = options.datadir
             if not os.path.isdir(datadir):
@@ -118,8 +115,6 @@ class App():
         xdm.LOGPATH = os.path.join(datadir, xdm.LOGFILE)
         hdlr = logging.handlers.RotatingFileHandler(xdm.LOGPATH, maxBytes=10 * 1024 * 1024, backupCount=5)
         xdm.logger.fLogger.addHandler(hdlr)
-        log.info("Logfile path is %s" % xdm.LOGPATH)
-        
 
         # Daemonize
         if options.daemonize:
@@ -149,6 +144,7 @@ class App():
             file(os.path.abspath(options.pidfile), 'w').write("%s\n" % pid)
 
         init.preDB(app_path, datadir)
+        log.info("Logfile path is %s" % xdm.LOGPATH)
         init.db()
         init.postDB()
         init.schedule()
@@ -175,7 +171,7 @@ class App():
 
     def startWebServer(self):
         log.info("Generating CherryPy configuration")
-        #cherrypy.config.update(gamez.CONFIG_PATH)
+        # cherrypy.config.update(gamez.CONFIG_PATH)
 
         # Set Webinterface Path
         css_path = os.path.join(app_path, 'html', 'css')
@@ -205,7 +201,7 @@ class App():
                 '/img': {'tools.staticdir.on': True, 'tools.staticdir.dir': images_path},
                 '/favicon.ico': {'tools.staticfile.on': True, 'tools.staticfile.filename': os.path.join(images_path, 'favicon.ico')}
                }
-        common.PUBLIC_PATHS = conf.keys()
+        common.PUBLIC_PATHS = list(conf.keys())
 
         if common.SYSTEM.c.webRoot: # if this is always set even when False then https does not work
             options_dict = {'global': {'tools.proxy.on': True}}
@@ -243,7 +239,10 @@ class App():
         else:
             log.info("Starting the XDM http web server")
 
-        common.CHERRYPY_APP = cherrypy.tree.mount(WebRoot(app_path), config=conf)
+        app_root = '/'
+        if common.SYSTEM.c.webRoot:
+            app_root = common.SYSTEM.c.webRoot
+        common.CHERRYPY_APP = cherrypy.tree.mount(WebRoot(app_path), app_root, config=conf)
         helper.updateCherrypyPluginDirs()
         cherrypy.server.socket_host = common.SYSTEM.c.socket_host
 
