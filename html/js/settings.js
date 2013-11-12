@@ -109,7 +109,7 @@ function init_settings(){
         
         saveButtons = $('input[type="submit"]')
         saveButtons.addClass('btn-striped animate')
-        data = $('.tab-pane.active input, input.plugin_order').serialize()
+        data = $('.tab-pane.active input, .tab-pane.active select, input.plugin_order').serialize()
         
         console.log($('.tab-pane.active input, input.plugin_order'), data);
         
