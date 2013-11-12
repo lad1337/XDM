@@ -29,6 +29,7 @@ from xdm.helper import convertV
 import traceback
 from xdm.plugins.repository import RepoManager
 import threading
+from xdm import helper
 
 
 class AjaxCalls:
