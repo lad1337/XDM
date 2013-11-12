@@ -22,6 +22,7 @@
 from xdm.logger import *
 from xdm import common, helper
 from xdm.classes import *
+from xdm.plugins.bases import DownloadFilter
 import json
 from xdm.jsonHelper import MyEncoder
 import threading
@@ -131,7 +132,9 @@ def commentOnDownload(download):
 
 
 def searchElement(ele, forced=False):
-    for pre_filter in common.PM.getDownloadFilters(runFor=ele.manager, stages=[DownloadFilter._pre_search]):
+    for pre_filter in common.PM.getDownloadFilters(runFor=ele.manager):
+        if pre_filter._pre_search != DownloadFilter._pre_search:
+            continue
         pre_result = pre_filter.compare(ele, forced=forced)
         if not pre_result:
             return ele.status

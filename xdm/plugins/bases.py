@@ -705,7 +705,7 @@ class DownloadFilter(Plugin):
             self.config_meta['skip_on_forced_search'] = {'desc': 'If true this filter will be skipped when you manualy started a search.'}
         Plugin.__init__(self, instance=instance)
 
-    def compare(self, element, download=None, string=None):
+    def compare(self, element, download=None, string=None, forced=False):
         return self.FilterResult()
 
 
