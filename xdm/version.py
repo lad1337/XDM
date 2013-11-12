@@ -1,4 +1,4 @@
 major = 0
 minor = 5
-revision = 11
+revision = 12
 build = 0
