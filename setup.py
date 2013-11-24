@@ -184,7 +184,7 @@ def allFiles(dir):
 #  build functions  #
 #####################
 def buildWIN(buildParams):
-    #constants
+    # constants
     Win32ConsoleName = 'XDM-console.exe'
     Win32WindowName = 'XDM.exe'
 
@@ -316,7 +316,7 @@ def buildWIN(buildParams):
 def buildOSX(buildParams):
     # OSX constants
     bundleIdentifier = "de.lad1337.xdm" # unique program identifier
-    osxOriginalSpraseImageZip = "Meta-Resources/template.xdm.sparseimage.zip" # 
+    osxOriginalSpraseImageZip = "Meta-Resources/template.xdm.sparseimage.zip" #
     osxSpraseImage = "build/template.xdm.sparseimage"
     osxAppIcon = "Meta-Resources/xdm-icon.icns" # the app icon location
     osVersion = platform.mac_ver()[0]
@@ -340,7 +340,7 @@ def buildOSX(buildParams):
         print 'ERROR you need py2app to build a mac app http://pypi.python.org/pypi/py2app/'
         return False
 
-    #XDM-win32-alpha-build489.zip
+    # XDM-win32-alpha-build489.zip
     # Check which Python flavour
     apple_py = 'ActiveState' not in sys.copyright
 
@@ -360,6 +360,7 @@ def buildOSX(buildParams):
     OPTIONS = {'argv_emulation': False,
                'iconfile': osxAppIcon,
                'packages':["xml", "OpenSSL"],
+               'includes': ["csv"],
                'plist': {'NSUIElement': 1,
                         'CFBundleShortVersionString': buildParams['build'],
                         'NSHumanReadableCopyright': _NSHumanReadableCopyright,
@@ -439,7 +440,7 @@ def buildOSX(buildParams):
         print "ERROR"
         return False
 
-    #copy builded app to mounted sparseimage
+    # copy builded app to mounted sparseimage
     print "Copying XDM.app ...",
     if not call(["cp", "-r", "dist/XDM.app", "/Volumes/%s/" % buildParams['packageName']], stdout=subprocess.PIPE, stderr=subprocess.PIPE):
         print "ok"
@@ -449,7 +450,7 @@ def buildOSX(buildParams):
 
     print "# Sleeping 10 sec"
     os.system("sleep 10")
-    #Unmount sparseimage
+    # Unmount sparseimage
     print "Unmount sparseimage ...",
     if not call(["hdiutil", "eject", "/Volumes/%s/" % buildParams['packageName']], stdout=subprocess.PIPE, stderr=subprocess.PIPE):
         print "ok"
@@ -457,7 +458,7 @@ def buildOSX(buildParams):
         print "ERROR"
         return False
 
-    #Convert sparseimage to read only compressed dmg
+    # Convert sparseimage to read only compressed dmg
     print "Convert sparseimage to read only compressed dmg ...",
     if not call(["hdiutil", "convert", osxSpraseImage, "-format", "UDBZ", "-o", osxDmg], stdout=subprocess.PIPE, stderr=subprocess.PIPE):
         print "ok"
@@ -465,7 +466,7 @@ def buildOSX(buildParams):
         print "ERROR"
         return False
 
-    #Make image internet-enabled
+    # Make image internet-enabled
     print "Make image internet-enabled ...",
     if not call(["hdiutil", "internet-enable", osxDmg], stdout=subprocess.PIPE, stderr=subprocess.PIPE):
         print "ok"
@@ -507,7 +508,7 @@ def main():
     buildParams['buildNumber'] = 0
 
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "", [ 'test', 'onlyApp', 'nightly', 'dmgbg=', 'py2appArgs=', 'target=', 'major=', 'minor=', 'revision=', 'branch=', 'buildNumber=']) #@UnusedVariable
+        opts, args = getopt.getopt(sys.argv[1:], "", [ 'test', 'onlyApp', 'nightly', 'dmgbg=', 'py2appArgs=', 'target=', 'major=', 'minor=', 'revision=', 'branch=', 'buildNumber=']) # @UnusedVariable
     except getopt.GetoptError:
         print "Available options: --test, --dmgbg, --onlyApp, --nightly, --py2appArgs, --target, --major, --minor, --revision, --branch, --buildNumber"
         exit(1)
@@ -555,7 +556,7 @@ def main():
     buildParams['name'] = "XDM" # this should never change
     buildParams['majorVersion'] = "BETA" # one day we will change that to BETA :P
 
-    buildParams['osName'] = getNiceOSString(buildParams)# look in getNiceOSString() for default os nice names
+    buildParams['osName'] = getNiceOSString(buildParams) # look in getNiceOSString() for default os nice names
 
     """
     # maybe some day the git tag is used this might be handy although it might be easier ti use the github lib
@@ -630,7 +631,7 @@ def main():
         print "ok"
     #####################
     # write changelog
-    #writeChangelog(buildParams)
+    # writeChangelog(buildParams)
 
     curFancyLogo = ""
 
