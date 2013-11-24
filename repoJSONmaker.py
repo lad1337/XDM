@@ -27,6 +27,7 @@ import argparse
 import json
 import sys
 import os
+from collections import OrderedDict
 
 p = argparse.ArgumentParser(prog='XDM-repo-creator')
 p.add_argument('--name', dest='name', default="Some repo and the dev gave it no name", help="Repo name")
@@ -34,6 +35,7 @@ p.add_argument('--info_url', dest='info_url', default="## enter your info url he
 p.add_argument('--download_url', dest='download_url', default="## enter your download url here", help="I you use one download url for all plugins set this.")
 p.add_argument('--path', dest='path', default=None, help="Path to the plugins")
 p.add_argument('--read', dest='old_json', default=False, help="Path to the old repo json")
+p.add_argument('--keep_xdm_version', dest='keep_xdm_version', action="store_true", default=False, help="Keep the required version of xdm if found in the old meta")
 
 
 options = p.parse_args()
@@ -82,9 +84,17 @@ from xdm import actionManager
 jsons = {
     "name": name,
     "info_url": info_url,
-    "plugins": {}}
+    "plugins": {}
+}
 
 common.PM.cache(extra_plugin_path=plugin_path)
+metaPath = os.path.join(plugin_path, "meta.json")
+try:
+    with open(metaPath, "r") as f:
+        old_meta = json.loads(f.read())
+except:
+    old_meta = {}
+
 
 for plugin in common.PM.getAll(returnAll=True):
     # print "checking %s" % plugin
@@ -102,12 +112,18 @@ for plugin in common.PM.getAll(returnAll=True):
         continue
 
     info = plugin.createRepoJSON(True)[plugin.identifier]
+    if options.keep_xdm_version:
+        if old_meta and old_meta['plugins'] and plugin.identifier in old_meta['plugins']:
+            old_version = old_meta['plugins'][plugin.identifier][0]["xdm_version"]
+            info[0]["xdm_version"] = old_version
     info[0]['download_url'] = download_url
     jsons['plugins'][plugin.identifier] = info
 
+jsons["plugins"] = OrderedDict(sorted(jsons['plugins'].iteritems(), key=lambda x: x[0]))
+
+
 json = json.dumps(jsons, indent=4, sort_keys=False)
 
-metaPath = os.path.join(plugin_path, "meta.json")
 print
 print "#############"
 print "WARNING i will (over)write the file %s. i hope you use a svc!" % metaPath
@@ -117,14 +133,13 @@ print "#############"
 # Write mode will _always_ destroy the existing contents of a file.
 try:
     # This will create a new file or **overwrite an existing file**.
-    f = open(metaPath, "w")
-    try:
+    with open(metaPath, "w") as f:
         f.write(json) # Write a string to a file
-    finally:
-        f.close()
-        print "written !"
-        print "check: %s" % metaPath
-except IOError:
-    pass
+except IOError as e:
+    print(e)
+    raise e
+else:
+    print "written !"
+    print "check: %s" % metaPath
 
 actionManager.shutdown()
