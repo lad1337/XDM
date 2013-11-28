@@ -393,7 +393,7 @@ class Plugin(object):
         return (True, 'Everything fine')
 
     def getConfigHtml(self):
-        return ''
+        return '<!-- nothing here -->'
 
     def _get_minor_version(self):
         return int(self.version.split('.')[1])
