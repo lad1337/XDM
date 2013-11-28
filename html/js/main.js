@@ -443,7 +443,7 @@ function messageScrobbler(functionUrl, interval, onErrorClass, onErrorMessage){
     if (typeof onErrorClass == 'undefined')
         onErrorClass = 'error'
     if (typeof onErrorMessage == 'undefined')
-        onErrorMessage = 'Connection to Server Lost';
+        onErrorMessage = 'Connection to Server Lost ';
     
     $.getJSON(webRoot+'/ajax/'+functionUrl, {}, function(res){
         //console.log(res)
