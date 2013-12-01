@@ -55,7 +55,7 @@
                 return i++ != 0;
             });
             $('h3', fileBrowserDialog).html(first_val.current_path);
-            list = $('<ul class="nav nav-stacked nav-list">').appendTo('.modal-body',fileBrowserDialog);
+            list = $('<ul class="nav nav-stacked nav-list">').appendTo($('.modal-body', fileBrowserDialog));
             $.each(data, function(i, entry) {
                 
                 link = $("<a href='javascript:void(0)' />").text(entry.name)

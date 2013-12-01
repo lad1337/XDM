@@ -122,6 +122,7 @@ class AjaxCalls:
         pluginWithOptions = []
         for plugin in common.PM.getAll():
             if plugin.elementConfig and plugin.runFor(ele.manager):
+                log.debug("%s is a configureable plugin" % plugin)
                 pluginWithOptions.append(plugin)
         template = self.env.get_template('modalFrames/configFrame.html')
         return template.render(plugins=pluginWithOptions, element=ele, **self._globals())

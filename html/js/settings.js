@@ -1,9 +1,4 @@
 
-$(document).ready(function() {
-    init_settings();
-});
-
-
 
 function init_settings(){
     if(!$('.nav.nav-list a[href="'+decodeURIComponent(window.location.hash)+'"]').tab('show').length)
