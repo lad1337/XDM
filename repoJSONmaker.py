@@ -134,7 +134,7 @@ print "#############"
 try:
     # This will create a new file or **overwrite an existing file**.
     with open(metaPath, "w") as f:
-        f.write(json) # Write a string to a file
+        f.write(json + "\n") # Write a string to a file
 except IOError as e:
     print(e)
     raise e

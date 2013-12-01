@@ -402,8 +402,9 @@ def runMediaAdder():
 
 def removeTempElements():
     common.addState(6)
+    silent = not common.STARTOPTIONS.dev
     for temp in list(Element.select().where(Element.status == common.TEMP)):
-        temp.delete_instance(silent=True)
+        temp.delete_instance(silent=silent)
 
     log.info("Removeing temp elements DONE")
     common.removeState(6)
