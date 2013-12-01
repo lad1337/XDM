@@ -334,6 +334,9 @@ def updateElement(element, force=False, withDecendents=True):
                     new_parent = helper.findOldNode(new_node.parent, element)
                     log.debug("attaching %s to %s" % (new_node, new_parent))
                     new_node.parent = new_parent
+                    new_status = common.getStatusByID(new_node.manager.c.new_node_status_select)
+                    log.debug("Setting status of new node %s to %s" % (new_node, new_status))
+                    new_node.status = new_status
                     new_node.save()
                     common.Q.put(('image.download', {'id': new_node.id}))
             else:

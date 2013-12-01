@@ -784,6 +784,8 @@ class MediaTypeManager(Plugin):
         self.config_meta['enable'] = {'on_enable': 'recachePlugins'}
         self._config['default_new_status_select'] = common.WANTED.id
         self.config_meta['default_new_status_select'] = {'human': 'Status for newly added %s' % self.__class__.__name__}
+        self._config['new_node_status_select'] = common.WANTED.id
+        self.config_meta['new_node_status_select'] = {'human': 'Status for newly added nodes (e.g. Episodes)'}
 
         super(MediaTypeManager, self).__init__(instance)
 
@@ -980,6 +982,11 @@ class MediaTypeManager(Plugin):
         return root
 
     def _default_new_status_select(self):
+        return {common.UNKNOWN.id: common.UNKNOWN.screenName,
+                common.WANTED.id: common.WANTED.screenName,
+                common.IGNORE.id: common.IGNORE.screenName}
+
+    def _new_node_status_select(self):
         return {common.UNKNOWN.id: common.UNKNOWN.screenName,
                 common.WANTED.id: common.WANTED.screenName,
                 common.IGNORE.id: common.IGNORE.screenName}
