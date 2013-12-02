@@ -34,7 +34,7 @@
                 {%if new_version%}
                     <a href="javascript:void(0)" class="btn btn-success btn-block" onClick="installModal(this);" data-identifier="{{plugin.identifier}}"><i class="icon-upload"></i>Update</a>
                 {%else%}
-                    <span class="btn btn-success disabled btn-block"><i class="icon-ok"></i>Installed</span>
+                    <span class="btn disabled btn-block"><i class="icon-ok"></i>Installed</span>
                 {%endif%}
             {%else%}
                     {% if plugin.xdmMeetsVersionRequirement() %}
