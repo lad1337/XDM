@@ -203,13 +203,6 @@ def schedule():
     common.SCHEDULER.startAllTasks()
 
 
-# TODO: this will be moved entirely into schedule as scheduled task
-def runTasks():
-    """tasks to run on boot"""
-    t = tasks.TaskThread(tasks.removeTempElements)
-    t.start()
-
-
 def _checkDefaults(resave=False):
 
     default_statuss = [ {'setter': 'WANTED',      'name': 'Wanted',               'hidden': False},

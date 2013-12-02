@@ -28,18 +28,19 @@ def soFreshAndSoClean():
     the garbage collector scheduler will call this
     """
     common.addState(6)
-    cleanTemporaryElements()
 
+    cleanTemporaryElements()
     deleteOrphanFields()
+
     # add more functions here
     common.removeState(6)
 
 
 def cleanTemporaryElements():
-    for temp in list(Element.select().where(Element.status == common.TEMP)):
-        temp.delete_instance(silent=True)
-
-    log.info("Removeing temp elements DONE")
+    log.info("Getting temp elements")
+    elements_dq = Element.delete().where(Element.status == common.TEMP)
+    deleted_rows = elements_dq.execute()
+    log.info("Deleted %s temp elements" % deleted_rows)
 
 def deleteOrphanFields():
     log.info("Getting orphanaged fields")

@@ -148,7 +148,6 @@ class App():
         init.db()
         init.postDB()
         init.schedule()
-        init.runTasks()
 
         # Set port
         if options.port:
