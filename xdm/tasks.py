@@ -81,15 +81,21 @@ def coreUpdateDo():
 def runSearcher():
     log("running searcher")
     for mtm in common.PM.MTM:
-        for ele in mtm.getDownloadableElements():
-            if ele.status == common.FAILED and common.SYSTEM.c.again_on_fail:
-                ele.status = common.WANTED
-            elif ele.status != common.WANTED:
-                continue
+        runSearcherForMediaType(mtm)
 
-            log(u"Looking for %s" % ele)
-            searchElement(ele)
 
+def runSearcherForMediaType(mtm, root=None):
+    for ele in mtm.getDownloadableElements():
+        if root and ele not in root.decendants:
+            log.debug("%s is not under given root %s, skipping" % (ele, root))
+            continue
+        if ele.status == common.FAILED and common.SYSTEM.c.again_on_fail:
+            ele.status = common.WANTED
+        elif ele.status != common.WANTED:
+            continue
+
+        log(u"Looking for %s" % ele)
+        searchElement(ele)
 
 def notify(element):
 
@@ -133,10 +139,11 @@ def commentOnDownload(download):
 
 def searchElement(ele, forced=False):
     for pre_filter in common.PM.getDownloadFilters(runFor=ele.manager):
-        if pre_filter._pre_search != DownloadFilter._pre_search:
+        if DownloadFilter._pre_search not in pre_filter.stages:
             continue
         pre_result = pre_filter.compare(ele, forced=forced)
         if not pre_result:
+            createGenericEvent(ele, u'filter', "%s did't liked %s, reason: %s" % (pre_filter, ele, pre_result.reason))
             return ele.status
 
     didSearch = False
@@ -390,13 +397,14 @@ def runMediaAdder():
                 ele = provider.getElement(media.externalID)
                 if ele:
                     log.info(u'we found %s. now lets gets real' % ele)
-                    if ele.manager.makeReal(ele):
+                    new_status = common.getStatusByID(ele.manager.c.automatic_new_status_select)
+                    if ele.manager.makeReal(ele, new_status):
                         createGenericEvent(ele, u'autoAdd', 'I was added by %s' % adder)
                         common.MM.createInfo(u'%s added %s' % (adder, ele.getName()))
                         if media not in successfulAdd:
                             successfulAdd.append(media)
-                            if ele.status == common.WANTED:
-                                t = TaskThread(searchElement, ele)
+                            if new_status == common.WANTED:
+                                t = TaskThread(runSearcherForMediaType, ele.manager, ele)
                                 t.start()
                 else:
                     log.info(u'%s did not find %s(%s)' % (provider, media.name, media.externalID))

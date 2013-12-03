@@ -99,9 +99,11 @@ class AjaxCalls:
     @cherrypy.expose
     def addElement(self, id):
         element = Element.get(Element.id == id)
-        element.manager.makeReal(element)
-        t = tasks.TaskThread(tasks.searchElement, element)
-        t.start()
+        status = common.getStatusByID(element.manager.c.default_new_status_select)
+        element.manager.makeReal(element, status)
+        if status == common.WANTED:
+            t = tasks.TaskThread(tasks.searchElement, element)
+            t.start()
         return json.dumps({'result': True, 'data': {}, 'msg': '%s added.' % element.getName()})
 
     @cherrypy.expose

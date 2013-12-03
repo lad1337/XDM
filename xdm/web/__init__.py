@@ -277,12 +277,14 @@ class WebRoot:
     @cherrypy.expose
     def makePermanent(self, id):
         element = Element.get(Element.id == id)
-        element.manager.makeReal(element)
-        time.sleep(1)
-        t = tasks.TaskThread(tasks.searchElement, element)
-        t.start()
+        status = common.getStatusByID(element.manager.c.default_new_status_select)
+        element.manager.makeReal(element, status)
+        if status == common.WANTED:
+            t = tasks.TaskThread(tasks.searchElement, element)
+            t.start()
         self.redirect('/')
 
+    # TODO: what in the world is this !?
     @cherrypy.expose
     def addElement(self, mt, providerTag, pID):
         mtm = common.PM.getMediaTypeManager(mt)[0]
