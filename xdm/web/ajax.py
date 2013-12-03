@@ -362,8 +362,8 @@ class AjaxCalls:
             def recache_and_set_system():
                 common.PM.cache()
                 common.SYSTEM = common.PM.getSystem('Default')[0] # yeah SYSTEM is a plugin
-            t = tasks.TaskThread(recache_and_set_system)
-            t.start()
+            # t = tasks.TaskThread(recache_and_set_system)
+            # t.start()
         final_actions = {}
         for cur_class_name, cur_actions in actions.items():
             for cur_action in cur_actions:
