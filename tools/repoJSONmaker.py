@@ -20,6 +20,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see http://www.gnu.org/licenses/.
 
+# my usual call line
+# python tools/repoJSONmaker.py --download_url https://github.com/lad1337/XDM-main-plugin-repo/archive/master.zip --info_url https://github.com/lad1337/XDM-main-plugin-repo/ --name XDM\ main\ repo --path /Users/lad1337/workspace/XDM-main-plugin-repo/ --keep_xdm_version
 
 # WARNING oh boy is this hacked !!! but since this is for the lazy i am lazy on this here
 
@@ -27,6 +29,7 @@ import argparse
 import json
 import sys
 import os
+import glob
 from collections import OrderedDict
 
 p = argparse.ArgumentParser(prog='XDM-repo-creator')
@@ -39,6 +42,11 @@ p.add_argument('--keep_xdm_version', dest='keep_xdm_version', action="store_true
 
 
 options = p.parse_args()
+
+if not options.path and not options.old_json:
+    # lets do some guessing !
+    glob_plugin_path = os.path.abspath(os.path.join("..", "XDM-*"))
+    options.old_json = os.path.join(glob.glob(glob_plugin_path)[0], "meta.json")
 
 if options.old_json:
     if not os.path.isfile(options.old_json):
@@ -54,8 +62,6 @@ if options.old_json:
     if len(old_json_data) and len(old_json_data['plugins']):
         download_url = old_json_data['plugins'].itervalues().next()[0]['download_url']
     plugin_path = os.path.abspath(os.path.dirname(options.old_json))
-
-
 else:
     name = options.name
     info_url = options.info_url
@@ -70,7 +76,7 @@ else:
     print "using %s as plugin path" % plugin_path
 
 sys.path.append(plugin_path)
-
+sys.path.append(os.path.abspath("."))
 
 sys.argv = []
 
