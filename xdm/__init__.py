@@ -3,26 +3,26 @@
 #
 # This file is part of XDM: eXtentable Download Manager.
 #
-#XDM: eXtentable Download Manager. Plugin based media collection manager.
-#Copyright (C) 2013  Dennis Lutter
+# XDM: eXtentable Download Manager. Plugin based media collection manager.
+# Copyright (C) 2013  Dennis Lutter
 #
-#XDM is free software: you can redistribute it and/or modify
-#it under the terms of the GNU General Public License as published by
-#the Free Software Foundation, either version 3 of the License, or
-#(at your option) any later version.
+# XDM is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
 #
-#XDM is distributed in the hope that it will be useful,
-#but WITHOUT ANY WARRANTY; without even the implied warranty of
-#MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#GNU General Public License for more details.
+# XDM is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
 #
-#You should have received a copy of the GNU General Public License
-#along with this program.  If not, see http://www.gnu.org/licenses/.
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see http://www.gnu.org/licenses/.
 
 import version
-from lib.peewee import *
+from peewee import *
 from os.path import join
-from lib.profilehooks import profile as profileHookFunction
+from profilehooks import profile as profileHookFunction
 from functools import partial, update_wrapper, wraps
 from xdm.message import MessageManager, SystemMessageManager
 from xdm.news import NewsManager
@@ -95,7 +95,7 @@ class Common(object):
 
     # will be set to the obj during initDB()
     UNKNOWN = None
-    WANTED = None  # default status
+    WANTED = None # default status
     SNATCHED = None # well snatched and the downloader is getting it ... so we hope
     DOWNLOADING = None # its currently downloading woohhooo
     DOWNLOADED = None # no status thingy
@@ -120,7 +120,7 @@ class Common(object):
         return xdm_states[2] in self.STATES
     RUNNING = property(_running)
 
-    #pp stop connditions
+    # pp stop connditions
     STOPPPONSUCCESS = 1
     STOPPPONFAILURE = 2
     STOPPPALWAYS = 3
@@ -191,7 +191,7 @@ class Common(object):
             if dt.identifier == downloadTypeIdentifier:
                 return dt.extension
         else:
-            #log.warning("Download type with identifier %s was not found" % downloadTypeIdentifier)
+            # log.warning("Download type with identifier %s was not found" % downloadTypeIdentifier)
             return 'txt'
 
     def isThisVersionNewer(self, major, minor, revision, build):
@@ -222,7 +222,7 @@ class Common(object):
 common = Common()
 
 
-#maybe move this some place else
+# maybe move this some place else
 class profileMeMaybe(object):
 
     def __init__(self, target):
@@ -230,7 +230,7 @@ class profileMeMaybe(object):
         # and we expect it to be the wrapped function name
         self.__name__ = self.target.__name__
 
-    #http://stackoverflow.com/questions/8856164/class-decorator-decorating-method-in-python
+    # http://stackoverflow.com/questions/8856164/class-decorator-decorating-method-in-python
     def __get__(self, obj, type=None):
         self.obj = obj
         return self

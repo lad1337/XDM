@@ -21,17 +21,18 @@
 # along with this program.  If not, see http://www.gnu.org/licenses/.
 
 import sys
+import site
 import os
 import time
 # Fix for correct path
 if hasattr(sys, 'frozen'):
     app_path = os.path.abspath(os.path.join(os.path.abspath(sys.executable), '..', '..', 'Resources'))
-    sys.path.insert(1, os.path.join(app_path, 'rootLibs'))
     sys.path.insert(1, app_path)
 else:
     app_path = os.path.dirname(os.path.abspath(__file__))
-    sys.path.insert(1, os.path.join(app_path, 'rootLibs'))
+# sys.path.insert(1, os.path.join(app_path, 'rootLibs'))
 os.chdir(app_path)
+site.addsitedir('site-packages')
 
 import locale
 locale.setlocale(locale.LC_ALL, '')

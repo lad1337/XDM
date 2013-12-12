@@ -126,7 +126,7 @@ def create_https_certificates(ssl_cert, ssl_key):
     """
     try:
         from OpenSSL import crypto
-        from lib.certgen import createKeyPair, createCertRequest, createCertificate, TYPE_RSA, serial
+        from certgen import createKeyPair, createCertRequest, createCertificate, TYPE_RSA, serial
     except ImportError:
         log.error("pyopenssl module missing, please install for https access\n try\n $ easy_install PyOpenSSL")
         return False

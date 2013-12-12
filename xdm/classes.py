@@ -20,13 +20,13 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see http://www.gnu.org/licenses/.
 
-from lib.peewee import *
-from lib.peewee import QueryCompiler
+from peewee import *
+from peewee import QueryCompiler
 import os
 import xdm
-from lib import requests, dateutil
 from logger import *
 from xdm import common, helper, profileMeMaybe
+import requests, dateutil
 import datetime
 import json
 from jsonHelper import MyEncoder
@@ -330,7 +330,7 @@ class Element(BaseModel):
                 f.value = value
                 f.provider = provider
                 f.save()
-            else: # we dont exist and we need to create your field
+            else: # we dont exist and we need to create our field
                 f = Field()
                 f.name = name
                 f.value = value

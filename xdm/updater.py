@@ -25,7 +25,7 @@ import os
 import xdm
 from xdm.logger import *
 from core_migrate import *
-from lib import requests
+import requests
 from xdm import version, common, actionManager
 import re
 from subprocess import call
@@ -296,9 +296,9 @@ class GitUpdateManager(UpdateManager):
     def __init__(self):
         import platform
         if "windows" in platform.system().lower():
-            from lib.pbs import git
+            from pbs import git
         else:
-            from lib.sh import git
+            from sh import git
         self.git = git
         UpdateManager.__init__(self)
 
