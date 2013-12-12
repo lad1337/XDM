@@ -2,16 +2,8 @@
 
 
 {%if plugins%}
-<script>
-$('#configFrame tabbable').ready(function() {
-    labelInputConnector($('#configFrame label'));
-    
-    formAjaxSaveConnect($('#configFrame input[type="submit"]'), $('#config-{{element.id}}'));
-    window.setTimeout(function(){
-        $('#configFrame .nav li:first-child a').tab('show')
-        }, 500);
-});
-</script>
+<script src="{{webRoot}}/js/settings.js?v={{common.getVersionString()}}"></script>
+
 <div class="tabbable tabs-left">
     <ul class="nav nav-tabs">
         {% for plugin in plugins %}

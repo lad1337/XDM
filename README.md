@@ -6,12 +6,20 @@ XDM is in BETA
 Current official site [http://xdm.lad1337.de](http://xdm.lad1337.de)<br/>
 Official main plugin repository at [https://github.com/lad1337/XDM-main-plugin-repo/](https://github.com/lad1337/XDM-main-plugin-repo/)
 
+## Requirements
+
+- python 2.7.x
+
+optional but recomended when running on source
+
+- git 1.8.x 
+
 ## Known support for Mediatypes
 
-- Movies: add Movies and find and Postprocess (in core)
-- Music: add Albums and find and Postprocess (only for Mac OSX adding to iTunes) (in core)
-- Games: add PC, Xbox360, PS3 and Wii Games and find and Postprocess (in core)
-- Books: add Books and find (in main repository)
+- Movies: add Movies and find and Postprocess
+- Music: add Albums and find and Postprocess (only for Mac OSX adding to iTunes)
+- Games: add PC, Xbox360, PS3 and Wii Games and find and Postprocess
+- Books: add Books
 
 For more info on available first party plugins see the main repository at [https://github.com/lad1337/XDM-main-plugin-repo/](https://github.com/lad1337/XDM-main-plugin-repo/).
 
@@ -148,4 +156,8 @@ along with this program.  If not, see http://www.gnu.org/licenses/.
 
 
 
+
+
+
+[![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/lad1337/xdm/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
 

@@ -548,7 +548,7 @@ class Element(BaseModel):
         return self._getName
 
     def _getName(self):
-        return ' '.join([str(x.value) for x in self.fields])
+        return u' '.join([str(x.value) for x in self.fields])
 
     def getIdentifier(self):
         return self._getIdentifier

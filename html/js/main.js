@@ -243,16 +243,20 @@ function showDownlads(sender, id){
 function showConfigs(sender, id){
     data = {'id': id}
     name = 'Configuration'
-    var myModal = ajaxModal(sender, name, webRoot+'/ajax/getConfigFrame', data)
-    
-    $('.modal-footer', myModal).append('<input class="btn btn-success" value="Save" type="submit"></div>')
-    window.setTimeout(function(){
-        console.log('myModal', myModal[0])
-        console.log('tab as', $('.nav-tabs a[data-toggle="tab"]:first'))
-        console.log($('.nav-tabs a[data-toggle="tab"]:first', myModal))
-        $('.nav-tabs a[data-toggle="tab"]:first', myModal).tab('show')
-        formAjaxSaveConnect($('input[type="submit"]', myModal), $('#config-'+id))
-    }, 1000);
+    var myModal = ajaxModal(sender, name, webRoot+'/ajax/getConfigFrame', data);
+    console.log("the modal", myModal);
+    myModal.on('shown', function() {
+        if(!myModal.hasClass("activated")){
+            //console.log('myModal', myModal);
+            //console.log('tab as', $('.nav-tabs a[data-toggle="tab"]:first'));
+            //console.log($('.nav-tabs a[data-toggle="tab"]:first', myModal));
+            $('.nav-tabs a[data-toggle="tab"]:first', myModal).tab('show');
+            $('.modal-footer', myModal).append('<input class="btn btn-success" value="Save" type="submit"></div>');
+            formAjaxSaveConnect($('input[type="submit"]', myModal), $('#config-'+id));
+            init_settings();
+        }
+        myModal.addClass("activated");
+    })
 
 }
 
@@ -443,7 +447,7 @@ function messageScrobbler(functionUrl, interval, onErrorClass, onErrorMessage){
     if (typeof onErrorClass == 'undefined')
         onErrorClass = 'error'
     if (typeof onErrorMessage == 'undefined')
-        onErrorMessage = 'Connection to Server Lost';
+        onErrorMessage = 'Connection to Server Lost ';
     
     $.getJSON(webRoot+'/ajax/'+functionUrl, {}, function(res){
         //console.log(res)

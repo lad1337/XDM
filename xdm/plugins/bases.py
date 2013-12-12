@@ -393,7 +393,7 @@ class Plugin(object):
         return (True, 'Everything fine')
 
     def getConfigHtml(self):
-        return ''
+        return '<!-- nothing here -->'
 
     def _get_minor_version(self):
         return int(self.version.split('.')[1])
@@ -705,7 +705,7 @@ class DownloadFilter(Plugin):
             self.config_meta['skip_on_forced_search'] = {'desc': 'If true this filter will be skipped when you manualy started a search.'}
         Plugin.__init__(self, instance=instance)
 
-    def compare(self, element, download=None, string=None):
+    def compare(self, element, download=None, string=None, forced=False):
         return self.FilterResult()
 
 
@@ -747,7 +747,7 @@ class MediaTypeManager(Plugin):
     identifier = ''
     """A absolute unique identifier in reverse URL style e.g. de.lad1337.nzb"""
     order = ()
-    """A tubple that defines the order top to bottom / outer to inner of the classes that replect the media"""
+    """A tubple that defines the order top to bottom / outer to inner of the classes that reflect the media"""
     download = None
     """The class to download/search for"""
     addConfig = {}
@@ -782,8 +782,15 @@ class MediaTypeManager(Plugin):
         self.single = True
 
         self.config_meta['enable'] = {'on_enable': 'recachePlugins'}
+        # status the elements get when adding a (root) element
         self._config['default_new_status_select'] = common.WANTED.id
         self.config_meta['default_new_status_select'] = {'human': 'Status for newly added %s' % self.__class__.__name__}
+        # new added nodes from an update
+        self._config['new_node_status_select'] = common.WANTED.id
+        self.config_meta['new_node_status_select'] = {'human': 'Status for newly added nodes from updates'}
+        # new added nodes from an update
+        self._config['automatic_new_status_select'] = common.WANTED.id
+        self.config_meta['automatic_new_status_select'] = {'human': 'Status for automaticaly added %s' % self.__class__.__name__}
 
         super(MediaTypeManager, self).__init__(instance)
 
@@ -859,7 +866,7 @@ class MediaTypeManager(Plugin):
         if types is None:
             out = Element.select().where(Element.mediaType == self.mt, Element.type == self.download.__name__, Element.status << status)
         else:
-            out = Element.select().where(Element.mediaType == self.mt, Element.type == self.download.__name__, Element.status << status, Element.type << types)
+            out = Element.select().where(Element.mediaType == self.mt, Element.status << status, Element.type << types)
         if asList:
             out = list(out)
         return out
@@ -950,7 +957,7 @@ class MediaTypeManager(Plugin):
         self.searcher = None
         return rootElement
 
-    def makeReal(self, element):
+    def makeReal(self, element, status):
         log.warning('Default makereal/save method called but the media type should have implemented this')
         return False
 
@@ -980,6 +987,16 @@ class MediaTypeManager(Plugin):
         return root
 
     def _default_new_status_select(self):
+        return {common.UNKNOWN.id: common.UNKNOWN.screenName,
+                common.WANTED.id: common.WANTED.screenName,
+                common.IGNORE.id: common.IGNORE.screenName}
+
+    def _new_node_status_select(self):
+        return {common.UNKNOWN.id: common.UNKNOWN.screenName,
+                common.WANTED.id: common.WANTED.screenName,
+                common.IGNORE.id: common.IGNORE.screenName}
+
+    def _automatic_new_status_select(self):
         return {common.UNKNOWN.id: common.UNKNOWN.screenName,
                 common.WANTED.id: common.WANTED.screenName,
                 common.IGNORE.id: common.IGNORE.screenName}

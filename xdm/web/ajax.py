@@ -29,6 +29,7 @@ from xdm.helper import convertV
 import traceback
 from xdm.plugins.repository import RepoManager
 import threading
+from xdm import helper
 
 
 class AjaxCalls:
@@ -98,9 +99,11 @@ class AjaxCalls:
     @cherrypy.expose
     def addElement(self, id):
         element = Element.get(Element.id == id)
-        element.manager.makeReal(element)
-        t = tasks.TaskThread(tasks.searchElement, element)
-        t.start()
+        status = common.getStatusByID(element.manager.c.default_new_status_select)
+        element.manager.makeReal(element, status)
+        if status == common.WANTED:
+            t = tasks.TaskThread(tasks.searchElement, element)
+            t.start()
         return json.dumps({'result': True, 'data': {}, 'msg': '%s added.' % element.getName()})
 
     @cherrypy.expose
@@ -121,6 +124,7 @@ class AjaxCalls:
         pluginWithOptions = []
         for plugin in common.PM.getAll():
             if plugin.elementConfig and plugin.runFor(ele.manager):
+                log.debug("%s is a configureable plugin" % plugin)
                 pluginWithOptions.append(plugin)
         template = self.env.get_template('modalFrames/configFrame.html')
         return template.render(plugins=pluginWithOptions, element=ele, **self._globals())
@@ -360,8 +364,8 @@ class AjaxCalls:
             def recache_and_set_system():
                 common.PM.cache()
                 common.SYSTEM = common.PM.getSystem('Default')[0] # yeah SYSTEM is a plugin
-            t = tasks.TaskThread(recache_and_set_system)
-            t.start()
+            # t = tasks.TaskThread(recache_and_set_system)
+            # t.start()
         final_actions = {}
         for cur_class_name, cur_actions in actions.items():
             for cur_action in cur_actions:

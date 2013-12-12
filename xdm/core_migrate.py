@@ -32,4 +32,4 @@ def migrate_0_4_19():
     for mtm in common.PM.MTM:
         for element in mtm.getElementsWithStatusIn(common.getCompletedStatuses()):
             common.SM.setNewMessage("Migration: Updating %s (not recaching images)" % element)
-            tasks.updateElement(element, downloadImages=False)
+            tasks.updateElement(element)
