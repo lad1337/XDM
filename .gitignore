@@ -9,6 +9,9 @@ plugins*
 server.crt
 server.key
 
+# dev python env
+xdm_env
+
 # python bins
 *.py[cod]
 
