@@ -360,12 +360,7 @@ class AjaxCalls:
                 continue
 
         if element is None:
-            # TODO check if plugin recaching needs to be done at all !
-            def recache_and_set_system():
-                common.PM.cache()
-                common.SYSTEM = common.PM.getSystem('Default')[0] # yeah SYSTEM is a plugin
-            # t = tasks.TaskThread(recache_and_set_system)
-            # t.start()
+            common.PM.reinstanceiate()
         final_actions = {}
         for cur_class_name, cur_actions in actions.items():
             for cur_action in cur_actions:
