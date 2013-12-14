@@ -1,6 +1,32 @@
 
 
 function init_settings(){
+    
+    $('.path').click(function(){
+        var topBottom = $('.top, .bottom', $(this).parent())
+        
+        if($(this).hasClass('connected')){
+            $(this).removeClass('connected box-shadow');
+            topBottom.addClass('hidden');
+        }else{
+            $(this).addClass('connected box-shadow');
+            topBottom.removeClass('hidden')
+        }
+    });
+    var th = $(".settings th, .settings td");
+
+    th.each(function() {
+        var $this = $(this),
+            n = $this.index() + 1;
+        $this.hover(function() {
+            var col = $("tr > td:nth-child(" + n + ")");
+            col.addClass("hovered");
+        }, function(){
+            th.removeClass('hovered')
+        });
+    });
+    
+    
     if(!$('.nav.nav-list a[href="'+decodeURIComponent(window.location.hash)+'"]').tab('show').length)
         $('.nav.nav-list a[data-toggle="tab"]:first').tab('show')
 

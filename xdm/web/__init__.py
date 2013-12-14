@@ -153,6 +153,7 @@ class WebRoot:
     @cherrypy.expose
     def settings(self, **kwargs):
         plugins = []
+        pluginsGrouped = {}
         if kwargs:
             indexes = sorted(kwargs.keys())
             for index in indexes:
@@ -160,8 +161,13 @@ class WebRoot:
                 plugins.extend(getattr(common.PM, pluginClassGetter)(returnAll=True))
         else:
             plugins = common.PM.getAll(True)
+            for p in plugins:
+                if p._type not in pluginsGrouped:
+                    pluginsGrouped[p._type] = []
+                pluginsGrouped[p._type].append(p)
+
         template = env.get_template('settings.html')
-        return template.render(plugins=plugins, **self._globals())
+        return template.render(plugins=plugins, pluginsGrouped=pluginsGrouped, **self._globals())
 
     @cherrypy.expose
     def settingsPluginHtml(self, **kwargs):
