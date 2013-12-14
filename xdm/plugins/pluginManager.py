@@ -187,6 +187,11 @@ class PluginManager(object):
             return self._score_cache[plugin.__class__]
         return 0
 
+    def reinstanceiate(self):
+        self._mt_cache = {}
+        self.getMediaTypeManager(returnAll=True)
+        common.SYSTEM = self.getSystem('Default')[0]
+
     def _getAny(self, cls, wanted_i='', returnAll=False, runFor=''):
         """may return a list with instances or just one instance if wanted_i is given
         only gives back enabeld plugins by default set returnAll to True to get all

@@ -466,6 +466,9 @@ td.download-size,
     left: auto;
 }
 
+.form-horizontal .control-group{
+    margin-bottom: 10px;
+}
 
 /* overwrite qtip */
 .qtip{
