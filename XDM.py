@@ -89,6 +89,7 @@ class App():
         p.add_argument('--noWebServer', action="store_true", dest='noWebServer', help="Don't start the webserver")
         p.add_argument('--pluginImportDebug', action="store_true", dest='pluginImportDebug', help="Extra verbosy debug during plugin import is printed.")
         p.add_argument('--profile', dest='profile', nargs='*', default=None, help="Wrap a decorated(!) function in a profiler. By default all decorated functions are profiled. Decorate your function with @profileMeMaybe")
+        p.add_argument('--installType', dest='installType', default=None, type=int, help="Force the install type")
 
         options = p.parse_args(args)
         self.options = options

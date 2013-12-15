@@ -4,7 +4,7 @@
 *.log*
 images/*
 temp/*
-plugins*
+/plugins
 *pylintOutput*
 server.crt
 server.key
