@@ -289,11 +289,11 @@ class SourceUpdateManager(UpdateManager):
         self.response.localVersion = common.getVersionTuple(True)
 
         r = requests.get(self.version_url)
-        externalVersion = (0, 0, 0)
+        externalVersion = []
         for index, name in enumerate(('major', 'minor', 'revision')):
             externalVersion[index] = int(re.search("%s = (?P<v>\d+)" % name, r.text).group('v'))
 
-        self.response.externalVersion = externalVersion
+        self.response.externalVersion = tuple(externalVersion)
         if self.response.localVersion > self.response.externalVersion:
             self.response.message = 'No update needed'
             self.response.needUpdate = False
