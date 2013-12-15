@@ -282,11 +282,26 @@ class MacUpdateManager(BinaryUpdateManager):
 
 class SourceUpdateManager(UpdateManager):
 
+    version_url = "https://raw.github.com/lad1337/XDM/master/xdm/version.py"
+    download_url = "https://github.com/lad1337/XDM/archive/master.zip"
+
     def need_update(self):
-        self.response.needUpdate = None
-        msg = 'sorry update not implemented for Source install'
-        log.warning(msg)
-        self.response.message = msg
+        self.response.localVersion = common.getVersionTuple(True)
+
+        r = requests.get(self.version_url)
+        externalVersion = (0, 0, 0)
+        for index, name in enumerate(('major', 'minor', 'revision')):
+            externalVersion[index] = int(re.search("%s = (?P<v>\d+)" % name, r.text).group('v'))
+
+        self.response.externalVersion = externalVersion
+        if self.response.localVersion > self.response.externalVersion:
+            self.response.message = 'No update needed'
+            self.response.needUpdate = False
+        else:
+            msg = 'Update available %s' % self.response.externalVersion
+            log.info(msg)
+            self.response.message = msg
+            self.response.needUpdate = True
         return self.response
 
 
