@@ -3,72 +3,7 @@
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
 <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="100px"
 	 height="32px" viewBox="0 0 100 32" enable-background="new 0 0 100 32" xml:space="preserve">
-<g id="Layer_1" display="none">
-	<polygon display="inline" fill="#1E8DCE" stroke="#1D1D1B" stroke-miterlimit="10" points="58.649,361.506 1.069,419.086 
-		307.479,725.495 613.888,419.086 556.308,361.496 307.48,609.831 	"/>
-	<g display="inline">
-		<polygon fill="#009A3F" stroke="#000000" stroke-miterlimit="10" points="384.723,190.752 307.479,267.842 230.234,190.754 
-			192.068,228.845 307.479,344.256 422.892,228.844 		"/>
-	</g>
-	<polygon display="inline" fill="#009A3F" stroke="#000000" stroke-miterlimit="10" points="465.885,271.75 307.479,429.842 
-		149.071,271.756 110.987,309.765 307.479,506.256 503.974,309.761 	"/>
-</g>
-<g id="Layer_5" display="none">
-	<text transform="matrix(1 0 0 1 558 1454)" display="inline" font-family="'TypeOne'" font-size="637.8667">XDM</text>
-	<polyline stroke="#1D1D1B" stroke-miterlimit="10" points="539.999,650.559 794.559,396 845.47,446.912 539.999,752.382 	"/>
-	<polyline stroke="#1D1D1B" stroke-miterlimit="10" points="540,39.618 845.47,345.088 794.559,396 540,141.441 	"/>
-	<g display="inline">
-		<polygon fill="#1E8DCE" points="1065.646,124.912 845.395,345.164 845.395,345.163 845.47,345.088 540,39.618 234.53,345.088 
-			285.44,396 540,141.441 794.558,395.999 539.997,650.557 285.44,396 234.529,446.912 539.999,752.382 845.47,446.912 
-			845.385,446.826 845.395,446.816 1065.646,667.062 1167.304,667.062 896.221,395.99 1167.304,124.912 		"/>
-		<polygon fill="#1E8DCE" points="1235.066,667.062 1302.833,667.062 1302.833,192.682 1743.337,192.682 1743.337,599.297 
-			1370.605,599.297 1370.605,667.062 1811.105,667.062 1811.105,124.912 1235.066,124.912 		"/>
-		<rect x="2149.949" y="260.452" fill="#1E8DCE" width="67.771" height="338.845"/>
-		<polygon fill="#1E8DCE" points="1878.876,124.912 1878.876,667.062 1946.645,667.062 1946.645,192.682 2421.033,192.682 
-			2421.033,667.062 2488.797,667.062 2488.797,124.912 		"/>
-	</g>
-</g>
-<g id="icon" display="none">
-	<g display="inline">
-		<polygon fill="#009A3F" stroke="#000000" stroke-width="4" stroke-miterlimit="10" points="629.096,230.537 540,319.632 
-			450.904,230.537 419.084,262.356 540,383.272 660.915,262.356 		"/>
-		<polygon fill="#009A3F" stroke="#000000" stroke-width="4" stroke-miterlimit="10" points="711.827,313.268 540,485.095 
-			368.172,313.268 336.353,345.088 540,548.734 743.646,345.088 		"/>
-	</g>
-	<g display="inline">
-		<polygon fill="#1E8DCE" stroke="#000000" stroke-width="4" stroke-miterlimit="10" points="539.999,752.382 234.529,446.912 
-			285.44,396 539.999,650.559 794.559,396 845.47,446.912 		"/>
-		<polygon fill="#1E8DCE" stroke="#000000" stroke-width="4" stroke-miterlimit="10" points="540,39.618 845.47,345.088 
-			794.559,396 540,141.441 285.44,396 234.53,345.088 		"/>
-	</g>
-	<g display="inline">
-		<polygon fill="#009A3F" stroke="#000000" stroke-width="4" stroke-miterlimit="10" points="629.096,230.537 540,319.632 
-			450.904,230.537 419.084,262.356 540,383.272 660.915,262.356 		"/>
-		<polygon fill="#009A3F" stroke="#000000" stroke-width="4" stroke-miterlimit="10" points="711.827,313.268 540,485.095 
-			368.172,313.268 336.353,345.088 540,548.734 743.646,345.088 		"/>
-	</g>
-</g>
-<g id="final">
-	<g>
-		<polygon fill="#009A3F" stroke="#1D1D1B" stroke-width="6" stroke-miterlimit="10" points="629.026,563.57 539.931,652.666 
-			450.835,563.57 419.015,595.391 539.931,716.305 660.846,595.391 		"/>
-		<polygon fill="#009A3F" stroke="#1D1D1B" stroke-width="6" stroke-miterlimit="10" points="711.758,646.301 539.931,818.129 
-			368.103,646.301 336.283,678.121 539.931,881.768 743.577,678.121 		"/>
-	</g>
-	<g>
-		<polygon fill="#1E8DCE" stroke="#000000" stroke-width="6" stroke-miterlimit="10" points="1065.576,457.946 845.325,678.197 
-			845.325,678.197 845.4,678.121 539.931,372.651 234.46,678.121 285.371,729.033 539.931,474.474 794.488,729.031 539.928,983.59 
-			285.371,729.033 234.459,779.945 539.93,1085.416 845.4,779.945 845.315,779.859 845.325,779.85 1065.576,1000.096 
-			1167.232,1000.096 896.152,729.023 1167.232,457.946 		"/>
-		<polygon fill="#1E8DCE" stroke="#000000" stroke-width="6" stroke-miterlimit="10" points="1234.996,1000.096 1302.762,1000.096 
-			1302.762,525.715 1743.266,525.715 1743.266,932.33 1370.535,932.33 1370.535,1000.096 1811.035,1000.096 1811.035,457.946 
-			1234.996,457.946 		"/>
-		
-			<rect x="2149.879" y="593.486" fill="#1E8DCE" stroke="#000000" stroke-width="6" stroke-miterlimit="10" width="67.77" height="338.844"/>
-		<polygon fill="#1E8DCE" stroke="#000000" stroke-width="6" stroke-miterlimit="10" points="1878.805,457.946 1878.805,1000.096 
-			1946.574,1000.096 1946.574,525.715 2420.963,525.715 2420.963,1000.096 2488.727,1000.096 2488.727,457.946 		"/>
-	</g>
-</g>
+
 <g id="svg">
 	<g>
 		<polygon fill="#009A3F" stroke="#1D1D1B" stroke-width="0.25" stroke-miterlimit="10" points="17.509,8.472 13.555,12.425 
@@ -88,19 +23,5 @@
 			75.975,27.844 75.975,6.792 97.025,6.792 97.025,27.844 100.033,27.844 100.033,3.785 		"/>
 	</g>
 </g>
-<g id="Layer_3" display="none">
-	<g display="inline">
-		<polygon fill="#009A3F" stroke="#1D1D1B" stroke-miterlimit="10" points="720,342 594,342 594,216 549,216 549,387 720,387 		"/>
-	</g>
-	<polygon display="inline" fill="#1E8DCE" stroke="#1D1D1B" stroke-miterlimit="10" points="287.999,648 287.999,216 359.999,216 
-		359.999,576 720,576 720,648 	"/>
-	<polygon display="inline" fill="#009A3F" stroke="#1D1D1B" stroke-miterlimit="10" points="720,459 477,459 477,216 432,216 
-		432,504 720,504 	"/>
-	<polygon display="inline" fill="#1E8DCE" stroke="#1D1D1B" stroke-miterlimit="10" points="792,144 792,576 720,576 720,216 
-		360,216 360,144 	"/>
-</g>
-<g id="Layer_4" display="none">
-	<polygon display="inline" fill="#1E8DCE" stroke="#1D1D1B" stroke-miterlimit="10" points="287.999,648 287.999,216 359.999,216 
-		359.999,576 720,576 720,648 	"/>
-</g>
+
 </svg>
