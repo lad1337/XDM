@@ -163,7 +163,6 @@ function messageConfirm(uuid){
     
     data = {}
     data['uuid'] = uuid;
-    animate_logo();
     $.getJSON(webRoot+'/ajax/messageConfirm', data, function(res){
         if(res['result']){
             messageTr.hide('fast')
@@ -251,7 +250,6 @@ function ajaxModal(sender, name, url, data){
         myModal.modal();
         $(sender).removeClass('btn-striped animate');
     });
-    animate_logo();
     return myModal;
 }
 
