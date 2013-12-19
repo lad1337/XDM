@@ -782,7 +782,7 @@ class Config(BaseModel):
                 return int(self._value_int)
             return self._value_int
         else:
-            return self._value_char
+            return unicode(self._value_char)
 
     def _set_value(self, value):
         if type(value).__name__ in ('float', 'int'):

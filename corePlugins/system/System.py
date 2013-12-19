@@ -82,7 +82,7 @@ class SystemConfig(System):
         if setting != 'automatic':
             self._locale = setting
         else:
-            self._locale = locale.getlocale(locale.LC_ALL)[0]
+            self._locale = unicode(locale.getlocale(locale.LC_ALL)[0])
         log(u"Language setting is '%s' resulting locale: '%s'" % (setting, self._locale))
 
     def _getLocale(self):
