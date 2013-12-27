@@ -83,7 +83,12 @@ class SystemConfig(System):
             self._locale = setting
         else:
             self._locale = locale.getlocale(locale.LC_ALL)[0]
-        log("Language setting is '%s' resulting locale: '%s'" % (setting, self._locale))
+        try:
+            str(self._locale)
+        except UnicodeEncodeError:
+            log.info(u"Setting language to en_US because the locale '%s' was not encodable with ascii" % self._locale)
+            self._locale = "en_US"
+        log(u"Language setting is '%s' resulting locale: '%s'" % (setting, self._locale))
 
     def _getLocale(self):
         try:
@@ -95,22 +100,23 @@ class SystemConfig(System):
     locale = property(_getLocale)
 
     def _switchLanguage(self):
+        del self._locale
         languages = None
         if self.c.language_select != 'automatic':
-            languages = [self.c.language_select]
+            languages = [self.locale]
 
-        log('Trying to set language to: "%s"' % languages)
+        log(u'Trying to set language to: "%s"' % languages)
         translationPath = os.path.abspath(os.path.join(xdm.APP_PATH, 'i18n'))
         log.info(u"Using i18n path %s" % translationPath)
 
         if not os.path.isdir(translationPath):
-            log.error("%s is not a path. where is the i18n folder?" % translationPath)
+            log.error(u"%s is not a path. where is the i18n folder?" % translationPath)
             return
         fallback = common.STARTOPTIONS.dev
         try:
             t = gettext.translation('messages', translationPath, languages=languages, fallback=fallback)
         except IOError:
-            log.warning("No language file found that matches %s. your locale %s" % (languages, locale.getlocale()))
+            log.warning(u"No language file found that matches %s. your locale %s" % (languages, locale.getlocale()))
             log.info("Trying to install language en_US as fallback")
             t = gettext.translation('messages', translationPath, languages=['en_US'], fallback=True)
             log.info("Setting language to en_US because of fallback")

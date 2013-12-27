@@ -77,6 +77,9 @@ def preDB(app_path, datadir):
     xdm.CONFIG_DATABASE.init(xdm.CONFIG_DATABASE_PATH)
     xdm.HISTORY_DATABASE.init(xdm.HISTORY_DATABASE_PATH)
 
+    # set pylint environment variable this should fix issue #99
+    os.environ['PYLINTHOME'] = xdm.DATADIR
+
 
 def db():
     classes = []
