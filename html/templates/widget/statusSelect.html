@@ -1,13 +1,13 @@
 <div class="status-select btn-group">
-<button class="btn btn-mini dropdown-toggle" data-toggle="dropdown">
-    <span class="text">{{this.status.name}}</span>
-    <span class="caret"></span>
-</button>
-<ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
-    {%- for s in globalStatus -%}
-    {%- if not s.hidden -%}
-    <li><a href="javascript:void(0);" onClick="ajaxSetElementStatus(this, {{s.id}}, {{this.id}});return false;">{{_(s.name)}}</a></li>
-    {%- endif -%}
-    {%- endfor -%}
-</ul>
+    <button class="btn btn-mini dropdown-toggle {{this.status.name}}" data-toggle="dropdown">
+        <span class="text">{{_(this.status.name)}}</span>
+        <span class="caret"></span>
+    </button>
+    <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
+        {%- for s in globalStatus -%}
+        {%- if not s.hidden -%}
+        <li><a href="javascript:void(0);" onClick="ajaxSetElementStatus(this, {{s.id}}, {{this.id}});return false;">{{_(s.name)}}</a></li>
+        {%- endif -%}
+        {%- endfor -%}
+    </ul>
 </div>

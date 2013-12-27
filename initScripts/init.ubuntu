@@ -1,0 +1,116 @@
+#!/bin/sh
+#
+### BEGIN INIT INFO
+# Provides:          XDM
+# Required-Start:    $local_fs $network $remote_fs
+# Required-Stop:     $local_fs $network $remote_fs
+# Should-Start:      $NetworkManager
+# Should-Stop:       $NetworkManager
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: starts instance of XDM: eXtendable Download Manager
+# Description:       starts instance of XDM: eXtendable Download Manager using start-stop-daemon
+### END INIT INFO
+
+# Source XDM configuration
+if [ -f /etc/default/XDM ]; then
+    . /etc/default/XDM
+else
+    echo "/etc/default/XDM not found using default settings.";
+fi
+
+# Script name
+NAME=XDM
+
+# App name
+DESC=XDM
+
+## Don't edit this file
+## Edit user configuation in /etc/default/XDM to change
+##
+## XDM_USER=         #$RUN_AS, username to run XDM under, the default is XDM
+## XDM_HOME=         #$APP_PATH, the location of XDM.py, the default is /opt/XDM
+## XDM_DATA=         #$DATA_DIR, the location of XDM.db, cache, logs, the default is /opt/XDM
+## XDM_PIDFILE=      #$PID_FILE, the location of XDM.pid, the default is /var/run/XDM/XDM.pid
+## PYTHON_BIN=      #$DAEMON, the location of the python binary, the default is /usr/bin/python
+## XDM_OPTS=         #$EXTRA_DAEMON_OPTS, extra cli option for XDM, i.e. " --config=/home/XDM/config.ini"
+## SSD_OPTS=        #$EXTRA_SSD_OPTS, extra start-stop-daemon option like " --group=users"
+##
+## EXAMPLE if want to run as different user
+## add XDM_USER=username to /etc/default/XDM
+## otherwise default XDM is used
+
+## The defaults
+# Run as username 
+RUN_AS=${XDM_USER-XDM}
+
+# Path to app XDM_HOME=path_to_app_XDM.py
+APP_PATH=${XDM_HOME-/opt/XDM}
+
+# Data directory where XDM.db, cache and logs are stored
+DATA_DIR=${XDM_DATA-/opt/XDM}
+
+# Path to store PID file
+PID_FILE=${XDM_PIDFILE-/var/run/XDM/XDM.pid}
+
+# path to python bin
+DAEMON=${PYTHON_BIN-/usr/bin/python}
+
+# Extra daemon option like: XDM_OPTS=" --config=/home/XDM/config.ini"
+EXTRA_DAEMON_OPTS=${XDM_OPTS-}
+
+# Extra start-stop-daemon option like START_OPTS=" --group=users"
+EXTRA_SSD_OPTS=${SSD_OPTS-}
+##
+
+PID_PATH=`dirname $PID_FILE`
+DAEMON_OPTS=" XDM.py -q --daemon --nolaunch --pidfile=${PID_FILE} --datadir=${DATA_DIR} ${EXTRA_DAEMON_OPTS}"
+
+##
+
+test -x $DAEMON || exit 0
+
+set -e
+
+# Create PID directory if not exist and ensure the XDM user can write to it
+if [ ! -d $PID_PATH ]; then
+    mkdir -p $PID_PATH
+    chown $RUN_AS $PID_PATH
+fi
+
+if [ ! -d $DATA_DIR ]; then
+    mkdir -p $DATA_DIR
+    chown $RUN_AS $DATA_DIR
+fi
+
+if [ -e $PID_FILE ]; then
+    PID=`cat $PID_FILE`
+    if ! kill -0 $PID > /dev/null 2>&1; then
+        echo "Removing stale $PID_FILE"
+        rm $PID_FILE
+    fi
+fi
+
+case "$1" in
+    start)
+        echo "Starting $DESC"
+        start-stop-daemon -d $APP_PATH -c $RUN_AS $EXTRA_SSD_OPTS --start --pidfile $PID_FILE --exec $DAEMON -- $DAEMON_OPTS
+        ;;
+    stop)
+        echo "Stopping $DESC"
+        start-stop-daemon --stop --pidfile $PID_FILE --retry 15
+        ;;
+
+    restart|force-reload)
+        echo "Restarting $DESC"
+        start-stop-daemon --stop --pidfile $PID_FILE --retry 15
+        start-stop-daemon -d $APP_PATH -c $RUN_AS $EXTRA_SSD_OPTS --start --pidfile $PID_FILE --exec $DAEMON -- $DAEMON_OPTS
+        ;;
+    *)
+        N=/etc/init.d/$NAME
+        echo "Usage: $N {start|stop|restart|force-reload}" >&2
+        exit 1
+        ;;
+esac
+
+exit 0
