@@ -266,7 +266,7 @@ def dereferMeText(html):
         return html
     urls = re.findall(r'href=[\'"]?([^\'" >]+)', html)
     for url in urls:
-        html = re.sub(r'href=([\'"]?)%s' % url, r'href=\1%s\1' % dereferMe(url), html)
+        html = re.sub(r'href=([\'"])%s([\'"])' % url, r'href=\1%s\1' % dereferMe(url), html)
     return html
 
 # FIXME: this is like O(N^2)!
