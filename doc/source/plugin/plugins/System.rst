@@ -2,5 +2,5 @@
 SystemConfig plugin
 *******************
 
-.. automodule:: plugins.system.System
+.. automodule:: corePlugins.system.System
    :members:

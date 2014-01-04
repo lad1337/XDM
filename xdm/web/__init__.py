@@ -40,7 +40,15 @@ from xdm import common, tasks, helper
 from xdm.logger import *
 from xdm import actionManager
 from xdm.api import WebApi
-
+# workaround for spinxy not installing _ and ngettext
+try:
+    _()
+except NameError:
+    _ = lambda x: x
+try:
+    ngettext()
+except NameError:
+    ngettext = lambda x: x
 
 env = Environment(loader=FileSystemLoader(os.path.join('html', 'templates')), extensions=['jinja2.ext.i18n'])
 env.install_gettext_callables(_, ngettext, newstyle=True)

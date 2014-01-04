@@ -33,6 +33,16 @@ from jsonHelper import MyEncoder
 from xdm.helper import dict_diff, dictproperty
 import types
 
+# workaround for spinxy not installing _ and ngettext
+try:
+    _()
+except NameError:
+    _ = lambda x: x
+try:
+    ngettext()
+except NameError:
+    ngettext = lambda x: x
+
 # from jinja2 import FileSystemBytecodeCache
 from jinja2.environment import Environment
 from jinja2.loaders import FileSystemLoader, DictLoader
