@@ -719,10 +719,14 @@ class SearchTermFilter(Plugin):
 
 
 class MediaAdder(Plugin):
+    """Plugins of this type are called periodically on runShedule() and should retrun a list of Media
+    that should be added
+    """
     _type = 'MediaAdder'
     name = 'Does Nothing'
 
     class Media(object):
+        """Class that holds the iformation needed by XDM to add the Media"""
         def __init__(self, mediaTypeIdentifier, externalID, providerTag, elementType, name, additionalData={}):
             self.mediaTypeIdentifier = mediaTypeIdentifier
             self.externalID = externalID
@@ -732,6 +736,7 @@ class MediaAdder(Plugin):
             self.additionalData = additionalData
 
     def runShedule(self):
+        """This method is called periodically and has to return a list of Media objects"""
         return []
 
     def successfulAdd(self, mediaList):
