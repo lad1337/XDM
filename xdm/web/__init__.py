@@ -45,10 +45,14 @@ try:
     _()
 except NameError:
     _ = lambda x: x
+except TypeError:
+    pass
 try:
     ngettext()
 except NameError:
     ngettext = lambda x: x
+except TypeError:
+    pass
 
 env = Environment(loader=FileSystemLoader(os.path.join('html', 'templates')), extensions=['jinja2.ext.i18n'])
 env.install_gettext_callables(_, ngettext, newstyle=True)

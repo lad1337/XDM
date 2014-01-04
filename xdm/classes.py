@@ -38,10 +38,15 @@ try:
     _()
 except NameError:
     _ = lambda x: x
+except TypeError:
+    pass
+
 try:
     ngettext()
 except NameError:
     ngettext = lambda x: x
+except TypeError:
+    pass
 
 # from jinja2 import FileSystemBytecodeCache
 from jinja2.environment import Environment

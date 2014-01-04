@@ -393,6 +393,16 @@ class Plugin(object):
         return (True, 'Everything fine')
 
     def getConfigHtml(self):
+        """The return value of this function is simply injected in the config panel
+        
+        default is a html comment: <!-- nothing here -->
+        you can use this to add dynamic javascript and/or add additional html
+        
+        .. note::
+
+            The container this is added in is hidden with inline css. to make use of the html use javascript
+
+        """
         return '<!-- nothing here -->'
 
     def _get_minor_version(self):

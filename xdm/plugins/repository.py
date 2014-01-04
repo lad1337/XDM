@@ -34,6 +34,7 @@ from xdm import common, helper, actionManager
 
 
 class RepoManager(object):
+    """Class to manage all reposetories and entry point for installing plugins"""
 
     def __init__(self, repos):
         self._repos = repos
@@ -80,6 +81,10 @@ class RepoManager(object):
         return self.repos
 
     def checkForUpdate(self):
+        """Check on all installed plugins if an update is avalilable
+        stores result in self.updateable_plugins
+        and send messages to GUI
+        """
         plugins = common.PM.getAll(True, 'Default')
         updateable_plugins = {}
         for plugin in plugins:
@@ -94,6 +99,7 @@ class RepoManager(object):
         self.updateable_plugins = updateable_plugins
 
     def hasUpdate(self, identifier):
+        """Check if plugin has an update uses cache"""
         if identifier in self.updateable_plugins:
             return self.updateable_plugins[identifier][0].versionHuman()
         return ''
@@ -111,6 +117,10 @@ class RepoManager(object):
         self._read_messages = []
 
     def deinstall(self, identifier):
+        """Deinstall a plugin
+        by simply deleting the install folder
+        recaches all plugins at the end
+        """
         self._read_messages = []
         self.install_messages = [('info', 'deinstall.py -i %s' % identifier)]
         if not identifier:
@@ -149,6 +159,17 @@ class RepoManager(object):
         self.setNewMessage('info', 'Done!')
 
     def install(self, identifier, doCleanUp=True):
+        """install a plugin
+        
+            #. checks if plugin is already installed
+            #. checks if plugins is installed but has an update, if so move the old version to __old__oldFolderName
+            #. chooses install method by the given "format" e.g. "zip"
+            #. use the Appropriate installer
+            #. if doCleanUp was True doCleanUp_ is called
+        
+        .. _doCleanUp:
+        
+        """
         self._prepareIntall()
 
         self.install_messages = [('info', 'install.py -i %s' % identifier)]
@@ -232,6 +253,11 @@ class RepoManager(object):
             self.setNewMessage('error', 'Installation unsuccessful!')
 
     def doCleanUp(self):
+        """
+            #. Recaches plugins
+            #. Updates cherrypys static folders
+            #. cache repositories
+        """
         self.setNewMessage('info', 'Recaching plugins...')
         actionManager.executeAction('recachePlugins', ['RepoManager'])
         self.setNewMessage('info', 'Recaching pugins done.')

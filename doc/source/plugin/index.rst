@@ -6,9 +6,11 @@ Contents:
 
 .. toctree::
    :glob:
- 
+   :maxdepth: 2
+
    *
    plugins/*
+   
 
 
 Getting started
@@ -149,6 +151,9 @@ Following class / instance attributes are reserved and **are not to be set** by 
 
 c
     The configuration manager
+
+hc
+    The hidden configuration manager
 
 type
     The class name e.g. `Printer`
