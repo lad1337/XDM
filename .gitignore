@@ -9,6 +9,10 @@ plugins*
 server.crt
 server.key
 
+# compiled doc
+# build doc locally: sphinx-build -b html doc/source/ doc/html
+doc/html
+
 # dev python env
 xdm_env
 
