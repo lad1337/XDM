@@ -29,7 +29,7 @@
             title:             'Choose Directory',
             url:               '/browser/',
             showFiles:         false,
-            autocompleteURL:   '/localhost:8085/browser/complete'
+            autocompleteURL:   '/browser/complete'
         }
     };
 

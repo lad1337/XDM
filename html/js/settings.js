@@ -5,10 +5,16 @@ function init_settings(){
         $('.nav.nav-list a[data-toggle="tab"]:first').tab('show')
 
     $('.control-group.path input').each(function(key, item){
-        $(item).fileBrowser({ title: 'Select Folder', key: 'postprocessPath', showFiles: false});
+        $(item).fileBrowser({ title: 'Select Folder',
+                              key: 'postprocessPath',
+                              showFiles: false,
+                              autocompleteURL: webRoot + "/browser/complete"});
     });
     $('.control-group.filepath input').each(function(key, item){
-        $(item).fileBrowser({ title: 'Select File', key: 'postprocessPath', showFiles: true});
+        $(item).fileBrowser({ title: 'Select File',
+                              key: 'postprocessPath',
+                              showFiles: true,
+                              autocompleteURL: webRoot + "/browser/complete"});
     });
 
     // i cant get the tooltip data api to work so we do a jquery

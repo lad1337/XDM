@@ -3,6 +3,7 @@ import os
 import string
 import cherrypy
 import json
+from xdm import logger
 
 # this is for the drive letter code, it only works on windows
 if os.name == 'nt':
@@ -15,7 +16,7 @@ def getWinDrives():
     assert os.name == 'nt'
 
     drives = []
-    bitmask = windll.kernel32.GetLogicalDrives() #@UndefinedVariable
+    bitmask = windll.kernel32.GetLogicalDrives() # @UndefinedVariable
     for letter in string.uppercase:
         if bitmask & 1:
             drives.append(letter)
@@ -44,7 +45,7 @@ def foldersAtPath(path, includeParent=False, addFiles=False):
             entries = [{'current_path': 'Root'}]
             for letter in getWinDrives():
                 letterPath = letter + ':\\'
-                entries.append({'name': letterPath, 'path': letterPath})
+                entries.append({'name': letterPath, 'path': letterPath, 'isPath': True})
             return entries
         else:
             path = '/'
@@ -57,10 +58,11 @@ def foldersAtPath(path, includeParent=False, addFiles=False):
     if path == parentPath and os.name == 'nt':
         parentPath = ""
 
-    fileList = [{ 'name': filename, 'path': os.path.join( path, filename), 'isPath': os.path.isdir(os.path.join(path, filename)) } for filename in os.listdir(path)]
+    fileList = [{ 'name': filename, 'path': os.path.join(path, filename), 'isPath': os.path.isdir(os.path.join(path, filename)) } for filename in os.listdir(path)]
     fileList = sorted(fileList, lambda x, y: cmp(os.path.basename(x['name']).lower(), os.path.basename(y['path']).lower()))
     finalFileList = filter(lambda entry: entry['isPath'], fileList) # always add folders
     if addFiles:
+        logger.log("adding files")
         finalFileList.extend(filter(lambda entry: not entry['isPath'], fileList)) # add files
 
     entries = [{'current_path': path}]
@@ -74,12 +76,13 @@ def foldersAtPath(path, includeParent=False, addFiles=False):
 class WebFileBrowser:
 
     @cherrypy.expose
-    def index(self, path='', showFiles=False):
+    def index(self, path='', showFiles="false"):
         cherrypy.response.headers['Content-Type'] = "application/json"
+        showFiles = showFiles != "false"
         return json.dumps(foldersAtPath(path, True, showFiles))
 
     @cherrypy.expose
     def complete(self, term):
         cherrypy.response.headers['Content-Type'] = "application/json"
         paths = [entry['path'] for entry in foldersAtPath(os.path.dirname(term)) if 'path' in entry]
-        return json.dumps( paths )
+        return json.dumps(paths)

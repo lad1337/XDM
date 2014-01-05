@@ -85,7 +85,7 @@
                         {% else %}
                         {% set inputType = 'text'%}
                         {%- endif %}
-                        <input data-belongsto="{{plugin.name|idSafe}}" name="{{ plugin.type }}-{{ plugin.instance }}-{{ config.name}}" data-configname="{{config.name}}" type="{{inputType}}" {% if config.value %} value="{{ config.value }}"{% endif %} {% if plugin['config_meta'][config.name]['placeholder'] %}placeholder="{{ plugin['config_meta'][config.name]['placeholder'] }}"{% endif %} onChange="{{onChange}}" title="{{plugin['config_meta'][config.name]['desc']}}"/>
+                        <input data-belongsto="{{plugin.name|idSafe}}" name="{{ plugin.type }}-{{ plugin.instance }}-{{ config.name}}" data-configname="{{config.name}}" type="{{inputType}}" {% if config.value and config.value != "None" %} value="{{ config.value }}"{% endif %} {% if plugin['config_meta'][config.name]['placeholder'] %}placeholder="{{ plugin['config_meta'][config.name]['placeholder'] }}"{% endif %} onChange="{{onChange}}" title="{{plugin['config_meta'][config.name]['desc']}}"/>
                         {% endif %}
                     </div>
                 </div>
