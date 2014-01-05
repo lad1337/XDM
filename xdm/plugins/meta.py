@@ -40,7 +40,8 @@ class ConfigWrapper(object):
         self.configs.append(c)
 
     def finalSort(self, enabled=None):
-        self.configs.sort(key=lambda x: x.name, reverse=False)
+        if not isinstance(self._plugin._config, collections.OrderedDict):
+            self.configs.sort(key=lambda x: x.name, reverse=False)
         if enabled is not None:
             self.configs.insert(0, self.configs.pop(self.configs.index(enabled)))
 

@@ -52,6 +52,19 @@ To create settings simply fill the `_config` attribute of your plugin class:
             print msg + userAddition
             return True
 
+By default settings are ordered alphabetically by name if you want to have a specific order
+use an ``OrderedDict``
+
+.. code-block:: python
+
+    from collections import OrderedDict
+    _config = OrderedDict([
+               ('defaut_mt_select', ''),
+               ('login_user', ''),
+               ('login_password', ''),
+               ('port', 8085)
+               ])
+
 Setting value types and resulting form fields
 =============================================
 

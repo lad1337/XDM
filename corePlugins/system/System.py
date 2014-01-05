@@ -24,6 +24,7 @@ import os
 import xdm
 from xdm import web
 from babel.core import Locale
+from collections import OrderedDict
 import gettext
 import locale
 import traceback
@@ -33,35 +34,36 @@ import inspect
 # this class is special because it will be set to SYSTEM in the whole app
 class SystemConfig(System):
     version = "0.23"
-    _config = {'login_user': '',
-               'login_password': '',
-               'port': 8085,
-               'port_api': 8086,
-               'socket_host': '0.0.0.0',
-               'https': False,
-               'https_cert_filepath': 'server.crt',
-               'https_key_filepath': 'server.key',
-               'extra_plugin_path': '',
-               'interval_update': 1440, # 24 hours in minutes
-               'interval_check': 3, # minutes
-               'interval_mediaadder': 3, # minutes
-               'interval_core_update': 720,
-               'interval_clean': 1440, # 24 hours in minutes
-               'enabled': True,
-               'again_on_fail': False,
-               'resnatch_same': False,
-               'defaut_mt_select': '',
-               'dont_open_browser': False,
-               'webRoot': '',
-               'show_feed': True,
-               'api_active': False,
-               'api_key': '',
-               'language_select': 'automatic',
-               'use_derefer_me': True,
-               'auto_update_plugins': False,
-               'auto_update_core': False,
-               'censor_xdm_dir': False,
-               }
+    _config = OrderedDict([
+               ('defaut_mt_select', ''),
+               ('login_user', ''),
+               ('login_password', ''),
+               ('port', 8085),
+               ('port_api', 8086),
+               ('socket_host', '0.0.0.0'),
+               ('https', False),
+               ('https_cert_filepath', 'server.crt'),
+               ('https_key_filepath', 'server.key'),
+               ('extra_plugin_path', ''),
+               ('interval_update', 1440), # 24 hours in minutes
+               ('interval_check', 3), # minutes
+               ('interval_mediaadder', 3), # minutes
+               ('interval_core_update', 720),
+               ('interval_clean', 1440), # 24 hours in minutes
+               ('enabled', True),
+               ('again_on_fail', False),
+               ('resnatch_same', False),
+               ('dont_open_browser', False),
+               ('webRoot', ''),
+               ('show_feed', True),
+               ('api_active', False),
+               ('api_key', ''),
+               ('language_select', 'automatic'),
+               ('use_derefer_me', True),
+               ('auto_update_plugins', False),
+               ('auto_update_core', False),
+               ('censor_xdm_dir', False),
+               ])
 
     _hidden_config = {'last_known_version': '0.4.18', # this was introduced in 0.4.19. so in order to run migration for 0.4.19 we have a value of 0.4.18
                       'setup_wizard_step': 0 # starting point of wizard step, when the wizard only has like 5 steps but a later has an additional step 6 it should start at that step
