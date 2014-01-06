@@ -28,11 +28,12 @@ import time
 if hasattr(sys, 'frozen'):
     app_path = os.path.abspath(os.path.join(os.path.abspath(sys.executable), '..', '..', 'Resources'))
     sys.path.insert(1, app_path)
+    os.chdir(app_path)
+    sys.path.insert(1, os.path.join(app_path, 'site-packages'))
 else:
     app_path = os.path.dirname(os.path.abspath(__file__))
-# sys.path.insert(1, os.path.join(app_path, 'rootLibs'))
-os.chdir(app_path)
-site.addsitedir('site-packages')
+    os.chdir(app_path)
+    site.addsitedir('site-packages')
 
 import locale
 locale.setlocale(locale.LC_ALL, '')

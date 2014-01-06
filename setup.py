@@ -10,7 +10,7 @@ import sys
 import os
 app_path = os.path.dirname(os.path.abspath(__file__))
 os.chdir(app_path)
-sys.path.append(os.path.join(app_path, 'rootLibs'))
+sys.path.append(os.path.join(app_path, 'site-packages'))
 
 import re
 import platform
@@ -25,9 +25,9 @@ from distutils.core import setup
 import zipfile, fnmatch
 import platform
 if "windows" in platform.system().lower():
-    from lib.pbs import git
+    from pbs import git
 else:
-    from lib.sh import git
+    from sh import git
 
 
 ######################
@@ -347,8 +347,7 @@ def buildOSX(buildParams):
     APP = [buildParams['mainPy']]
     DATA_FILES = ['html',
                   'xdm',
-                  'lib',
-                  'rootLibs',
+                  'site-packages',
                   'corePlugins',
                   'i18n']
     _NSHumanReadableCopyright = "(c) %s Dennis Lutter\nBuild on: %s %s\nBased on: %s\nPython used & incl: %s" % (buildParams['thisYearString'],
@@ -359,7 +358,7 @@ def buildOSX(buildParams):
 
     OPTIONS = {'argv_emulation': False,
                'iconfile': osxAppIcon,
-               'packages':["xml", "OpenSSL"],
+               'packages':["xml", "OpenSSL", "jinja2", "pylint"],
                'includes': ["csv"],
                'plist': {'NSUIElement': 1,
                         'CFBundleShortVersionString': buildParams['build'],
