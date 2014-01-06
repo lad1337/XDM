@@ -1,7 +1,11 @@
 
 var globalMessageInterval;
 var firstMessage = true;
-    
+
+var green_arrow_small;
+var green_arrow_big;
+var logo_animate_run = true;
+
 $(document).ready(function() {
     $(".youtube").youtube();
     $(".youtube").fancybox({
@@ -66,7 +70,50 @@ $(document).ready(function() {
     if(news.length){
         showNextNews();
     }
+
+    var logo = Snap.select("#xdm-logo");
+    green_arrow_small = logo.select("#plugin1");
+    green_arrow_big = logo.select("#plugin2");
+    $(document).ajaxComplete(function(){
+        logo_animate_run = false;
+    });
+    $(document).ajaxStart(function(event){
+        if(!logo_animate_run){
+            logo_animate_run = true;
+            animate_logo();
+        }
+    });
+
 });
+
+function animate_logo(){
+    if(!logo_animate_run){
+        console.log("told to stop logo animation");
+        return
+    }
+    console.log("staring logo animation");
+    green_arrow_big.animate({ 
+        transform: "t0,9",
+        opacity: 0
+    }, 500, mina.easeout, function(){
+        // now the small arrow
+        green_arrow_small.animate({ 
+            transform: "t0,18",
+            opacity: 0
+        }, 500, mina.easeout, function(){
+            green_arrow_big.transform("t0,0");
+            green_arrow_big.animate({
+                opacity: 1
+            }, 500, mina.easeout, function(){
+                green_arrow_small.transform("t0,0");
+                green_arrow_small.animate({
+                    opacity: 1
+                }, 500, mina.easeout, animate_logo);
+                
+            });
+        });
+    });
+}
 
 function init_progress_bar_resize(parent){
     $('.progress .bar', parent).resize(function(event){

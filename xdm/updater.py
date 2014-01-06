@@ -25,13 +25,17 @@ import os
 import xdm
 from xdm.logger import *
 from core_migrate import *
-from lib import requests
+import requests
 from xdm import version, common, actionManager
 import re
 from subprocess import call
 import urllib
 import subprocess
 import shutil
+import zipfile
+import StringIO
+import tempfile
+from distutils import dir_util
 
 
 install_type_exe = 0 # any compiled windows build
@@ -48,9 +52,14 @@ class CoreUpdater(object):
 
     def __init__(self):
         self.install_type = self._find_install_type()
+
         self.info = None
+        if common.STARTOPTIONS.installType is not None:
+            self.install_type = common.STARTOPTIONS.installType
+            log.info("Forcing install type %s" % install_type_names[self.install_type])
 
         log.info('CoreUpdate is working with version %s on %s' % (xdm.common.getVersionString(), install_type_names[self.install_type]))
+
         if self.install_type == install_type_exe:
             self.updater = WindowsUpdateManager()
         if self.install_type == install_type_mac:
@@ -129,7 +138,7 @@ class CoreUpdater(object):
         try:
             self.info = self.updater.need_update()
         except Exception as e:
-            log.critical(unicode(e))
+            log.error(unicode(e))
             if not common.STARTOPTIONS.dev:
                 raise
             self.info = UpdateResponse()
@@ -142,7 +151,15 @@ class CoreUpdater(object):
     def update(self):
         xdm.common.addState(3)
         common.SM.setNewMessage("Initialising core update")
-        if self.updater.update():
+
+        try:
+            result = self.updater.update()
+        except:
+            msg = "Error while trying to updateing. Please see log"
+            log.error(msg)
+            common.SM.setNewMessage(msg, lvl='error')
+            return False
+        if result:
             actionManager.executeAction('reboot', 'Updater')
         xdm.common.removeState(3)
         return True
@@ -240,55 +257,94 @@ class MacUpdateManager(BinaryUpdateManager):
         common.SM.setNewMessage("Download url %s" % new_link)
 
         # download the dmg
-        try:
-            m = re.search(r'(^.+?)/[\w_\-\. ]+?\.app', xdm.APP_PATH)
-            installPath = m.group(1)
-            msg = "Downloading update file..."
-            log(msg)
-            common.SM.setNewMessage(msg)
-            (filename, headers) = urllib.urlretrieve(new_link) # @UnusedVariable
-            msg = "New dmg at %s" % filename
-            log(msg)
-            common.SM.setNewMessage(msg)
-            os.system("hdiutil mount %s | grep /Volumes/XDM >update_mount.log" % (filename))
-            fp = open('update_mount.log', 'r')
-            data = fp.read()
-            fp.close()
-            m = re.search(r'/Volumes/(.+)', data)
-            updateVolume = m.group(1)
-            msg = "Copying app from /Volumes/%s/XDM.app to %s" % (updateVolume, installPath)
-            log(msg)
-            common.SM.setNewMessage(msg)
-            call(["cp", "-rf", "/Volumes/%s/XDM.app" % updateVolume, installPath])
+        m = re.search(r'(^.+?)/[\w_\-\. ]+?\.app', xdm.APP_PATH)
+        installPath = m.group(1)
+        msg = "Downloading update file..."
+        log(msg)
+        common.SM.setNewMessage(msg)
+        (filename, headers) = urllib.urlretrieve(new_link) # @UnusedVariable
+        msg = "New dmg at %s" % filename
+        log(msg)
+        common.SM.setNewMessage(msg)
+        os.system("hdiutil mount %s | grep /Volumes/XDM >update_mount.log" % (filename))
+        fp = open('update_mount.log', 'r')
+        data = fp.read()
+        fp.close()
+        m = re.search(r'/Volumes/(.+)', data)
+        updateVolume = m.group(1)
+        msg = "Copying app from /Volumes/%s/XDM.app to %s" % (updateVolume, installPath)
+        log(msg)
+        common.SM.setNewMessage(msg)
+        call(["cp", "-rf", "/Volumes/%s/XDM.app" % updateVolume, installPath])
 
-            msg = "Eject imgae /Volumes/%s/" % updateVolume
-            log(msg)
-            common.SM.setNewMessage(msg)
-            call(["hdiutil", "eject", "/Volumes/%s/" % updateVolume], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        msg = "Eject imgae /Volumes/%s/" % updateVolume
+        log(msg)
+        common.SM.setNewMessage(msg)
+        call(["hdiutil", "eject", "/Volumes/%s/" % updateVolume], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
-            # delete the dmg
-            msg = "Deleting dmg file from %s" % filename
-            log(msg)
-            common.SM.setNewMessage(msg)
-            os.remove(filename)
+        # delete the dmg
+        msg = "Deleting dmg file from %s" % filename
+        log(msg)
+        common.SM.setNewMessage(msg)
+        os.remove(filename)
 
-        except:
-            msg = "Error while trying to updateing. Please see log"
-            log.error(msg)
-            common.SM.setNewMessage(msg, lvl='error')
-            return False
         return True
 
 
 class SourceUpdateManager(UpdateManager):
 
+    version_url = "https://raw.github.com/lad1337/XDM/master/xdm/version.py"
+    download_url = "https://github.com/lad1337/XDM/archive/master.zip"
+
+    def _resolved(self, x):
+        return os.path.realpath(os.path.abspath(x))
+
+    def _badpath(self, path, base):
+        # joinpath will ignore base if path is absolute
+        return not self._resolved(os.path.join(base, path)).startswith(base)
+
     def need_update(self):
-        self.response.needUpdate = None
-        msg = 'sorry update not implemented for Source install'
-        log.warning(msg)
-        self.response.message = msg
+        self.response.localVersion = common.getVersionTuple(True)
+
+        r = requests.get(self.version_url)
+        externalVersion = []
+        for name in ('major', 'minor', 'revision'):
+            externalVersion.append(int(re.search("%s = (?P<v>\d+)" % name, r.text).group('v')))
+
+        self.response.externalVersion = tuple(externalVersion)
+        if self.response.localVersion < self.response.externalVersion:
+            msg = 'Update available %s' % (self.response.externalVersion,)
+            log.info(msg)
+            self.response.message = msg
+            self.response.needUpdate = True
+        else:
+            self.response.message = 'No update needed'
+            self.response.needUpdate = False
         return self.response
 
+    def update(self):
+        msg = "Downloading update file..."
+        log(msg)
+        common.SM.setNewMessage(msg)
+
+        r = requests.get(self.download_url)
+        z = zipfile.ZipFile(StringIO.StringIO(r.content))
+        base = self._resolved(".")
+        for memberPath in z.namelist():
+            if self._badpath(memberPath, base):
+                common.SM.setNewMessage('Security error. Path of file is absolute or contains ".." !', 'error')
+                common.SM.setNewMessage('Please report this !', 'error')
+                return False
+        common.SM.setNewMessage('Extracting...')
+        tmp_dir = tempfile.gettempdir()
+        msg = "Extracting to %s" % tmp_dir
+        log(msg)
+        common.SM.setNewMessage(msg)
+
+        z.extractall(tmp_dir)
+        extraction_folder = os.path.join(tmp_dir, "XDM-master")
+        dir_util.copy_tree(extraction_folder, xdm.APP_PATH)
+        return True
 
 class GitUpdateManager(UpdateManager):
 
@@ -296,9 +352,9 @@ class GitUpdateManager(UpdateManager):
     def __init__(self):
         import platform
         if "windows" in platform.system().lower():
-            from lib.pbs import git
+            from pbs import git
         else:
-            from lib.sh import git
+            from sh import git
         self.git = git
         UpdateManager.__init__(self)
 

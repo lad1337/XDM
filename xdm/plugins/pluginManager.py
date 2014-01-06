@@ -29,6 +29,7 @@ import threading
 from cStringIO import StringIO
 from pylint import lint
 import sys
+import site
 
 
 class PluginManager(object):
@@ -416,7 +417,7 @@ class PluginManager(object):
                 extra_root_path = os.path.join(root, 'pluginRootLibarys')
                 if extra_root_path not in sys.path:
                     log.info('Adding -->%s<-- to the python path' % extra_root_path)
-                    sys.path.append(extra_root_path)
+                    site.addsitedir(extra_root_path)
             for name in files:
                 if name.endswith(".py") and not name.startswith("__"):
                     cur_path = os.path.join(root, name)

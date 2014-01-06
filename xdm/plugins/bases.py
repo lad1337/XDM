@@ -926,11 +926,10 @@ class MediaTypeManager(Plugin):
         """This will inject a script and a css style tag script.js and style.css respectively
         It assumes that these files are in the root of the plugin.
         """
-        myUrl = self.myUrl()
         return """
         <link rel="stylesheet" href="%(myUrl)s/style.css">
         <script src="%(myUrl)s/script.js"></script>
-        """ % {'myUrl': myUrl}
+        """ % {'myUrl': self.myUrl()}
 
     @xdm.profileMeMaybe
     def paintChildrenOf(self, root, status=None):

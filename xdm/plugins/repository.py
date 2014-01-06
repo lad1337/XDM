@@ -27,8 +27,9 @@ import shutil
 import datetime
 import operator
 
+import requests
+
 from xdm.logger import *
-from lib import requests
 from xdm.plugins.bases import __all__ as allClasses
 from xdm import common, helper, actionManager
 

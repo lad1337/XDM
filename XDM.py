@@ -21,17 +21,18 @@
 # along with this program.  If not, see http://www.gnu.org/licenses/.
 
 import sys
+import site
 import os
 import time
 # Fix for correct path
 if hasattr(sys, 'frozen'):
     app_path = os.path.abspath(os.path.join(os.path.abspath(sys.executable), '..', '..', 'Resources'))
-    sys.path.insert(1, os.path.join(app_path, 'rootLibs'))
     sys.path.insert(1, app_path)
 else:
     app_path = os.path.dirname(os.path.abspath(__file__))
-    sys.path.insert(1, os.path.join(app_path, 'rootLibs'))
+# sys.path.insert(1, os.path.join(app_path, 'rootLibs'))
 os.chdir(app_path)
+site.addsitedir('site-packages')
 
 import locale
 locale.setlocale(locale.LC_ALL, '')
@@ -88,6 +89,7 @@ class App():
         p.add_argument('--noWebServer', action="store_true", dest='noWebServer', help="Don't start the webserver")
         p.add_argument('--pluginImportDebug', action="store_true", dest='pluginImportDebug', help="Extra verbosy debug during plugin import is printed.")
         p.add_argument('--profile', dest='profile', nargs='*', default=None, help="Wrap a decorated(!) function in a profiler. By default all decorated functions are profiled. Decorate your function with @profileMeMaybe")
+        p.add_argument('--installType', dest='installType', default=None, type=int, help="Force the install type")
 
         options = p.parse_args(args)
         self.options = options
