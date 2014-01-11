@@ -224,6 +224,7 @@ footer .divider{
 }
 
 /*https://github.com/twitter/bootstrap/issues/1065*/
+.striped,
 .btn-striped {
   background-image: -webkit-gradient(linear, 0 100%, 100% 0, color-stop(0.25, rgba(255, 255, 255, 0.15)), color-stop(0.25, transparent), color-stop(0.5, transparent), color-stop(0.5, rgba(255, 255, 255, 0.15)), color-stop(0.75, rgba(255, 255, 255, 0.15)), color-stop(0.75, transparent), to(transparent));
   background-image: -webkit-linear-gradient(-45deg, rgba(255, 255, 255, 0.15) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.15) 50%, rgba(255, 255, 255, 0.15) 75%, transparent 75%, transparent);
@@ -236,6 +237,7 @@ footer .divider{
   -o-background-size: 40px 40px;
   background-size: 40px 40px;
 }
+.striped.animate,
 .btn-striped.animate {
   -webkit-animation: progress-bar-stripes 2s linear infinite;
   -moz-animation: progress-bar-stripes 2s linear infinite;
@@ -448,12 +450,32 @@ td.download-size,
     border-radius: 4px 0 0 4px;
 }
 
+.search-preview ul{
+    margin: 0;
+}
+
+.search-preview ul li{
+    list-style: none;
+    margin-bottom: 3px;
+}
+
+.search-preview img{
+    width: 50px;
+    max-height: 30px;
+    margin-right: 5px;
+}
+
 /* helper */
 
 .box-shadow{
     -webkit-box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
     -moz-box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
     box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+}
+
+.box-shadow-inset{
+    -webkit-box-shadow: inset 0px 0px 3px 1px rgba(0, 0, 0, 0.6);
+    box-shadow: inset 0px 0px 3px 1px rgba(0, 0, 0, 0.6);
 }
 
 .black-outline{
@@ -468,6 +490,10 @@ td.download-size,
 
 .form-horizontal .control-group{
     margin-bottom: 10px;
+}
+
+.round-corners{
+    border-radius: 4px;
 }
 
 /* overwrite qtip */

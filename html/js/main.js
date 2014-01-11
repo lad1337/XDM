@@ -40,6 +40,7 @@ $(document).ready(function() {
         },
         highlighter: function (item) {
             var regex = new RegExp( ': (' + this.query + ')', 'gi' );
+            update_on_xdm(this.query);
             return item.replace( regex, ": <strong>$1</strong>" );
         },
         //http://stackoverflow.com/questions/9425024/submit-selection-on-bootstrap-typeahead-autocomplete
@@ -48,15 +49,27 @@ $(document).ready(function() {
             this.$element[0].form.submit();
             return item;
         }
-    })
+    }).on("keydown", function(e){
+        if(e.keyCode == 40 || e.keyCode == 38){
+            update_on_xdm();
+        }
+    }).on("destroy", function(e){
+        console.log(e)
+    });
+    $('.navbar .navbar-search ').on('change', function (e, value) {
+        console.log("change", value);
+        if(typeof(value) == "undefined"){
+            console.log("change destroy");
+            $(".navbar .navbar-search .typeahead *").qtip('destroy', true);
+        }
+    });
     $('.navbar .dropdown-toggle').dropdown()
 
     
     $('.notifications .dropdown-menu').click(function (e) {
         e.stopPropagation();
       });
-    
-    
+
     // TODO: make it stop on hover
     var news = $("#newsFeed .news");
     var newsIndex = -1;
@@ -114,6 +127,56 @@ function animate_logo(){
         });
     });
 }
+
+function update_on_xdm(query){
+    var active_item = $('.navbar .navbar-search .typeahead li.active');
+    mt = active_item.text().split(":")[0]
+    if(typeof(query) == "undefined")
+        query = active_item.text().split(":")[1]
+    data = {term: query, mt: mt};
+    $.getJSON(webRoot+'/ajax/preview', data, function(res){
+        console.log(query, res);
+        if(res["result"]){
+
+            console.log("build qtip");
+            $('.navbar .navbar-search .typeahead li.active').qtip({
+                content: {
+                    text: function(){
+                        var ul = $("<ul>");
+                        $.each(res["data"], function(index, item){
+                            var li = $("<li>");
+                            var span = $("<span>").text(item["name"]);
+                            var img = $("<img>").attr("src", item["img"]).addClass("round-corners pull-left");
+                            var status = $("<small>").text(item["status"]).addClass("muted");
+                            li.append(img).append(span).append("<br/>").append(status);
+                            ul.append(li)
+                        });
+                        return ul;
+                    },
+                    title: "Allready on XDM"
+                },
+                style:{
+                    classes: 'qtip-bootstrap de-uranime-anime search-preview'
+                },
+                show: {
+                    solo: true,
+                    ready: true,
+                    event: 'click'
+                },
+                position: {
+                    viewport: $(window),
+                    my: 'center right',  // Position my top left...
+                    at: 'center left', // at the bottom right of...
+                }
+                
+            });
+        }else{
+            console.log("destroy qtip");
+            $("*", active_item.parent()).qtip('destroy', true);
+        }
+    });
+}
+
 
 function init_progress_bar_resize(parent){
     $('.progress .bar', parent).resize(function(event){

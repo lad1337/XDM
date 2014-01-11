@@ -90,6 +90,23 @@ class AjaxCalls:
         return mtm.paint(oldS)
 
     @cherrypy.expose
+    def preview(self, term='', mt=''):
+        if len(term) < 3:
+            return json.dumps({'result': False, 'data': [], 'msg': 'did not search'})
+        term = u"%{}%".format(term.strip())
+        mt = MediaType.select().where(MediaType.name == mt)
+        fields = Field.select().join(Element).where(Field._value_char ** term, Element.mediaType == mt, Element.status != common.TEMP)
+        results = {}
+        for index, field in enumerate(fields):
+            if field.element.id not in results:
+                results[field.element.id] = {'name': field.element.getName(),
+                                             'img': unicode(field.element.getAnyImage()),
+                                             'status': _(field.element.status.name)}
+            if index >= 5:
+                break
+        return json.dumps({'result': bool(results), 'data': results, 'msg': ''})
+
+    @cherrypy.expose
     def deleteElement(self, id):
         element = Element.get(Element.id == id)
         name = element.getName()
