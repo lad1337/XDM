@@ -14,7 +14,7 @@ server.key
 doc/html
 
 # dev python env
-xdm_env
+env
 
 # python bins
 *.py[cod]
