@@ -643,7 +643,8 @@ class Provider(Plugin):
         percent = property(_getPercent)
 
     def __init__(self, instance='Default'):
-        self._config['favor'] = False
+        self._config['searcher'] = False
+
         Plugin.__init__(self, instance=instance)
         self.tag = self._tag
         self.tags = self._additional_tags + [self.tag]
@@ -957,17 +958,27 @@ class MediaTypeManager(Plugin):
             return root.paint(search=True)
 
     def search(self, search_query):
+        """Search the ONE provider for search_query
+        the provider is either the first one
+        or the provider that is set as the "searcher"
+        """
         log.info('Init search on %s for %s' % (self, search_query))
         self.searcher = None
-        # xdm.DATABASE.set_autocommit(False)
         rootElement = None
+        first_provider = None
         for provider in common.PM.P:
             if not provider.runFor(self) or self.identifier not in provider.types:
                 continue
-            self.searcher = provider
-            rootElement = provider.searchForElement(term=search_query)
-        # xdm.DATABASE.commit()
-        # xdm.DATABASE.set_autocommit(True)
+            if first_provider is None:
+                first_provider = provider
+            if provider.c.searcher:
+                self.searcher = provider
+                break
+        else:
+            self.searcher = first_provider
+
+        if self.searcher is not None:
+            rootElement = self.searcher.searchForElement(term=search_query)
         self.searcher = None
         return rootElement
 

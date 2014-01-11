@@ -66,6 +66,8 @@ def replace_all(text):
     dic = {'...':'', ' & ':' ', ' = ': ' ', '?':'', '$':'s', ' + ':' ', '"':'', ',':'', '*':'', '.':'', ':':'', "'":'', "#":''}
     return replace_x(text, dic)
 
+def turn_into_ascii(string):
+    return string.encode("ascii", 'ignore')
 
 def replace_x(text, dic):
     text = u'%s' % text
@@ -270,18 +272,20 @@ def dereferMeText(html):
     return html
 
 # FIXME: this is like O(N^2)!
-def getNewNodes(old_tree, new_tree):
+def getNewNodes(old_tree, new_tree, tag):
     new_nodes = []
     for node in new_tree.decendants:
-        old_node = findOldNode(node, old_tree)
+        old_node = findOldNode(node, old_tree, tag)
         if old_node is None:
             new_nodes.append(node)
     return new_nodes
 
-def findOldNode(node, root):
-    new_XDMID = node.XDMID
+def findOldNode(node, root, tag):
+    new_XDMID = node.getXDMID(tag)
+    # print "looking for node with XDMID: %s" % new_XDMID
     for old_node in [root] + root.decendants:
-        if old_node.XDMID == new_XDMID:
+        # print "new: %s vs %s" % (new_XDMID, old_node.getXDMID(tag))
+        if old_node.getXDMID(tag) == new_XDMID:
             return old_node
     return None
 

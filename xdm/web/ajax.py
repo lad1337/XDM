@@ -361,6 +361,8 @@ class AjaxCalls:
 
         if element is None:
             common.PM.reinstanceiate()
+            # This is provate find a better place to the cache
+            common._provider_tags_cache = []
         final_actions = {}
         for cur_class_name, cur_actions in actions.items():
             for cur_action in cur_actions:
