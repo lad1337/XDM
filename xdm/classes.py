@@ -50,7 +50,7 @@ except TypeError:
 
 # from jinja2 import FileSystemBytecodeCache
 from jinja2.environment import Environment
-from jinja2.loaders import FileSystemLoader, DictLoader
+from jinja2.loaders import FileSystemLoader, DictLoader, FunctionLoader, BaseLoader, TemplateNotFound
 import urllib
 
 # bcc = FileSystemBytecodeCache(pattern='%s.cache')
@@ -439,18 +439,11 @@ class Element(BaseModel):
             tpl = self.getSearchTemplate()
         else:
             tpl = self.getTemplate()
+        tpl = unicode(tpl)
         # print "template for %s is #####:\n%s\n" % (self, tpl)
 
-        # TODO: find a way to not initialise a new Environment every time !
         webRoot = common.SYSTEM.c.webRoot
-        env = Environment(loader=DictLoader({'this': tpl}), extensions=['jinja2.ext.i18n'])
-        env.install_gettext_callables(_, ngettext, newstyle=True)
-        env.filters['relativeTime'] = helper.reltime
-        env.filters['idSafe'] = helper.idSafe
-        env.filters['derefMe'] = helper.dereferMe
-        env.filters['derefMeText'] = helper.dereferMeText
-        elementTemplate = env.get_template('this')
-
+        elementTemplate = elementEnviroment.get_template(tpl)
         widgets_html = {}
         useInSearch = {'actionButtons': 'addButton',
                        'actionButtonsIcons': 'addButtonIcon',
@@ -711,6 +704,8 @@ class Element(BaseModel):
         except Config.DoesNotExist:
             return None
 
+    def __repr__(self):
+        return "%s-%s" % (self.type, self.id)
 
 class Field_V0(BaseModel):
     element = ForeignKeyField(Element, related_name='fields')

@@ -315,10 +315,10 @@ def ppElement(element, download, path):
 def updateElement(element, force=False, withDecendents=True):
     for p in common.PM.getProvider(runFor=element.manager):
         # TODO: make sure we use the updated element after one provider is done
-        for suported_tag in p.tags:
-            pID = element.getField('id', suported_tag)
+        for current_tag in p.tags:
+            pID = element.getField('id', current_tag)
             if not pID:
-                log.info(u'we dont have this element(%s) on provider(%s) with tag %s' % (element, p, suported_tag))
+                log.info(u'we dont have this element(%s) on provider(%s) with tag %s' % (element, p, current_tag))
                 # TODO search element by name or with help of xem ... yeah wishful thinking
                 # new_e = p.searchForElement(element.getName())
                 log.warning('getting an element by name is not implemented can not refresh')
@@ -333,12 +333,12 @@ def updateElement(element, force=False, withDecendents=True):
                 continue
 
             log("Processing new data tree %s" % new_e)
-            new_nodes = helper.getNewNodes(element, new_e)
+            new_nodes = helper.getNewNodes(element, new_e, current_tag)
             log("Processing %s done" % new_e)
             if new_nodes:
                 for new_node in new_nodes:
                     log.info("%s is a new node compared to the root %s" % (new_node, element))
-                    new_parent = helper.findOldNode(new_node.parent, element)
+                    new_parent = helper.findOldNode(new_node.parent, element, current_tag)
                     log.debug("attaching %s to %s" % (new_node, new_parent))
                     new_node.parent = new_parent
                     new_status = common.getStatusByID(new_node.manager.c.new_node_status_select)
@@ -355,7 +355,7 @@ def updateElement(element, force=False, withDecendents=True):
             new_e.clearTreeCache()
 
             for updated_node in [new_e] + new_e.decendants:
-                old_node = helper.findOldNode(updated_node, element)
+                old_node = helper.findOldNode(updated_node, element, current_tag)
                 if old_node is None:
                     log.error("NO old node found for %s in %s" % (updated_node, element))
                     continue
