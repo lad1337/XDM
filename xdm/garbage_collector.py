@@ -18,8 +18,11 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see http://www.gnu.org/licenses/.
+import os
+import fnmatch
+import xdm
 from xdm import common
-from xdm.classes import Element, Field
+from xdm.classes import Element, Field, Image
 from xdm.logger import *
 
 
@@ -29,10 +32,11 @@ def soFreshAndSoClean():
     """
     common.addState(6)
 
+    # add more functions here
     cleanTemporaryElements()
     deleteOrphanFields()
-
-    # add more functions here
+    deleteOrphanImages()
+    fixImages()
     common.removeState(6)
 
 
@@ -48,3 +52,33 @@ def deleteOrphanFields():
     fields_dq = Field.delete().where(~(Field.element << elements))
     deleted_rows = fields_dq.execute()
     log.info("Deleted %s orphanaged fields" % deleted_rows)
+
+def deleteOrphanImages():
+    log.info("Getting orphanaged images")
+    elements = Element.select()
+    image_dq = Image.delete().where(~(Image.element << elements))
+    deleted_rows = image_dq.execute()
+    log.info("Deleted %s orphanaged images" % deleted_rows)
+
+def fixImages():
+    needed_files = set()
+    for image in Image.select():
+        path = image.getPath()
+        if not os.path.isfile(path):
+            log.debug("%s has no file adding it to the Q" % image)
+            common.Q.put(('image.download', {'id': image.element.id}))
+        needed_files.add(path)
+    log.info("Needed image files %d" % len(needed_files))
+
+    all_files = set()
+    for root, dirnames, filenames in os.walk(xdm.IMAGEPATH):
+        for filename in filenames:
+            all_files.add(os.path.join(root, filename))
+
+    old_files = all_files - needed_files
+    log.info("Found image %s files " % len(all_files))
+    if old_files:
+        log.info("Removing %s old files" % len(old_files))
+        for unneeded_file_path in old_files:
+            log.debug("Deleting unneeded image file %s" % unneeded_file_path)
+            os.remove(unneeded_file_path)
