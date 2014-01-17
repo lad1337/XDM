@@ -40,7 +40,7 @@ $(document).ready(function() {
         },
         highlighter: function (item) {
             var regex = new RegExp( ': (' + this.query + ')', 'gi' );
-            update_on_xdm(this.query);
+            previously_on_xdm(this.query);
             return item.replace( regex, ": <strong>$1</strong>" );
         },
         //http://stackoverflow.com/questions/9425024/submit-selection-on-bootstrap-typeahead-autocomplete
@@ -50,16 +50,13 @@ $(document).ready(function() {
             return item;
         }
     }).on("keydown", function(e){
-        if(e.keyCode == 40 || e.keyCode == 38){
-            update_on_xdm();
+        // up and down and esc
+        if(e.keyCode == 40 || e.keyCode == 38 || e.keyCode == 27){
+            previously_on_xdm();
         }
-    }).on("destroy", function(e){
-        console.log(e)
     });
     $('.navbar .navbar-search ').on('change', function (e, value) {
-        console.log("change", value);
         if(typeof(value) == "undefined"){
-            console.log("change destroy");
             $(".navbar .navbar-search .typeahead *").qtip('destroy', true);
         }
     });
@@ -68,7 +65,7 @@ $(document).ready(function() {
     
     $('.notifications .dropdown-menu').click(function (e) {
         e.stopPropagation();
-      });
+    });
 
     // TODO: make it stop on hover
     var news = $("#newsFeed .news");
@@ -96,7 +93,6 @@ $(document).ready(function() {
             animate_logo();
         }
     });
-
 });
 
 function animate_logo(){
@@ -128,51 +124,58 @@ function animate_logo(){
     });
 }
 
-function update_on_xdm(query){
+function previously_on_xdm(query){
     var active_item = $('.navbar .navbar-search .typeahead li.active');
     mt = active_item.text().split(":")[0]
     if(typeof(query) == "undefined")
         query = active_item.text().split(":")[1]
     data = {term: query, mt: mt};
-    $.getJSON(webRoot+'/ajax/preview', data, function(res){
-        console.log(query, res);
-        if(res["result"]){
+    $("*", active_item.parent()).qtip('destroy', true);
 
-            console.log("build qtip");
+    $.getJSON(webRoot+'/ajax/preview', data, function(res){
+        if(res["result"]){
             $('.navbar .navbar-search .typeahead li.active').qtip({
                 content: {
                     text: function(){
-                        var ul = $("<ul>");
+                        var table = $("<table>");
                         $.each(res["data"], function(index, item){
-                            var li = $("<li>");
+                            var tr = $("<tr>");
+                            var td = $("<td>");
+                            var div = $("<div>");
                             var span = $("<span>").text(item["name"]);
-                            var img = $("<img>").attr("src", item["img"]).addClass("round-corners pull-left");
                             var status = $("<small>").text(item["status"]).addClass("muted");
-                            li.append(img).append(span).append("<br/>").append(status);
-                            ul.append(li)
+                            div.append(span).append("<br/>").append(status);
+                            td.append(div);
+                            var img_td = $("<td>")
+                            console.log(item["img"]);
+                            if(item["img"])
+                                img_td.append($("<img>").attr("src", item["img"]).addClass("round-corners"));
+                            tr.append(img_td).append(td);
+                            table.append(tr)
                         });
-                        return ul;
+                        return table;
                     },
-                    title: "Allready on XDM"
+                    title: "Already on XDM"
                 },
                 style:{
-                    classes: 'qtip-bootstrap de-uranime-anime search-preview'
+                    classes: 'qtip-bootstrap search-preview'
                 },
                 show: {
                     solo: true,
                     ready: true,
-                    event: 'click'
+                },
+                hide: {
+                    event: "all"
                 },
                 position: {
-                    viewport: $(window),
-                    my: 'center right',  // Position my top left...
-                    at: 'center left', // at the bottom right of...
+                    viewport: $("body"),
+                    my: 'right center',
+                    at: 'center left',
+                    adjust: {
+                        method: 'none shift'
+                    }
                 }
-                
             });
-        }else{
-            console.log("destroy qtip");
-            $("*", active_item.parent()).qtip('destroy', true);
         }
     });
 }

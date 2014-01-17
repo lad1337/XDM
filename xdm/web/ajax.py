@@ -99,8 +99,10 @@ class AjaxCalls:
         results = {}
         for index, field in enumerate(fields):
             if field.element.id not in results:
+                img = field.element.getAnyImage()
                 results[field.element.id] = {'name': field.element.getName(),
-                                             'img': unicode(field.element.getAnyImage()),
+                                             'img': unicode(img if img else ""),
+                                             'type': field.element.type,
                                              'status': _(field.element.status.name)}
             if index >= 5:
                 break

@@ -450,18 +450,26 @@ td.download-size,
     border-radius: 4px 0 0 4px;
 }
 
-.search-preview ul{
-    margin: 0;
+.search-preview{
+    width: 300px;
 }
 
-.search-preview ul li{
-    list-style: none;
-    margin-bottom: 3px;
+.search-preview table td:first-child{
+    text-align: center;
+}
+.search-preview table td:last-child{
+    
+}
+.search-preview table td div{
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    width: 215px;
 }
 
 .search-preview img{
-    width: 50px;
-    max-height: 30px;
+    max-width: 50px;
+    max-height: 40px;
     margin-right: 5px;
 }
 

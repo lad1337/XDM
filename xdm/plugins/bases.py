@@ -815,6 +815,7 @@ class MediaTypeManager(Plugin):
         l = list(self.order)
         for i, e in enumerate(l):
             attributes = [attr for attr in dir(e) if isinstance(getattr(e, attr), (int, str)) and not attr.startswith('_')]
+            attributes = sorted(attributes, key=lambda a: getattr(e, a))
             if not i:
                 if len(l) > 1:
                     self.s[e.__name__] = {'parent': 'root', 'child': l[i + 1], 'class': e, 'attr': attributes}

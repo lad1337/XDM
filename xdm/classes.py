@@ -326,7 +326,13 @@ class Element(BaseModel):
             return None
 
     def getAnyImage(self):
-        return (sorted(self.images) + [None])[0]
+        images = sorted(self.images)
+        names = self.getImageNames()
+        if names:
+            for image in images:
+                if names[0] == image.name:
+                    return image
+        return (images + [None])[0]
 
     def getField(self, name, provider=None, returnObject=False):
         # this is faster then a db query oO
