@@ -234,7 +234,7 @@ class RepoManager(object):
 
         if plugin_to_update.format == 'zip':
             downloader = ZipPluginInstaller()
-        if plugin_to_update.format == 'github':
+        elif plugin_to_update.format == 'github':
             downloader = GithubPluginInstaller()
         else:
             self.setNewMessage('error', 'Format %s is not supported. sorry' % plugin_to_update.format)
