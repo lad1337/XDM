@@ -170,8 +170,9 @@ def updateCherrypyPluginDirs():
 
 
 def reltime(date):
-    if date == common.FAKEDATE:
+    if date == common.FAKEDATE or not date:
         return "unknown"
+    # FIXME use isinstance() ... but test it
     if type(date).__name__ not in ('date', 'datetime'):
         return "reltime needs a date or datetime we got: '%s'" % repr(date)
     return format_timedelta(date - datetime.now(), locale=common.getLocale())
