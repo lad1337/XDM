@@ -167,7 +167,31 @@ class AjaxCalls:
             t = tasks.TaskThread(tasks.searchElement, ele)
             t.start()
 
-        return json.dumps({'result': True, 'data': {'screenName': u'%s' % status}, 'msg': u'%s set to %s' % (ele.getName(), status)})
+        return json.dumps({'result': True, 'data': {'status_id': status.id}, 'msg': u'%s set to %s' % (ele.getName(), status)})
+
+    @cherrypy.expose
+    def getDownload(self, id):
+        download = Download.get(Download.id == id)
+        tasks.snatchOne(download.element, [download])
+        download = Download.get(Download.id == id)
+        if download.status == common.SNATCHED:
+            return json.dumps({'result': True, 'data': {'element_id': download.element.id, 'status_id': download.status.id}, 'msg': u'%s was snatched' % (download.name)})
+        else:
+            return json.dumps({'result': False, 'data': [], 'msg': u'%s not was snatched' % (download.name)})
+
+
+    @cherrypy.expose
+    def forceSearch(self, id):
+        element = Element.get(Element.id == id)
+        newStatus = tasks.searchElement(element)
+        element.save()
+        if newStatus == common.SNATCHED:
+            return json.dumps({'result': True, 'data': {"status_id": element.status.id}, 'msg': u'%s was snatched' % (element.getName())})
+        else:
+            element.status = common.WANTED
+            element.save()
+            return json.dumps({'result': False, 'data': {"status_id": element.status.id}, 'msg': u'No downloads found for %s' % (element.getName())})
+
 
     @cherrypy.expose
     def searchProgress(self, mt, search_query):

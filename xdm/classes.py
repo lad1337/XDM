@@ -212,7 +212,7 @@ class Status(Status_V0):
         return True
 
     def _screenName(self):
-        return lgettext(self.name)
+        return _(self.name)
     screenName = property(_screenName)
 
     def __str__(self):

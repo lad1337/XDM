@@ -6,7 +6,7 @@
 <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
     {% for s in globalStatus %}
     {% if not s.hidden %}
-    <li><a href="javascript:void(0);" data-id="{{s.id}}">{{_(s.name)}}</a></li>
+    <li><a href="javascript:void(0);" data-id="{{s.id}}">{{s.screenName}}</a></li>
     {% endif %}
     {% endfor %}
 </ul>

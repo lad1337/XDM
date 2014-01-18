@@ -168,7 +168,12 @@ def searchElement(ele, forced=False):
 
 # in a way we dont need ele here since each download holds a ref to each ele ... but it is easier to read
 def snatchOne(ele, downloads):
-    for downloader in common.PM.getDownloaders():
+    downloaders = common.PM.getDownloaders()
+    if not downloaders:
+        log.warning(u"No Downloaders active/installed")
+        return ele.status
+
+    for downloader in downloaders:
         triedSnatch = False
         for download in downloads:
             if not download.type in downloader.types:

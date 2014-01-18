@@ -245,7 +245,8 @@ function messageConfirm(uuid){
     })
 }
 
-function ajaxSetElementStatus(status_link, status_id, element_id, silent){
+function ajaxSetElementStatus(sender, status_id, element_id, silent){
+    console.log("sender", sender);
     if(typeof silent == 'undefined')
         silent = false;
     data = {};
@@ -254,10 +255,8 @@ function ajaxSetElementStatus(status_link, status_id, element_id, silent){
     $.getJSON(webRoot+'/ajax/setStatus', data, function(res){
         if(res['result']){
             if(!silent)
-                noty({text: res['msg'], type: 'success', timeout:2000})
-            b = $('.dropdown-toggle .text', $(status_link).closest('.status-select'))
-            console.log(b, res['data']['screenName'])
-            $(b).text(res['data']['screenName'])
+                noty({text: res['msg'], type: 'success', timeout:2000});
+            setStatusText(element_id, res['data']['status_id']);
         }
     })
 };
@@ -274,15 +273,51 @@ function ajaxDeleteElement(id, deleteNode){
 };
 
 function addElement(sender, id){
-	$(sender).addClass('btn-striped animate');
-	data = {};
+    $(sender).addClass('btn-striped animate');
+    data = {};
     data['id'] = id;
     $.getJSON(webRoot+'/ajax/addElement', data, function(res){
         if(res['result']){
-        	$(sender).closest('.status-temp').hide('slow')
-        	$(sender).removeClass('btn-striped animate');
+            $(sender).closest('.status-temp').hide('slow')
+            $(sender).removeClass('btn-striped animate');
             noty({text: res['msg'], type: 'success', timeout:2000})
         }
+    })
+};
+
+function ajaxGetDownload(sender, id){
+    $(sender).addClass('btn-striped animate');
+    data = {};
+    data['id'] = id;
+    $.getJSON(webRoot+'/ajax/getDownload', data, function(res){
+        $(sender).removeClass('btn-striped animate');
+        if(res['result']){
+            noty({text: res['msg'], type: 'success', timeout:2000});
+            setStatusText(res["data"]["element_id"], res["data"]["status_id"]);
+        }else{
+            noty({text: res['msg'], type: 'error', timeout:2000});
+        }
+    })
+};
+
+function setStatusText(element_id, status_id){
+    $("[data-id="+element_id+"] .status-select .dropdown-toggle .text")
+    .text(status_by_id[status_id]["screenName"]);
+}
+
+
+function ajaxForceSearch(sender, element_id){
+    $(sender).addClass('btn-striped animate');
+    data = {};
+    data['id'] = element_id;
+    $.getJSON(webRoot+'/ajax/forceSearch', data, function(res){
+        $(sender).removeClass('btn-striped animate');
+        if(res['result']){
+            noty({text: res['msg'], type: 'success', timeout:2000});
+        }else{
+            noty({text: res['msg'], type: 'error', timeout:2000});
+        }
+        setStatusText(element_id, res['data']['status_id']);
     })
 };
 
