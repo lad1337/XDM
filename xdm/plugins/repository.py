@@ -26,6 +26,7 @@ import os
 import shutil
 import datetime
 import operator
+from copy import copy
 
 import requests
 
@@ -61,18 +62,30 @@ class RepoManager(object):
     def cache(self):
         self.caching = True
         for repo in self.repos:
+            original_url = u"%s" % repo.url
+            if not repo.url.endswith(".json") and "https://github.com" in repo.url:
+                log("Fixing gihub url to meta.json url")
+                # we got https://github.com/lad1337/XDM-main-plugin-repo/
+                # but we want https://raw.github.com/lad1337/XDM-main-plugin-repo/master/meta.json
+                repo.url = "%s/master/meta.json" % repo.url.replace("https://github.com", "https://raw.github.com")
+                # this will be permanent when the cache() succeeds
             try:
                 repo.cache()
             except:
                 log.error('%s had an error during cache' % repo)
             for r in self._repos:
-                if r.url == repo.url:
+                if r.url == original_url:
+                    if original_url != repo.url:
+                        r.url = repo.url
                     if r.name != repo.name:
                         r.name = repo.name
-                        r.save()
                     if r.info_url != repo.info_url:
-                        r.info_url = repo.info_url
-                        r.save()
+                        if original_url != repo.url:
+                            log.warning("%s has wrong info_url(%s) in the json useing %s" % (r, repo.info_url, original_url))
+                            r.info_url = original_url
+                        else:
+                            r.info_url = repo.info_url
+                    r.save()
         self.last_cache = datetime.datetime.now()
         self.cached = True
         self.caching = False
@@ -221,6 +234,8 @@ class RepoManager(object):
 
         if plugin_to_update.format == 'zip':
             downloader = ZipPluginInstaller()
+        elif plugin_to_update.format == 'github':
+            downloader = GithubPluginInstaller()
         else:
             self.setNewMessage('error', 'Format %s is not supported. sorry' % plugin_to_update.format)
             self.setNewMessage('info', 'Done!')
@@ -291,7 +306,7 @@ class RepoManager(object):
             init_file.close()
 
 
-class ZipPluginInstaller():
+class ZipPluginInstaller(object):
 
     def _resolved(self, x):
         return os.path.realpath(os.path.abspath(x))
@@ -343,6 +358,13 @@ class ZipPluginInstaller():
         shutil.copytree(plugin_folder, final_path)
         return True
 
+class GithubPluginInstaller(ZipPluginInstaller):
+
+    def install(self, manager, repo_plugin, install_path):
+        log(u"Creating patching copy of %s for github format", repo_plugin)
+        patched_repo_plugin = copy(repo_plugin)
+        patched_repo_plugin.download_url = "%s/archive/%s.zip" % (repo_plugin.download_url, repo_plugin.branch)
+        return super(GithubPluginInstaller, self).install(manager, patched_repo_plugin, install_path)
 
 class Repo(object):
 
@@ -396,6 +418,7 @@ class RepoPlugin(object):
         # new stuff has to check is if its there
         # or better use get with a default
         self.xdm_version = tuple(info.get('xdm_version', [0, 0, 0]))
+        self.branch = info.get('branch', "master")
 
     def checkType(self):
         return self.type in allClasses + ['Compilations']

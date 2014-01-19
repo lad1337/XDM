@@ -38,6 +38,7 @@
         <script>
         var mediaTypenames = [{% for mediaType in mtms%}'{{mediaType.type}}',{%endfor%}];
         var webRoot = '{{webRoot}}';
+        var status_by_id = { {% for s in common.getAllStatus()%} {{s.id}}:{"name": "{{s.name}}","screenName": "{{s.screenName}}" }, {%endfor%} };
         </script>
         
         <script src="{{webRoot}}/js/vendor/jquery-1.9.0.min.js"></script>

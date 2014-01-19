@@ -40,6 +40,7 @@ $(document).ready(function() {
         },
         highlighter: function (item) {
             var regex = new RegExp( ': (' + this.query + ')', 'gi' );
+            previously_on_xdm(this.query);
             return item.replace( regex, ": <strong>$1</strong>" );
         },
         //http://stackoverflow.com/questions/9425024/submit-selection-on-bootstrap-typeahead-autocomplete
@@ -48,15 +49,24 @@ $(document).ready(function() {
             this.$element[0].form.submit();
             return item;
         }
-    })
+    }).on("keydown", function(e){
+        // up and down and esc
+        if(e.keyCode == 40 || e.keyCode == 38 || e.keyCode == 27){
+            previously_on_xdm();
+        }
+    });
+    $('.navbar .navbar-search ').on('change', function (e, value) {
+        if(typeof(value) == "undefined"){
+            $(".navbar .navbar-search .typeahead *").qtip('destroy', true);
+        }
+    });
     $('.navbar .dropdown-toggle').dropdown()
 
     
     $('.notifications .dropdown-menu').click(function (e) {
         e.stopPropagation();
-      });
-    
-    
+    });
+
     // TODO: make it stop on hover
     var news = $("#newsFeed .news");
     var newsIndex = -1;
@@ -83,7 +93,6 @@ $(document).ready(function() {
             animate_logo();
         }
     });
-
 });
 
 function animate_logo(){
@@ -114,6 +123,63 @@ function animate_logo(){
         });
     });
 }
+
+function previously_on_xdm(query){
+    var active_item = $('.navbar .navbar-search .typeahead li.active');
+    mt = active_item.text().split(":")[0]
+    if(typeof(query) == "undefined")
+        query = active_item.text().split(":")[1]
+    data = {term: query, mt: mt};
+    $("*", active_item.parent()).qtip('destroy', true);
+
+    $.getJSON(webRoot+'/ajax/preview', data, function(res){
+        if(res["result"]){
+            $('.navbar .navbar-search .typeahead li.active').qtip({
+                content: {
+                    text: function(){
+                        var table = $("<table>");
+                        $.each(res["data"], function(index, item){
+                            var tr = $("<tr>");
+                            var td = $("<td>");
+                            var div = $("<div>");
+                            var span = $("<span>").text(item["name"]);
+                            var status = $("<small>").text(item["status"]).addClass("muted");
+                            div.append(span).append("<br/>").append(status);
+                            td.append(div);
+                            var img_td = $("<td>")
+                            console.log(item["img"]);
+                            if(item["img"])
+                                img_td.append($("<img>").attr("src", item["img"]).addClass("round-corners"));
+                            tr.append(img_td).append(td);
+                            table.append(tr)
+                        });
+                        return table;
+                    },
+                    title: "Already on XDM"
+                },
+                style:{
+                    classes: 'qtip-bootstrap search-preview'
+                },
+                show: {
+                    solo: true,
+                    ready: true,
+                },
+                hide: {
+                    event: "all"
+                },
+                position: {
+                    viewport: $("body"),
+                    my: 'right center',
+                    at: 'center left',
+                    adjust: {
+                        method: 'none shift'
+                    }
+                }
+            });
+        }
+    });
+}
+
 
 function init_progress_bar_resize(parent){
     $('.progress .bar', parent).resize(function(event){
@@ -179,7 +245,8 @@ function messageConfirm(uuid){
     })
 }
 
-function ajaxSetElementStatus(status_link, status_id, element_id, silent){
+function ajaxSetElementStatus(sender, status_id, element_id, silent){
+    console.log("sender", sender);
     if(typeof silent == 'undefined')
         silent = false;
     data = {};
@@ -188,10 +255,8 @@ function ajaxSetElementStatus(status_link, status_id, element_id, silent){
     $.getJSON(webRoot+'/ajax/setStatus', data, function(res){
         if(res['result']){
             if(!silent)
-                noty({text: res['msg'], type: 'success', timeout:2000})
-            b = $('.dropdown-toggle .text', $(status_link).closest('.status-select'))
-            console.log(b, res['data']['screenName'])
-            $(b).text(res['data']['screenName'])
+                noty({text: res['msg'], type: 'success', timeout:2000});
+            setStatusText(element_id, res['data']['status_id']);
         }
     })
 };
@@ -208,15 +273,51 @@ function ajaxDeleteElement(id, deleteNode){
 };
 
 function addElement(sender, id){
-	$(sender).addClass('btn-striped animate');
-	data = {};
+    $(sender).addClass('btn-striped animate');
+    data = {};
     data['id'] = id;
     $.getJSON(webRoot+'/ajax/addElement', data, function(res){
         if(res['result']){
-        	$(sender).closest('.status-temp').hide('slow')
-        	$(sender).removeClass('btn-striped animate');
+            $(sender).closest('.status-temp').hide('slow')
+            $(sender).removeClass('btn-striped animate');
             noty({text: res['msg'], type: 'success', timeout:2000})
         }
+    })
+};
+
+function ajaxGetDownload(sender, id){
+    $(sender).addClass('btn-striped animate');
+    data = {};
+    data['id'] = id;
+    $.getJSON(webRoot+'/ajax/getDownload', data, function(res){
+        $(sender).removeClass('btn-striped animate');
+        if(res['result']){
+            noty({text: res['msg'], type: 'success', timeout:2000});
+            setStatusText(res["data"]["element_id"], res["data"]["status_id"]);
+        }else{
+            noty({text: res['msg'], type: 'error', timeout:2000});
+        }
+    })
+};
+
+function setStatusText(element_id, status_id){
+    $("[data-id="+element_id+"] .status-select .dropdown-toggle .text")
+    .text(status_by_id[status_id]["screenName"]);
+}
+
+
+function ajaxForceSearch(sender, element_id){
+    $(sender).addClass('btn-striped animate');
+    data = {};
+    data['id'] = element_id;
+    $.getJSON(webRoot+'/ajax/forceSearch', data, function(res){
+        $(sender).removeClass('btn-striped animate');
+        if(res['result']){
+            noty({text: res['msg'], type: 'success', timeout:2000});
+        }else{
+            noty({text: res['msg'], type: 'error', timeout:2000});
+        }
+        setStatusText(element_id, res['data']['status_id']);
     })
 };
 

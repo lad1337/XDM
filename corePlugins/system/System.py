@@ -84,10 +84,10 @@ class SystemConfig(System):
         if setting != 'automatic':
             self._locale = setting
         else:
-            self._locale = locale.getlocale(locale.LC_ALL)[0]
+            self._locale = locale.getdefaultlocale()[0]
         try:
             str(self._locale)
-        except UnicodeEncodeError:
+        except (UnicodeEncodeError, UnicodeDecodeError):
             log.info(u"Setting language to en_US because the locale '%s' was not encodable with ascii" % self._locale)
             self._locale = "en_US"
         log(u"Language setting is '%s' resulting locale: '%s'" % (setting, self._locale))

@@ -1,8 +1,8 @@
 {%if this.getReleaseDate() != common.FAKEDATE%}
     {%if this.isReleaseDateInPast()%}
-        {{_('was_released')}} {{this.getReleaseDate()|relativeTime}}
+        {{_('was_released', time=this.getReleaseDate()|relativeTime)}}
     {%else%}
-        {{_('will_be_released')}} {{this.getReleaseDate()|relativeTime}}
+        {{_('will_be_released', time=this.getReleaseDate()|relativeTime)}} 
     {%endif%}
 {%else%}
     {{_('unknown')}}

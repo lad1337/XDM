@@ -13,7 +13,7 @@
         </td>
         <td style="text-align:center;">
             <span class="{{download.status|statusLabelClass}}">{{download.status}}</span>
-            {%if download.status in common.getCompletedStatuses() and download.pp_log%}
+            {%if download.pp_log%}
             <a href="#downloadLog{{download.id}}" role="button" class="btn btn-info btn-mini" data-toggle="modal">View log</a>
             <div class="modal hide fade modal-wide" id="downloadLog{{download.id}}" data-replace="true">
               <div class="modal-header">
@@ -34,7 +34,7 @@
         </td>
         <td><a href="javascript:void(0)" class="btn btn-info btn-mini" onClick="showEvents($(this), {{download.id}});">Events</a></td>
         <td style="position:relative;height: 40px;">
-            <a class="btn btn-primary btn-mini" href="/getDownload?id={{download.id}}">Get</a>
+            <a class="btn btn-primary btn-mini" href="javascript:void(0)" onclick="ajaxGetDownload(this, {{download.id}});">Get</a>
             <div class="muted" style="position:absolute;bottom:0;width:200px;right:5px;text-align:right;">{{download.indexer}} ({{download.indexer_instance}})</div>
         </td>
     </tr>

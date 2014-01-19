@@ -50,7 +50,7 @@ except TypeError:
 
 # from jinja2 import FileSystemBytecodeCache
 from jinja2.environment import Environment
-from jinja2.loaders import FileSystemLoader, DictLoader
+from jinja2.loaders import FileSystemLoader, DictLoader, FunctionLoader, BaseLoader, TemplateNotFound
 import urllib
 
 # bcc = FileSystemBytecodeCache(pattern='%s.cache')
@@ -63,11 +63,28 @@ elementWidgetEnvironment.filters['relativeTime'] = helper.reltime
 elementWidgetEnvironment.filters['idSafe'] = helper.idSafe
 elementWidgetEnvironment.filters['derefMe'] = helper.dereferMe
 elementWidgetEnvironment.filters['derefMeText'] = helper.dereferMeText
+elementWidgetEnvironment.filters['from_json'] = json.loads
 
 WIDGETS = []
 for root, folders, files in os.walk(WIDGET_PATH):
     for curFile in files:
         WIDGETS.append(os.path.basename(curFile.split('.')[0]))
+
+def fake_load(template):
+    return (template, None, lambda: True)
+
+class MyLoader(BaseLoader):
+
+    def get_source(self, environment, template):
+        return (template, None, lambda: True)
+
+elementEnviroment = Environment(loader=FunctionLoader(fake_load), extensions=['jinja2.ext.i18n'])
+elementEnviroment.install_gettext_callables(_, ngettext, newstyle=True)
+elementEnviroment.filters['relativeTime'] = helper.reltime
+elementEnviroment.filters['idSafe'] = helper.idSafe
+elementEnviroment.filters['derefMe'] = helper.dereferMe
+elementEnviroment.filters['derefMeText'] = helper.dereferMeText
+elementEnviroment.filters['json_loads'] = json.loads
 
 
 class BaseModel(Model):
@@ -195,7 +212,7 @@ class Status(Status_V0):
         return True
 
     def _screenName(self):
-        return lgettext(self.name)
+        return _(self.name)
     screenName = property(_screenName)
 
     def __str__(self):
@@ -244,7 +261,7 @@ class Element(BaseModel):
         self.__field_cache = {}
         self.__ancestors_cache = []
         self.__decendents_cache = []
-        self.__XDMID_cache = u''
+        self.__XDMID_cache = {}
 
     def clearLowerTreeCache(self):
         for child in self.children:
@@ -300,19 +317,29 @@ class Element(BaseModel):
                 raise AttributeError("No attribute '%s' nor field with that name" % name)
 
     def getImage(self, name, provider=''):
-        for img in self.images:
+        for img in sorted(self.images):
             if img.name == name and provider and img.provider == provider:
                 return img
-            elif img.name == name:
+            elif img.name == name and not provider:
                 return img
         else:
             return None
+
+    def getAnyImage(self):
+        images = sorted(self.images)
+        names = self.getImageNames()
+        if names:
+            for image in images:
+                if names[0] == image.name:
+                    return image
+        return (images + [None])[0]
 
     def getField(self, name, provider=None, returnObject=False):
         # this is faster then a db query oO
         # my mother had me tested
         xdm_field = None
-        for f in list(self.fields) + self._tmp_fields:
+
+        for f in sorted(self.fields) + self._tmp_fields:
             if f.name == name and provider and f.provider == provider:
                 if returnObject:
                     return f
@@ -418,18 +445,11 @@ class Element(BaseModel):
             tpl = self.getSearchTemplate()
         else:
             tpl = self.getTemplate()
+        tpl = unicode(tpl)
         # print "template for %s is #####:\n%s\n" % (self, tpl)
 
-        # TODO: find a way to not initialise a new Environment every time !
         webRoot = common.SYSTEM.c.webRoot
-        env = Environment(loader=DictLoader({'this': tpl}), extensions=['jinja2.ext.i18n'])
-        env.install_gettext_callables(_, ngettext, newstyle=True)
-        env.filters['relativeTime'] = helper.reltime
-        env.filters['idSafe'] = helper.idSafe
-        env.filters['derefMe'] = helper.dereferMe
-        env.filters['derefMeText'] = helper.dereferMeText
-        elementTemplate = env.get_template('this')
-
+        elementTemplate = elementEnviroment.get_template(tpl)
         widgets_html = {}
         useInSearch = {'actionButtons': 'addButton',
                        'actionButtonsIcons': 'addButtonIcon',
@@ -495,10 +515,14 @@ class Element(BaseModel):
 
         children = Element.select().where(Element.parent == self.id)
         curIndex = 0
+        orderReverse = False
+        if children.count():
+            orderReverse = children.first().orderReverse
         if '{{children}}' in html:
             for child in sorted(children,
                                 key=lambda c: c.orderFieldValues,
-                                reverse=self.orderReverse):
+                                reverse=orderReverse
+                         ):
                 html = html.replace('{{children}}', '%s{{children}}' % child.paint(search=search, single=single, status=status, curIndex=curIndex), 1)
                 curIndex += 1
 
@@ -534,16 +558,16 @@ class Element(BaseModel):
 
     ancestors = property(_getAllAncestorss)
 
-    def _getXDMID(self):
-        if not self.__XDMID_cache:
+    def getXDMID(self, tag=None):
+        if tag not in self.__XDMID_cache:
             if self.parent:
-                _XDMID = u"%s-%s" % (self.parent.XDMID, self.getIdentifier())
+                _XDMID = u"%s-%s" % (self.parent.getXDMID(tag), self.getIdentifier(tag))
             else:
                 _XDMID = u'r'
-            self.__XDMID_cache = _XDMID
-        return self.__XDMID_cache
+            self.__XDMID_cache[tag] = _XDMID
+        return self.__XDMID_cache[tag]
 
-    XDMID = property(_getXDMID)
+    XDMID = property(getXDMID)
 
     def _getAllDescendants(self):
         # this is much faster with the cache !! wohhoo
@@ -593,8 +617,9 @@ class Element(BaseModel):
 
     def downloadImages(self):
         for cImageName in self.getImageNames():
-            if self.getField(cImageName):
-                self.downloadImage(cImageName)
+            for provider in common.getProviderTags():
+                if self.getField(cImageName, provider):
+                    self.downloadImage(cImageName, provider)
 
     def downloadImage(self, imageName, provider=''):
         img = self.getImage(imageName, provider)
@@ -608,6 +633,7 @@ class Element(BaseModel):
         else:
             img.deleteFile()
         img.url = url
+        img.provider = provider
         img.cacheImage()
         img.save()
 
@@ -684,6 +710,8 @@ class Element(BaseModel):
         except Config.DoesNotExist:
             return None
 
+    def __repr__(self):
+        return "%s-%s" % (self.type, self.id)
 
 class Field_V0(BaseModel):
     element = ForeignKeyField(Element, related_name='fields')
@@ -725,7 +753,6 @@ class Field(Field_V0):
             return self._value_char
 
     def _set_value(self, value):
-
         # convert strings such as '12' to ints
         try:
             value = int(value)
@@ -759,6 +786,19 @@ class Field(Field_V0):
         raise TypeError('unknown config save type %s for config %s' % (type(value), self.name))
 
     value = property(_get_value, _set_value)
+
+    def __cmp__(self, other):
+        if self.provider == other.provider:
+            return 0
+        provider_tags = common.getProviderTags()
+        if self.provider not in provider_tags:
+            return 1
+        if other.provider not in provider_tags:
+            return -1
+
+        if provider_tags.index(self.provider) < provider_tags.index(other.provider):
+            return -1
+        return 1
 
 
 class Config(BaseModel):
@@ -1058,11 +1098,14 @@ class History(BaseModel):
         return u'updated %s' % ", ".join(out)
 
 
-class Image(BaseModel):
+class Image_V0(BaseModel):
     name = TextField()
     url = TextField()
     type = TextField()
     element = ForeignKeyField(Element, related_name='images')
+
+    class Meta:
+        db_table = 'Image'
 
     def _extByHeader(self, contentType):
         out = 'jpeg'
@@ -1084,10 +1127,6 @@ class Image(BaseModel):
             os.remove(self.getPath())
         except OSError:
             pass
-
-    def delete_instance(self):
-        self.deleteFile()
-        super(Image, self).delete_instance()
 
     def cacheImage(self):
         if not self.url:
@@ -1136,11 +1175,40 @@ class Image(BaseModel):
             return self.url
 
     def imgName(self):
-        return helper.fileNameClean(u"%s (%s) %s.%s" % (helper.replace_all(self.element.getName()),
-                                                        self.element.id,
-                                                        self.name,
-                                                        self.type))
+        return helper.turn_into_ascii(helper.fileNameClean(u"%s (%s) %s-%s.%s" % (
+            helper.replace_all(self.element.getName()),
+            self.element.id,
+            self.name,
+            self.provider,
+            self.type
+        )))
 
+class Image(Image_V0):
+    provider = TextField(True)
+
+    def delete_instance(self):
+        self.deleteFile()
+        super(Image_V0, self).delete_instance()
+
+    @classmethod
+    def _migrate(cls):
+        return cls._migrateNewField(cls.provider)
+
+    def __cmp__(self, other):
+        if self.provider == other.provider:
+            return 0
+        provider_tags = common.getProviderTags()
+        if self.provider not in provider_tags:
+            return 1
+        if other.provider not in provider_tags:
+            return -1
+
+        if provider_tags.index(self.provider) < provider_tags.index(other.provider):
+            return -1
+        return 1
+
+    def __repr__(self):
+        return "Image: %s" % self.url
 
 class Repo(BaseModel):
     name = CharField()

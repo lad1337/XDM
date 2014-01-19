@@ -90,6 +90,25 @@ class AjaxCalls:
         return mtm.paint(oldS)
 
     @cherrypy.expose
+    def preview(self, term='', mt=''):
+        if len(term) < 3:
+            return json.dumps({'result': False, 'data': [], 'msg': 'did not search'})
+        term = u"%{}%".format(term.strip())
+        mt = MediaType.select().where(MediaType.name == mt)
+        fields = Field.select().join(Element).where(Field._value_char ** term, Element.mediaType == mt, Element.status != common.TEMP)
+        results = {}
+        for index, field in enumerate(fields):
+            if field.element.id not in results:
+                img = field.element.getAnyImage()
+                results[field.element.id] = {'name': field.element.getName(),
+                                             'img': unicode(img if img else ""),
+                                             'type': field.element.type,
+                                             'status': _(field.element.status.name)}
+            if index >= 5:
+                break
+        return json.dumps({'result': bool(results), 'data': results, 'msg': ''})
+
+    @cherrypy.expose
     def deleteElement(self, id):
         element = Element.get(Element.id == id)
         name = element.getName()
@@ -148,7 +167,31 @@ class AjaxCalls:
             t = tasks.TaskThread(tasks.searchElement, ele)
             t.start()
 
-        return json.dumps({'result': True, 'data': {'screenName': u'%s' % status}, 'msg': u'%s set to %s' % (ele.getName(), status)})
+        return json.dumps({'result': True, 'data': {'status_id': status.id}, 'msg': u'%s set to %s' % (ele.getName(), status)})
+
+    @cherrypy.expose
+    def getDownload(self, id):
+        download = Download.get(Download.id == id)
+        tasks.snatchOne(download.element, [download])
+        download = Download.get(Download.id == id)
+        if download.status == common.SNATCHED:
+            return json.dumps({'result': True, 'data': {'element_id': download.element.id, 'status_id': download.status.id}, 'msg': u'%s was snatched' % (download.name)})
+        else:
+            return json.dumps({'result': False, 'data': [], 'msg': u'%s not was snatched' % (download.name)})
+
+
+    @cherrypy.expose
+    def forceSearch(self, id):
+        element = Element.get(Element.id == id)
+        newStatus = tasks.searchElement(element)
+        element.save()
+        if newStatus == common.SNATCHED:
+            return json.dumps({'result': True, 'data': {"status_id": element.status.id}, 'msg': u'%s was snatched' % (element.getName())})
+        else:
+            element.status = common.WANTED
+            element.save()
+            return json.dumps({'result': False, 'data': {"status_id": element.status.id}, 'msg': u'No downloads found for %s' % (element.getName())})
+
 
     @cherrypy.expose
     def searchProgress(self, mt, search_query):
@@ -361,6 +404,8 @@ class AjaxCalls:
 
         if element is None:
             common.PM.reinstanceiate()
+            # This is provate find a better place to the cache
+            common._provider_tags_cache = []
         final_actions = {}
         for cur_class_name, cur_actions in actions.items():
             for cur_action in cur_actions:

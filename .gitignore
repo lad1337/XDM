@@ -8,13 +8,15 @@ temp/*
 *pylintOutput*
 server.crt
 server.key
+# this has appeard probably from pylint history file
+*.stats
 
 # compiled doc
 # build doc locally: sphinx-build -b html doc/source/ doc/html
 doc/html
 
 # dev python env
-xdm_env
+env
 
 # python bins
 *.py[cod]

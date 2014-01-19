@@ -218,6 +218,13 @@ class Common(object):
             return "%s %s.%s.%s.%s" % (major_names[major], major, minor, revision, build)
         return "%s %s.%s.%s" % (major_names[major], major, minor, revision)
 
+    _provider_tags_cache = []
+
+    def getProviderTags(self):
+        if self._provider_tags_cache:
+            return self._provider_tags_cache
+        self._provider_tags_cache = [p.tag for p in self.PM.P]
+        return self._provider_tags_cache
 
 common = Common()
 
