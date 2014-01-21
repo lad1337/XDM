@@ -684,7 +684,12 @@ class PostProcessor(Plugin):
                 common.DONTSTOPPP: "Don't stop others"}
 
     def postProcessPath(self, element, path):
-        return (False, '')
+        """should return a tuple with
+        overal result bool()
+        new location str()
+        process log str()
+        """
+        return (False, None, 'Nothing happend')
 
 
 class System(Plugin):

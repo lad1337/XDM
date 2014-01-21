@@ -713,6 +713,7 @@ class Element(BaseModel):
     def __repr__(self):
         return "%s-%s" % (self.type, self.id)
 
+
 class Field_V0(BaseModel):
     element = ForeignKeyField(Element, related_name='fields')
     name = CharField()
@@ -970,6 +971,27 @@ class Download(Download_v1):
 
         raise Download.DoesNotExist
 
+
+class Location(BaseModel):
+    element = ForeignKeyField(Element, related_name='locations')
+    download = ForeignKeyField(Download, null=True, related_name='locations')
+    path = TextField()
+
+    def _isfile(self):
+        return os.path.isfile(self.path)
+
+    isfile = property(_isfile)
+
+    def _isdir(self):
+        return os.path.isdir(self.path)
+
+    isdir = property(_isdir)
+
+    def _available(self):
+        return self.isfile or self.isdir
+
+    available = property(_available)
+
 class History(BaseModel):
     time = DateTimeField(default=datetime.datetime.now())
     event = CharField()
@@ -1220,4 +1242,4 @@ class Repo(BaseModel):
         order_by = ('name',)
 
 
-__all__ = ['Status', 'Config', 'Download', 'History', 'Element', 'MediaType', 'Field', 'Image', 'Repo']
+__all__ = ['Status', 'Config', 'Download', 'History', 'Element', 'MediaType', 'Field', 'Image', 'Repo', 'Location']

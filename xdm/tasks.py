@@ -292,29 +292,41 @@ def runChecker():
 
 
 def ppElement(element, download, path):
+    initial_path = path
+
     pp_try = False
+    new_location = initial_path
+    ppResult = False
+
     for pp in common.PM.getPostProcessors(runFor=element.manager):
         createGenericEvent(element, 'postProcess', 'Starting PP with %s' % pp)
-        log(u'Starting PP on %s with %s at %s' % (element, pp, path))
-        ppResult, pp_log = pp.postProcessPath(element, path)
+        log(u'Starting PP on %s with %s at %s' % (element, pp, new_location))
+        ppResult, _new_location, pp_log = pp.postProcessPath(element, new_location)
         pp_try = True
         if ppResult:
+            if _new_location:
+                new_location = _new_location
             element.status = common.COMPLETED
             element.save()
             download.status = common.COMPLETED
             download.pp_log = u'LOG from %s:\n%s\n######\n%s' % (pp, pp_log, download.pp_log)
             download.save()
             if pp.c.stop_after_me_select == common.STOPPPONSUCCESS or pp.c.stop_after_me_select == common.STOPPPALWAYS:
-                return True
+                break
         else:
             if pp.c.stop_after_me_select == common.STOPPPONFAILURE or pp.c.stop_after_me_select == common.STOPPPALWAYS:
                 break
-    if pp_try:
-        element.status = common.PP_FAIL # tried to pp but fail
-        element.save()
-        download.status = common.PP_FAIL
-        download.save()
-    return False
+
+    if not ppResult:
+        if pp_try:
+            element.status = common.PP_FAIL # tried to pp but fail
+            element.save()
+            download.status = common.PP_FAIL
+            download.save()
+        return False
+    else:
+        helper.addLocation(new_location, element, download)
+        return True
 
 
 def updateElement(element, force=False, withDecendents=True):
