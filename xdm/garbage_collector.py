@@ -31,14 +31,16 @@ def soFreshAndSoClean():
     the garbage collector scheduler will call this
     """
     common.addState(6)
-
-    # add more functions here
-    cleanTemporaryElements()
-    deleteOrphanFields()
-    deleteOrphanImages()
-    fixImages()
-    common.removeState(6)
-
+    try:
+        # add more functions here
+        cleanTemporaryElements()
+        deleteOrphanFields()
+        deleteOrphanImages()
+        fixImages()
+    except:
+        raise
+    finally:
+        common.removeState(6)
 
 def cleanTemporaryElements():
     log.info("Getting temp elements")
