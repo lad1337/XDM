@@ -80,7 +80,9 @@ img[src^='http']{
     padding: 0;
     max-width: 1124px;
 }
-
+.tab-content.media-type-container{
+    overflow: visible;
+}
 
 #container.settings .control-group:not(.human) label{
     text-transform: capitalize;
