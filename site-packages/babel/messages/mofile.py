@@ -1,43 +1,31 @@
 # -*- coding: utf-8 -*-
-#
-# Copyright (C) 2007-2011 Edgewall Software
-# All rights reserved.
-#
-# This software is licensed as described in the file COPYING, which
-# you should have received as part of this distribution. The terms
-# are also available at http://babel.edgewall.org/wiki/License.
-#
-# This software consists of voluntary contributions made by many
-# individuals. For the exact contribution history, see the revision
-# history and logs, available at http://babel.edgewall.org/log/.
+"""
+    babel.messages.mofile
+    ~~~~~~~~~~~~~~~~~~~~~
 
-"""Writing of files in the ``gettext`` MO (machine object) format.
+    Writing of files in the ``gettext`` MO (machine object) format.
 
-:since: version 0.9
-:see: `The Format of MO Files
-       <http://www.gnu.org/software/gettext/manual/gettext.html#MO-Files>`_
+    :copyright: (c) 2013 by the Babel Team.
+    :license: BSD, see LICENSE for more details.
 """
 
 import array
 import struct
 
 from babel.messages.catalog import Catalog, Message
-
-__all__ = ['read_mo', 'write_mo']
-__docformat__ = 'restructuredtext en'
+from babel._compat import range_type
 
 
-LE_MAGIC = 0x950412deL
-BE_MAGIC = 0xde120495L
+LE_MAGIC = 0x950412de
+BE_MAGIC = 0xde120495
+
 
 def read_mo(fileobj):
     """Read a binary MO file from the given file-like object and return a
     corresponding `Catalog` object.
-    
+
     :param fileobj: the file-like object to read the MO file from
-    :return: a catalog object representing the parsed MO file
-    :rtype: `Catalog`
-    
+
     :note: The implementation of this function is heavily based on the
            ``GNUTranslations._parse`` method of the ``gettext`` module in the
            standard library.
@@ -65,7 +53,7 @@ def read_mo(fileobj):
 
     # Now put all messages from the .mo file buffer into the catalog
     # dictionary
-    for i in xrange(0, msgcount):
+    for i in range_type(0, msgcount):
         mlen, moff = unpack(ii, buf[origidx:origidx + 8])
         mend = moff + mlen
         tlen, toff = unpack(ii, buf[transidx:transidx + 8])
@@ -84,21 +72,21 @@ def read_mo(fileobj):
                 item = item.strip()
                 if not item:
                     continue
-                if ':' in item:
-                    key, value = item.split(':', 1)
+                if b':' in item:
+                    key, value = item.split(b':', 1)
                     lastkey = key = key.strip().lower()
                     headers[key] = value.strip()
                 elif lastkey:
-                    headers[lastkey] += '\n' + item
+                    headers[lastkey] += b'\n' + item
 
-        if '\x04' in msg: # context
-            ctxt, msg = msg.split('\x04')
+        if b'\x04' in msg: # context
+            ctxt, msg = msg.split(b'\x04')
         else:
             ctxt = None
 
-        if '\x00' in msg: # plural forms
-            msg = msg.split('\x00')
-            tmsg = tmsg.split('\x00')
+        if b'\x00' in msg: # plural forms
+            msg = msg.split(b'\x00')
+            tmsg = tmsg.split(b'\x00')
             if catalog.charset:
                 msg = [x.decode(catalog.charset) for x in msg]
                 tmsg = [x.decode(catalog.charset) for x in tmsg]
@@ -115,14 +103,15 @@ def read_mo(fileobj):
     catalog.mime_headers = headers.items()
     return catalog
 
+
 def write_mo(fileobj, catalog, use_fuzzy=False):
     """Write a catalog to the specified file-like object using the GNU MO file
     format.
-    
+
     >>> from babel.messages import Catalog
     >>> from gettext import GNUTranslations
     >>> from StringIO import StringIO
-    
+
     >>> catalog = Catalog(locale='en_US')
     >>> catalog.add('foo', 'Voh')
     <Message ...>
@@ -135,7 +124,7 @@ def write_mo(fileobj, catalog, use_fuzzy=False):
     >>> catalog.add(('Fuzz', 'Fuzzes'), ('', ''))
     <Message ...>
     >>> buf = StringIO()
-    
+
     >>> write_mo(buf, catalog)
     >>> buf.seek(0)
     >>> translations = GNUTranslations(fp=buf)
@@ -153,7 +142,7 @@ def write_mo(fileobj, catalog, use_fuzzy=False):
     u'Fuzz'
     >>> translations.ugettext('Fuzzes')
     u'Fuzzes'
-    
+
     :param fileobj: the file-like object to write to
     :param catalog: the `Catalog` instance
     :param use_fuzzy: whether translations marked as "fuzzy" should be included
@@ -164,14 +153,14 @@ def write_mo(fileobj, catalog, use_fuzzy=False):
         messages[1:] = [m for m in messages[1:] if not m.fuzzy]
     messages.sort()
 
-    ids = strs = ''
+    ids = strs = b''
     offsets = []
 
     for message in messages:
         # For each string, we need size and file offset.  Each string is NUL
         # terminated; the NUL does not count into the size.
         if message.pluralizable:
-            msgid = '\x00'.join([
+            msgid = b'\x00'.join([
                 msgid.encode(catalog.charset) for msgid in message.id
             ])
             msgstrs = []
@@ -180,7 +169,7 @@ def write_mo(fileobj, catalog, use_fuzzy=False):
                     msgstrs.append(message.id[min(int(idx), 1)])
                 else:
                     msgstrs.append(string)
-            msgstr = '\x00'.join([
+            msgstr = b'\x00'.join([
                 msgstr.encode(catalog.charset) for msgstr in msgstrs
             ])
         else:
@@ -190,11 +179,11 @@ def write_mo(fileobj, catalog, use_fuzzy=False):
             else:
                 msgstr = message.string.encode(catalog.charset)
         if message.context:
-            msgid = '\x04'.join([message.context.encode(catalog.charset),
+            msgid = b'\x04'.join([message.context.encode(catalog.charset),
                                  msgid])
         offsets.append((len(ids), len(msgid), len(strs), len(msgstr)))
-        ids += msgid + '\x00'
-        strs += msgstr + '\x00'
+        ids += msgid + b'\x00'
+        strs += msgstr + b'\x00'
 
     # The header is 7 32-bit unsigned integers.  We don't use hash tables, so
     # the keys start right after the index tables.

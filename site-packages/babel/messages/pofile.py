@@ -1,32 +1,22 @@
 # -*- coding: utf-8 -*-
-#
-# Copyright (C) 2007-2011 Edgewall Software
-# All rights reserved.
-#
-# This software is licensed as described in the file COPYING, which
-# you should have received as part of this distribution. The terms
-# are also available at http://babel.edgewall.org/wiki/License.
-#
-# This software consists of voluntary contributions made by many
-# individuals. For the exact contribution history, see the revision
-# history and logs, available at http://babel.edgewall.org/log/.
+"""
+    babel.messages.pofile
+    ~~~~~~~~~~~~~~~~~~~~~
 
-"""Reading and writing of files in the ``gettext`` PO (portable object)
-format.
+    Reading and writing of files in the ``gettext`` PO (portable object)
+    format.
 
-:see: `The Format of PO Files
-       <http://www.gnu.org/software/gettext/manual/gettext.html#PO-Files>`_
+    :copyright: (c) 2013 by the Babel Team.
+    :license: BSD, see LICENSE for more details.
 """
 
-from datetime import datetime
 import os
 import re
 
 from babel.messages.catalog import Catalog, Message
 from babel.util import wraptext
+from babel._compat import text_type
 
-__all__ = ['read_po', 'write_po']
-__docformat__ = 'restructuredtext en'
 
 def unescape(string):
     r"""Reverse `escape` the given string.
@@ -37,8 +27,6 @@ def unescape(string):
     <BLANKLINE>
 
     :param string: the string to unescape
-    :return: the unescaped string
-    :rtype: `str` or `unicode`
     """
     def replace_escapes(match):
         m = match.group(1)
@@ -51,6 +39,7 @@ def unescape(string):
         # m is \ or "
         return m
     return re.compile(r'\\([\\trn"])').sub(replace_escapes, string[1:-1])
+
 
 def denormalize(string):
     r"""Reverse the normalization done by the `normalize` function.
@@ -72,8 +61,6 @@ def denormalize(string):
     <BLANKLINE>
 
     :param string: the string to denormalize
-    :return: the denormalized string
-    :rtype: `unicode` or `str`
     """
     if '\n' in string:
         escaped_lines = string.splitlines()
@@ -84,10 +71,12 @@ def denormalize(string):
     else:
         return unescape(string)
 
-def read_po(fileobj, locale=None, domain=None, ignore_obsolete=False):
+
+def read_po(fileobj, locale=None, domain=None, ignore_obsolete=False, charset=None):
     """Read messages from a ``gettext`` PO (portable object) file from the given
     file-like object and return a `Catalog`.
 
+    >>> from datetime import datetime
     >>> from StringIO import StringIO
     >>> buf = StringIO('''
     ... #: main.py:1
@@ -118,16 +107,18 @@ def read_po(fileobj, locale=None, domain=None, ignore_obsolete=False):
       ([(u'main.py', 3)], set([]))
       ([u'A user comment'], [u'An auto comment'])
 
+    .. versionadded:: 1.0
+       Added support for explicit charset argument.
+
     :param fileobj: the file-like object to read the PO file from
     :param locale: the locale identifier or `Locale` object, or `None`
                    if the catalog is not bound to a locale (which basically
                    means it's a template)
     :param domain: the message domain
     :param ignore_obsolete: whether to ignore obsolete messages in the input
-    :return: a catalog object representing the parsed PO file
-    :rtype: `Catalog`
+    :param charset: the character set of the catalog.
     """
-    catalog = Catalog(locale=locale, domain=domain)
+    catalog = Catalog(locale=locale, domain=domain, charset=charset)
 
     counter = [0]
     offset = [0]
@@ -212,7 +203,7 @@ def read_po(fileobj, locale=None, domain=None, ignore_obsolete=False):
 
     for lineno, line in enumerate(fileobj.readlines()):
         line = line.strip()
-        if not isinstance(line, unicode):
+        if not isinstance(line, text_type):
             line = line.decode(catalog.charset)
         if line.startswith('#'):
             in_msgid[0] = in_msgstr[0] = False
@@ -256,11 +247,13 @@ def read_po(fileobj, locale=None, domain=None, ignore_obsolete=False):
 
     return catalog
 
+
 WORD_SEP = re.compile('('
     r'\s+|'                                 # any whitespace
     r'[^\s\w]*\w+[a-zA-Z]-(?=\w+[a-zA-Z])|' # hyphenated words
     r'(?<=[\w\!\"\'\&\.\,\?])-{2,}(?=\w)'   # em-dash
 ')')
+
 
 def escape(string):
     r"""Escape the given string so that it can be included in double-quoted
@@ -272,14 +265,13 @@ def escape(string):
     '"Say:\\n  \\"hello, world!\\"\\n"'
 
     :param string: the string to escape
-    :return: the escaped string
-    :rtype: `str` or `unicode`
     """
     return '"%s"' % string.replace('\\', '\\\\') \
                           .replace('\t', '\\t') \
                           .replace('\r', '\\r') \
                           .replace('\n', '\\n') \
                           .replace('\"', '\\"')
+
 
 def normalize(string, prefix='', width=76):
     r"""Convert a string into a format that is appropriate for .po files.
@@ -304,8 +296,6 @@ def normalize(string, prefix='', width=76):
     :param prefix: a string that should be prepended to every line
     :param width: the maximum line width; use `None`, 0, or a negative number
                   to completely disable line wrapping
-    :return: the normalized string
-    :rtype: `unicode`
     """
     if width and width > 0:
         prefixlen = len(prefix)
@@ -343,6 +333,7 @@ def normalize(string, prefix='', width=76):
         lines[-1] += '\n'
     return u'""\n' + u'\n'.join([(prefix + escape(l)) for l in lines])
 
+
 def write_po(fileobj, catalog, width=76, no_location=False, omit_header=False,
              sort_output=False, sort_by_file=False, ignore_obsolete=False,
              include_previous=False):
@@ -355,8 +346,8 @@ def write_po(fileobj, catalog, width=76, no_location=False, omit_header=False,
     <Message...>
     >>> catalog.add((u'bar', u'baz'), locations=[('main.py', 3)])
     <Message...>
-    >>> from StringIO import StringIO
-    >>> buf = StringIO()
+    >>> from io import BytesIO
+    >>> buf = BytesIO()
     >>> write_po(buf, catalog, omit_header=True)
     >>> print buf.getvalue()
     #: main.py:1
@@ -392,7 +383,7 @@ def write_po(fileobj, catalog, width=76, no_location=False, omit_header=False,
         return normalize(key, prefix=prefix, width=width)
 
     def _write(text):
-        if isinstance(text, unicode):
+        if isinstance(text, text_type):
             text = text.encode(catalog.charset, 'backslashreplace')
         fileobj.write(text)
 
@@ -462,7 +453,7 @@ def write_po(fileobj, catalog, width=76, no_location=False, omit_header=False,
                               for filename, lineno in message.locations])
             _write_comment(locs, prefix=':')
         if message.flags:
-            _write('#%s\n' % ', '.join([''] + list(message.flags)))
+            _write('#%s\n' % ', '.join([''] + sorted(message.flags)))
 
         if message.previous_id and include_previous:
             _write_comment('msgid %s' % _normalize(message.previous_id[0]),

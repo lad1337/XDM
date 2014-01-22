@@ -1,34 +1,31 @@
 # -*- coding: utf-8 -*-
-#
-# Copyright (C) 2007-2011 Edgewall Software
-# All rights reserved.
-#
-# This software is licensed as described in the file COPYING, which
-# you should have received as part of this distribution. The terms
-# are also available at http://babel.edgewall.org/wiki/License.
-#
-# This software consists of voluntary contributions made by many
-# individuals. For the exact contribution history, see the revision
-# history and logs, available at http://babel.edgewall.org/log/.
+"""
+    babel.messages.catalog
+    ~~~~~~~~~~~~~~~~~~~~~~
 
-"""Data structures for message catalogs."""
+    Data structures for message catalogs.
+
+    :copyright: (c) 2013 by the Babel Team.
+    :license: BSD, see LICENSE for more details.
+"""
+
+import re
+import time
 
 from cgi import parse_header
 from datetime import datetime, time as time_
 from difflib import get_close_matches
 from email import message_from_string
 from copy import copy
-import re
-import time
 
 from babel import __version__ as VERSION
 from babel.core import Locale
 from babel.dates import format_datetime
 from babel.messages.plurals import get_plural
-from babel.util import odict, distinct, LOCALTZ, UTC, FixedOffsetTimezone
+from babel.util import odict, distinct, LOCALTZ, FixedOffsetTimezone
+from babel._compat import string_types, number_types, PY2, cmp
 
 __all__ = ['Message', 'Catalog', 'TranslationError']
-__docformat__ = 'restructuredtext en'
 
 
 PYTHON_FORMAT = re.compile(r'''(?x)
@@ -76,7 +73,7 @@ class Message(object):
             self.flags.discard('python-format')
         self.auto_comments = list(distinct(auto_comments))
         self.user_comments = list(distinct(user_comments))
-        if isinstance(previous_id, basestring):
+        if isinstance(previous_id, string_types):
             self.previous_id = [previous_id]
         else:
             self.previous_id = list(previous_id)
@@ -142,7 +139,7 @@ class Message(object):
         for checker in checkers:
             try:
                 checker(catalog, self)
-            except TranslationError, e:
+            except TranslationError as e:
                 errors.append(e)
         return errors
 
@@ -186,7 +183,7 @@ class Message(object):
         ids = self.id
         if not isinstance(ids, (list, tuple)):
             ids = [ids]
-        return bool(filter(None, [PYTHON_FORMAT.search(id) for id in ids]))
+        return any(PYTHON_FORMAT.search(id) for id in ids)
 
 
 class TranslationError(Exception):
@@ -202,6 +199,21 @@ DEFAULT_HEADER = u"""\
 #"""
 
 
+if PY2:
+    def _parse_header(header_string):
+        # message_from_string only works for str, not for unicode
+        headers = message_from_string(header_string.encode('utf8'))
+        decoded_headers = {}
+        for name, value in headers.items():
+            name = name.decode('utf8')
+            value = value.decode('utf8')
+            decoded_headers[name] = value
+        return decoded_headers
+
+else:
+    _parse_header = message_from_string
+
+
 class Catalog(object):
     """Representation of a message catalog."""
 
@@ -209,7 +221,7 @@ class Catalog(object):
                  project=None, version=None, copyright_holder=None,
                  msgid_bugs_address=None, creation_date=None,
                  revision_date=None, last_translator=None, language_team=None,
-                 charset='utf-8', fuzzy=True):
+                 charset=None, fuzzy=True):
         """Initialize the catalog object.
 
         :param locale: the locale identifier or `Locale` object, or `None`
@@ -227,7 +239,7 @@ class Catalog(object):
         :param revision_date: the date the catalog was revised
         :param last_translator: the name and email of the last translator
         :param language_team: the name and email of the language team
-        :param charset: the encoding to use in the output
+        :param charset: the encoding to use in the output (defaults to utf-8)
         :param fuzzy: the fuzzy bit on the catalog header
         """
         self.domain = domain #: The message domain
@@ -323,7 +335,7 @@ class Catalog(object):
         headers.append(('POT-Creation-Date',
                         format_datetime(self.creation_date, 'yyyy-MM-dd HH:mmZ',
                                         locale='en')))
-        if isinstance(self.revision_date, (datetime, time_, int, long, float)):
+        if isinstance(self.revision_date, (datetime, time_) + number_types):
             headers.append(('PO-Revision-Date',
                             format_datetime(self.revision_date,
                                             'yyyy-MM-dd HH:mmZ', locale='en')))
@@ -434,6 +446,7 @@ class Catalog(object):
 
     Here's an example of the output for such a catalog template:
 
+    >>> from babel.dates import UTC
     >>> created = datetime(1990, 4, 1, 15, 30, tzinfo=UTC)
     >>> catalog = Catalog(project='Foobar', version='1.0',
     ...                   creation_date=created)
@@ -500,7 +513,7 @@ class Catalog(object):
         >>> Catalog(locale='ga').plural_expr
         '(n==1 ? 0 : n==2 ? 1 : 2)'
 
-        :type: `basestring`"""
+        :type: `string_types`"""
         if self._plural_expr is None:
             expr = '(n != 1)'
             if self.locale:
@@ -559,9 +572,6 @@ class Catalog(object):
         """Return the message with the specified ID.
 
         :param id: the message ID
-        :return: the message with the specified ID, or `None` if no such
-                 message is in the catalog
-        :rtype: `Message`
         """
         return self.get(id)
 
@@ -605,17 +615,8 @@ class Catalog(object):
             message = current
         elif id == '':
             # special treatment for the header message
-            def _parse_header(header_string):
-                # message_from_string only works for str, not for unicode
-                headers = message_from_string(header_string.encode('utf8'))
-                decoded_headers = {}
-                for name, value in headers.items():
-                    name = name.decode('utf8')
-                    value = value.decode('utf8')
-                    decoded_headers[name] = value
-                return decoded_headers
             self.mime_headers = _parse_header(message.string).items()
-            self.header_comment = '\n'.join(['# %s' % comment for comment
+            self.header_comment = '\n'.join([('# %s' % c).rstrip() for c
                                              in message.user_comments])
             self.fuzzy = message.fuzzy
         else:
@@ -650,8 +651,6 @@ class Catalog(object):
         :param lineno: the line number on which the msgid line was found in the
                        PO file, if any
         :param context: the message context
-        :return: the newly added message
-        :rtype: `Message`
         """
         message = Message(id, string, list(locations), flags, auto_comments,
                           user_comments, previous_id, lineno=lineno,
@@ -678,15 +677,12 @@ class Catalog(object):
 
         :param id: the message ID
         :param context: the message context, or ``None`` for no context
-        :return: the message with the specified ID, or `None` if no such
-                 message is in the catalog
-        :rtype: `Message`
         """
         return self._messages.get(self._key_for(id, context))
 
     def delete(self, id, context=None):
         """Delete the message with the specified ID and context.
-        
+
         :param id: the message ID
         :param context: the message context, or ``None`` for no context
         """
@@ -767,7 +763,7 @@ class Catalog(object):
                 fuzzy = True
                 fuzzy_matches.add(oldkey)
                 oldmsg = messages.get(oldkey)
-                if isinstance(oldmsg.id, basestring):
+                if isinstance(oldmsg.id, string_types):
                     message.previous_id = [oldmsg.id]
                 else:
                     message.previous_id = list(oldmsg.id)
@@ -815,7 +811,6 @@ class Catalog(object):
 
                     self[message.id] = message
 
-        self.obsolete = odict()
         for msgid in remaining:
             if no_fuzzy_matching or msgid not in fuzzy_matches:
                 self.obsolete[msgid] = remaining[msgid]

@@ -54,7 +54,13 @@ DATA_DIR=${XDM_DATA-/opt/XDM}
 PID_FILE=${XDM_PIDFILE-/var/run/XDM/XDM.pid}
 
 # path to python bin
-DAEMON=${PYTHON_BIN-/usr/bin/python}
+# check if we have a env in the APP_PATH
+# if so use it
+if [ -d $APP_PATH/env ]; then
+    DAEMON=${PYTHON_BIN-$APP_PATH/env/bin/python}
+else
+    DAEMON=${PYTHON_BIN-/usr/bin/python}
+fi
 
 # Extra daemon option like: XDM_OPTS=" --config=/home/XDM/config.ini"
 EXTRA_DAEMON_OPTS=${XDM_OPTS-}

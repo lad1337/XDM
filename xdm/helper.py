@@ -175,7 +175,7 @@ def reltime(date):
     # FIXME use isinstance() ... but test it
     if type(date).__name__ not in ('date', 'datetime'):
         return "reltime needs a date or datetime we got: '%s'" % repr(date)
-    return format_timedelta(date - datetime.now(), locale=common.getLocale())
+    return format_timedelta(date - datetime.now(), locale=common.getLocale(), add_direction=True)
 
 # http://code.activestate.com/recipes/576644-diff-two-dictionaries/
 KEYNOTFOUND = '<KEYNOTFOUND>' # KeyNotFound for dictDiff

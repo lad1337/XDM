@@ -1,20 +1,18 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-#
-# Copyright (C) 2007-2011 Edgewall Software
-# All rights reserved.
-#
-# This software is licensed as described in the file COPYING, which
-# you should have received as part of this distribution. The terms
-# are also available at http://babel.edgewall.org/wiki/License.
-#
-# This software consists of voluntary contributions made by many
-# individuals. For the exact contribution history, see the revision
-# history and logs, available at http://babel.edgewall.org/log/.
+"""
+    babel.messages.frontend
+    ~~~~~~~~~~~~~~~~~~~~~~~
 
-"""Frontends for the message extraction functionality."""
+    Frontends for the message extraction functionality.
 
-from ConfigParser import RawConfigParser
+    :copyright: (c) 2013 by the Babel Team.
+    :license: BSD, see LICENSE for more details.
+"""
+
+try:
+    from ConfigParser import RawConfigParser
+except ImportError:
+    from configparser import RawConfigParser
 from datetime import datetime
 from distutils import log
 from distutils.cmd import Command
@@ -25,7 +23,6 @@ from optparse import OptionParser
 import os
 import re
 import shutil
-from StringIO import StringIO
 import sys
 import tempfile
 
@@ -38,10 +35,7 @@ from babel.messages.extract import extract_from_dir, DEFAULT_KEYWORDS, \
 from babel.messages.mofile import write_mo
 from babel.messages.pofile import read_po, write_po
 from babel.util import odict, LOCALTZ
-
-__all__ = ['CommandLineInterface', 'compile_catalog', 'extract_messages',
-           'init_catalog', 'check_message_extractors', 'update_catalog']
-__docformat__ = 'restructuredtext en'
+from babel._compat import string_types, BytesIO, PY2
 
 
 class compile_catalog(Command):
@@ -58,9 +52,7 @@ class compile_catalog(Command):
             cmdclass = {'compile_catalog': compile_catalog}
         )
 
-    :since: version 0.9
-    :see: `Integrating new distutils commands <http://docs.python.org/dist/node32.html>`_
-    :see: `setuptools <http://peak.telecommunity.com/DevCenter/setuptools>`_
+    .. versionadded:: 0.9
     """
 
     description = 'compile message catalogs to binary MO files'
@@ -184,9 +176,6 @@ class extract_messages(Command):
             ...
             cmdclass = {'extract_messages': extract_messages}
         )
-
-    :see: `Integrating new distutils commands <http://docs.python.org/dist/node32.html>`_
-    :see: `setuptools <http://peak.telecommunity.com/DevCenter/setuptools>`_
     """
 
     description = 'extract localizable strings from the project code'
@@ -288,7 +277,7 @@ class extract_messages(Command):
 
     def run(self):
         mappings = self._get_mappings()
-        outfile = open(self.output_file, 'w')
+        outfile = open(self.output_file, 'wb')
         try:
             catalog = Catalog(project=self.distribution.get_name(),
                               version=self.distribution.get_version(),
@@ -342,8 +331,8 @@ class extract_messages(Command):
         elif getattr(self.distribution, 'message_extractors', None):
             message_extractors = self.distribution.message_extractors
             for dirname, mapping in message_extractors.items():
-                if isinstance(mapping, basestring):
-                    method_map, options_map = parse_mapping(StringIO(mapping))
+                if isinstance(mapping, string_types):
+                    method_map, options_map = parse_mapping(BytesIO(mapping))
                 else:
                     method_map, options_map = [], {}
                     for pattern, method, options in mapping:
@@ -366,8 +355,6 @@ def check_message_extractors(dist, name, value):
                  "message_extractors")
     :param value: the value of the keyword argument
     :raise `DistutilsSetupError`: if the value is not valid
-    :see: `Adding setup() arguments
-           <http://peak.telecommunity.com/DevCenter/setuptools#adding-setup-arguments>`_
     """
     assert name == 'message_extractors'
     if not isinstance(value, dict):
@@ -388,9 +375,6 @@ class init_catalog(Command):
             ...
             cmdclass = {'init_catalog': init_catalog}
         )
-
-    :see: `Integrating new distutils commands <http://docs.python.org/dist/node32.html>`_
-    :see: `setuptools <http://peak.telecommunity.com/DevCenter/setuptools>`_
     """
 
     description = 'create a new catalog based on a POT file'
@@ -432,7 +416,7 @@ class init_catalog(Command):
                                        'new catalog')
         try:
             self._locale = Locale.parse(self.locale)
-        except UnknownLocaleError, e:
+        except UnknownLocaleError as e:
             raise DistutilsOptionError(e)
 
         if not self.output_file and not self.output_dir:
@@ -467,7 +451,7 @@ class init_catalog(Command):
         catalog.revision_date = datetime.now(LOCALTZ)
         catalog.fuzzy = False
 
-        outfile = open(self.output_file, 'w')
+        outfile = open(self.output_file, 'wb')
         try:
             write_po(outfile, catalog, width=self.width)
         finally:
@@ -488,9 +472,7 @@ class update_catalog(Command):
             cmdclass = {'update_catalog': update_catalog}
         )
 
-    :since: version 0.9
-    :see: `Integrating new distutils commands <http://docs.python.org/dist/node32.html>`_
-    :see: `setuptools <http://peak.telecommunity.com/DevCenter/setuptools>`_
+    .. versionadded:: 0.9
     """
 
     description = 'update message catalogs from a POT file'
@@ -667,9 +649,9 @@ class CommandLineInterface(object):
             for identifier in identifiers:
                 locale = Locale.parse(identifier)
                 output = format % (identifier, locale.english_name)
-                print output.encode(sys.stdout.encoding or
+                print(output.encode(sys.stdout.encoding or
                                     getpreferredencoding() or
-                                    'ascii', 'replace')
+                                    'ascii', 'replace'))
             return 0
 
         if not args:
@@ -698,14 +680,13 @@ class CommandLineInterface(object):
         handler.setFormatter(formatter)
 
     def _help(self):
-        print self.parser.format_help()
-        print "commands:"
+        print(self.parser.format_help())
+        print("commands:")
         longest = max([len(command) for command in self.commands])
         format = "  %%-%ds %%s" % max(8, longest + 1)
-        commands = self.commands.items()
-        commands.sort()
+        commands = sorted(self.commands.items())
         for name, description in commands:
-            print format % (name, description)
+            print(format % (name, description))
 
     def compile(self, argv):
         """Subcommand for compiling a message catalog to a MO file.
@@ -797,8 +778,8 @@ class CommandLineInterface(object):
                               translated, len(catalog), percentage, po_file)
 
             if catalog.fuzzy and not options.use_fuzzy:
-                self.log.warn('catalog %r is marked as fuzzy, skipping',
-                              po_file)
+                self.log.warning('catalog %r is marked as fuzzy, skipping',
+                                 po_file)
                 continue
 
             for message, errors in catalog.check():
@@ -845,7 +826,7 @@ class CommandLineInterface(object):
                           help='path to the output POT file')
         parser.add_option('-w', '--width', dest='width', type='int',
                           help="set output line width (default 76)")
-        parser.add_option('--no-wrap', dest='no_wrap', action = 'store_true',
+        parser.add_option('--no-wrap', dest='no_wrap', action='store_true',
                           help='do not break long message lines, longer than '
                                'the output line width, into several lines')
         parser.add_option('--sort-output', dest='sort_output',
@@ -881,11 +862,6 @@ class CommandLineInterface(object):
         if not args:
             parser.error('incorrect number of arguments')
 
-        if options.output not in (None, '-'):
-            outfile = open(options.output, 'w')
-        else:
-            outfile = sys.stdout
-
         keywords = DEFAULT_KEYWORDS.copy()
         if options.no_default_keywords:
             if not options.keywords:
@@ -914,48 +890,65 @@ class CommandLineInterface(object):
             parser.error("'--sort-output' and '--sort-by-file' are mutually "
                          "exclusive")
 
+        catalog = Catalog(project=options.project,
+                          version=options.version,
+                          msgid_bugs_address=options.msgid_bugs_address,
+                          copyright_holder=options.copyright_holder,
+                          charset=options.charset)
+
+        for dirname in args:
+            if not os.path.isdir(dirname):
+                parser.error('%r is not a directory' % dirname)
+
+            def callback(filename, method, options):
+                if method == 'ignore':
+                    return
+                filepath = os.path.normpath(os.path.join(dirname, filename))
+                optstr = ''
+                if options:
+                    optstr = ' (%s)' % ', '.join(['%s="%s"' % (k, v) for
+                                                  k, v in options.items()])
+                self.log.info('extracting messages from %s%s', filepath,
+                              optstr)
+
+            extracted = extract_from_dir(dirname, method_map, options_map,
+                                         keywords, options.comment_tags,
+                                         callback=callback,
+                                         strip_comment_tags=
+                                            options.strip_comment_tags)
+            for filename, lineno, message, comments, context in extracted:
+                filepath = os.path.normpath(os.path.join(dirname, filename))
+                catalog.add(message, None, [(filepath, lineno)],
+                            auto_comments=comments, context=context)
+
+        catalog_charset = catalog.charset
+        if options.output not in (None, '-'):
+            self.log.info('writing PO template file to %s' % options.output)
+            outfile = open(options.output, 'wb')
+            close_output = True
+        else:
+            outfile = sys.stdout
+
+            # This is a bit of a hack on Python 3.  stdout is a text stream so
+            # we need to find the underlying file when we write the PO.  In
+            # later versions of Babel we want the write_po function to accept
+            # text or binary streams and automatically adjust the encoding.
+            if not PY2 and hasattr(outfile, 'buffer'):
+                catalog.charset = outfile.encoding
+                outfile = outfile.buffer.raw
+
+            close_output = False
+
         try:
-            catalog = Catalog(project=options.project,
-                              version=options.version,
-                              msgid_bugs_address=options.msgid_bugs_address,
-                              copyright_holder=options.copyright_holder,
-                              charset=options.charset)
-
-            for dirname in args:
-                if not os.path.isdir(dirname):
-                    parser.error('%r is not a directory' % dirname)
-
-                def callback(filename, method, options):
-                    if method == 'ignore':
-                        return
-                    filepath = os.path.normpath(os.path.join(dirname, filename))
-                    optstr = ''
-                    if options:
-                        optstr = ' (%s)' % ', '.join(['%s="%s"' % (k, v) for
-                                                      k, v in options.items()])
-                    self.log.info('extracting messages from %s%s', filepath,
-                                  optstr)
-
-                extracted = extract_from_dir(dirname, method_map, options_map,
-                                             keywords, options.comment_tags,
-                                             callback=callback,
-                                             strip_comment_tags=
-                                                options.strip_comment_tags)
-                for filename, lineno, message, comments, context in extracted:
-                    filepath = os.path.normpath(os.path.join(dirname, filename))
-                    catalog.add(message, None, [(filepath, lineno)],
-                                auto_comments=comments, context=context)
-
-            if options.output not in (None, '-'):
-                self.log.info('writing PO template file to %s' % options.output)
             write_po(outfile, catalog, width=options.width,
                      no_location=options.no_location,
                      omit_header=options.omit_header,
                      sort_output=options.sort_output,
                      sort_by_file=options.sort_by_file)
         finally:
-            if options.output:
+            if close_output:
                 outfile.close()
+            catalog.charset = catalog_charset
 
     def init(self, argv):
         """Subcommand for creating new message catalogs from a template.
@@ -990,7 +983,7 @@ class CommandLineInterface(object):
             parser.error('you must provide a locale for the new catalog')
         try:
             locale = Locale.parse(options.locale)
-        except UnknownLocaleError, e:
+        except UnknownLocaleError as e:
             parser.error(e)
 
         if not options.input_file:
@@ -1024,7 +1017,7 @@ class CommandLineInterface(object):
         self.log.info('creating catalog %r based on %r', options.output_file,
                       options.input_file)
 
-        outfile = open(options.output_file, 'w')
+        outfile = open(options.output_file, 'wb')
         try:
             write_po(outfile, catalog, width=options.width)
         finally:
@@ -1133,7 +1126,7 @@ class CommandLineInterface(object):
                 try:
                     write_po(tmpfile, catalog,
                              ignore_obsolete=options.ignore_obsolete,
-                             include_previous=options.previous, 
+                             include_previous=options.previous,
                              width=options.width)
                 finally:
                     tmpfile.close()
@@ -1157,13 +1150,14 @@ class CommandLineInterface(object):
 def main():
     return CommandLineInterface().run(sys.argv)
 
+
 def parse_mapping(fileobj, filename=None):
     """Parse an extraction method mapping from a file-like object.
 
-    >>> buf = StringIO('''
+    >>> buf = BytesIO(b'''
     ... [extractors]
     ... custom = mypackage.module:myfunc
-    ... 
+    ...
     ... # Python source files
     ... [python: **.py]
     ...
@@ -1173,7 +1167,7 @@ def parse_mapping(fileobj, filename=None):
     ... [genshi: **/templates/**.txt]
     ... template_class = genshi.template:TextTemplate
     ... encoding = latin-1
-    ... 
+    ...
     ... # Some custom extractor
     ... [custom: **/custom/*.*]
     ... ''')
@@ -1204,8 +1198,6 @@ def parse_mapping(fileobj, filename=None):
 
     :param fileobj: a readable file-like object containing the configuration
                     text to parse
-    :return: a `(method_map, options_map)` tuple
-    :rtype: `tuple`
     :see: `extract_from_directory`
     """
     extractors = {}
@@ -1230,6 +1222,7 @@ def parse_mapping(fileobj, filename=None):
             method_map[idx] = (pattern, method)
 
     return (method_map, options_map)
+
 
 def parse_keywords(strings=[]):
     """Parse keywords specifications from the given list of strings.
