@@ -193,7 +193,7 @@ def schedule():
     # garbage collector
     rate = common.SYSTEM.c.interval_clean * 60
     log.info("Setting up garbage collector scheduler every %s seconds" % rate)
-    common.SCHEDULER.addTask(soFreshAndSoClean, rate, 10, 'garbage collector')
+    common.SCHEDULER.addTask(soFreshAndSoClean, rate, 20 * 60, 'garbage collector')
 
     # core update schedule
     rate = common.SYSTEM.c.interval_core_update * 60

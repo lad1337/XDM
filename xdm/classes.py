@@ -592,7 +592,7 @@ class Element(BaseModel):
     def getIdentifier(self):
         return self._getIdentifier
 
-    def _getIdentifier(self):
+    def _getIdentifier(self, tag):
         return self.getName()
 
     def getReleaseDate(self):
