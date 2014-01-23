@@ -34,6 +34,12 @@ from xdm.logger import *
 from xdm.plugins.bases import __all__ as allClasses
 from xdm import common, helper, actionManager
 
+class PluginNotFound(Exception):
+    pass
+
+class PluginVersionNotFound(Exception):
+    pass
+
 
 class RepoManager(object):
     """Class to manage all reposetories and entry point for installing plugins"""
@@ -199,13 +205,13 @@ class RepoManager(object):
         if plugin_to_update is None:
             self.setNewMessage('error', 'Could not find a plugin with identifier %s' % identifier)
             self.setNewMessage('info', 'Done!')
-            return
+            return False
 
         if not plugin_to_update.xdmMeetsVersionRequirement():
             self.setNewMessage('error', 'The plugin requires XDM version %s or higher you have %s' % (common.makeVersionHuman(*plugin_to_update.xdm_version)), common.getVersionHuman())
             self.setNewMessage('info', 'by the way how did you even get here ? the GUI should not have allowed this to begin with!')
             self.setNewMessage('info', 'Done!')
-            return
+            return False
 
         self.setNewMessage('info', 'Installing %s(%s)' % (plugin_to_update.name, plugin_to_update.versionHuman()))
         old_instalation = None
@@ -214,13 +220,35 @@ class RepoManager(object):
                 if not self._updateable(plugin_to_update, plugin):
                     self.setNewMessage('error', '%s is already installed and does not need an update' % plugin_to_update.name)
                     self.setNewMessage('info', 'Done!')
-                    return
+                    return True
                 else:
                     self.setNewMessage('info', '%s is already installed but has an update' % plugin_to_update.name)
                     old_instalation = plugin
                     break
         else:
             self.setNewMessage('info', '%s is not yet installed' % plugin_to_update.name)
+
+        if plugin_to_update.dependencies:
+            self.setNewMessage('info', 'Resolving dependencies')
+            try:
+                dependencies = self.resolveDependencies(
+                    common.PM.getAll(returnAll=True),
+                    plugin_to_update.dependencies
+                )
+            except PluginNotFound as e:
+                self.setNewMessage('error', e.message)
+                return False
+            except PluginVersionNotFound as e:
+                self.setNewMessage('error', e.message)
+                return False
+            for dep in dependencies:
+                if not dep["installed"]:
+                    self.setNewMessage('info', 'Need to install %s' % dep["plugin"].identifier)
+            for dep in dependencies:
+                if not dep["installed"]:
+                    if not self.install(dep["plugin"].identifier, False):
+                        self.setNewMessage('error', 'Failed to install dependency %s' % dep["plugin"].identifier)
+                        return False
 
         if old_instalation is not None:
             old_plugin_path = os.path.abspath(old_instalation.get_plugin_isntall_path()['path'])
@@ -239,7 +267,7 @@ class RepoManager(object):
         else:
             self.setNewMessage('error', 'Format %s is not supported. sorry' % plugin_to_update.format)
             self.setNewMessage('info', 'Done!')
-            return
+            return False
 
         install_path = common.SYSTEM.c.extra_plugin_path
 
@@ -265,8 +293,10 @@ class RepoManager(object):
             self.setNewMessage('info', 'Installation successful!')
             if doCleanUp:
                 self.doCleanUp()
+            return True
         else:
             self.setNewMessage('error', 'Installation unsuccessful!')
+            return False
 
     def doCleanUp(self):
         """
@@ -305,6 +335,34 @@ class RepoManager(object):
             init_file.write('')
             init_file.close()
 
+    def getRepoPlugin(self, identifier):
+        for repo in self.repos:
+            for repo_plugin in repo.getPlugins():
+                if identifier == repo_plugin.identifier:
+                    return repo_plugin
+        return None
+
+    def resolveDependencies(self, installed_plugins, dependencies):
+        plugins = []
+        for dependency in dependencies:
+            repo_plugin = self.getRepoPlugin(dependency["identifier"])
+            if repo_plugin is None:
+                raise PluginNotFound("Plugin with identifier '%s' could not be found" % dependency["identifier"])
+            if (repo_plugin.major_version, repo_plugin.minor_version) < (dependency["major_version"], dependency["minor_version"]):
+                raise PluginVersionNotFound("Plugin with identifier '%s' could not be found in at least version %s.%s" % (
+                    dependency["identifier"],
+                    dependency["major_version"],
+                    dependency["minor_version"]
+                ))
+            plugins.append({
+                "plugin": repo_plugin,
+                "installed": self.isInstalled(installed_plugins, dependency["identifier"])
+            })
+            if repo_plugin.dependencies:
+                plugins.extend(
+                    self.resolveDependencies(installed_plugins, repo_plugin.dependencies)
+                )
+        return plugins
 
 class ZipPluginInstaller(object):
 
@@ -419,6 +477,16 @@ class RepoPlugin(object):
         # or better use get with a default
         self.xdm_version = tuple(info.get('xdm_version', [0, 0, 0]))
         self.branch = info.get('branch', "master")
+        # dependencies are a list of dicts
+        """
+        {
+            "identifier": "de.lad1337.nzb",
+            "major_version": 0,
+            "minor_version": 1,
+        }
+        """
+        # later this can be extended to use pip packages / libs
+        self.dependencies = info.get('dependencies', [])
 
     def checkType(self):
         return self.type in allClasses + ['Compilations']
