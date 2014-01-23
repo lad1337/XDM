@@ -78,9 +78,9 @@ def fixImages():
             all_files.add(os.path.join(root, filename))
 
     old_files = all_files - needed_files
-    log.info("Found image %s files " % len(all_files))
+    log.info(u"Found image %s files " % len(all_files))
     if old_files:
-        log.info("Removing %s old files" % len(old_files))
+        log.info(u"Removing %s old files" % len(old_files))
         for unneeded_file_path in old_files:
-            log.debug("Deleting unneeded image file %s" % unneeded_file_path)
+            log.debug(u"Deleting unneeded image file %s" % unneeded_file_path)
             os.remove(unneeded_file_path)
