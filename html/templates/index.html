@@ -20,7 +20,7 @@
         </a>
 </div>
 <div class="clearfix"></div>
-<div class="tab-content">
+<div class="tab-content media-type-container">
 {% for mt in mtms%}
 <div class="{{mt.identifier.replace('.','-')}} tab-pane fade{% if mt.identifier == system.c.defaut_mt_select %} active in{%endif%}" id="{{mt.instance}}">
 {%- if mt.identifier == system.c.defaut_mt_select %}

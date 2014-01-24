@@ -750,6 +750,7 @@ class MediaAdder(Plugin):
             self.elementType = elementType
             self.name = name
             self.additionalData = additionalData
+            self.status = None
 
     def runShedule(self):
         """This method is called periodically and has to return a list of Media objects"""
