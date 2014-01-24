@@ -407,7 +407,10 @@ def runMediaAdder():
                 ele = provider.getElement(media.externalID)
                 if ele:
                     log.info(u'we found %s. now lets gets real' % ele)
-                    new_status = common.getStatusByID(ele.manager.c.automatic_new_status_select)
+                    if media.status is None:
+                        new_status = common.getStatusByID(ele.manager.c.automatic_new_status_select)
+                    else:
+                        new_status = media.status
                     if ele.manager.makeReal(ele, new_status):
                         createGenericEvent(ele, u'autoAdd', 'I was added by %s' % adder)
                         common.MM.createInfo(u'%s added %s' % (adder, ele.getName()))
