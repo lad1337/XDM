@@ -98,7 +98,6 @@ def runSearcherForMediaType(mtm, root=None):
         searchElement(ele)
 
 def notify(element):
-
     if element.status == common.SNATCHED:
         common.MM.createInfo(u"%s was snatched" % element.getName())
     elif element.status == common.COMPLETED:
@@ -158,7 +157,7 @@ def searchElement(ele, forced=False):
     if not didSearch:
         log.warning(u"No Indexer active/available for %s" % ele.manager)
     else:
-        _downloads = _filterBadDownloads(downloads)
+        _downloads = _filterBadDownloads(downloads, ele)
         if _downloads:
             return snatchOne(ele, _downloads)
         else:
@@ -198,7 +197,7 @@ def snatchOne(ele, downloads):
     return ele.status
 
 
-def _filterBadDownloads(downloads, forced=False):
+def _filterBadDownloads(downloads, element, forced=False):
     clean = []
     for download in downloads:
         old_download = None
@@ -221,9 +220,15 @@ def _filterBadDownloads(downloads, forced=False):
                 old_download.delete_instance()
                 download.save()
                 old_download = download
+
             if old_download.status in (common.FAILED, common.DOWNLOADED):
                 log.info(u"Found a Download(%s) with the same url and it failed or we downloaded it already. Skipping..." % download)
                 continue
+            #TODO: do something about downloads that where found for multiple elements
+            if old_download.element != element:
+                log.warning(u"Old Download(%s) was connected to %s, connecting it now to %s" % (download, download.element, element))
+                old_download.element = element
+                old_download.save()
             if old_download.status == common.SNATCHED:
                 if common.SYSTEM.c.resnatch_same:
                     continue
