@@ -149,6 +149,12 @@ class AjaxCalls:
         return template.render(plugins=pluginWithOptions, element=ele, **self._globals())
 
     @cherrypy.expose
+    def getLocationsFrame(self, id):
+        ele = Element.get(Element.id == id)
+        template = self.env.get_template('modalFrames/locationsFrame.html')
+        return template.render(locations=ele.locations, **self._globals())
+
+    @cherrypy.expose
     def clearEvents(self, id):
         amount = History.delete().where(History.obj_id == id).execute()
         return json.dumps({'result': True, 'data': {'amount': amount}, 'msg': '%s events removed' % amount})

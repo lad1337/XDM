@@ -532,8 +532,7 @@ class Indexer(DownloadTyped):
     name = "Does Noting"
 
     def __init__(self, instance='Default'):
-        # TODO: dont repeat this function make it wor with one
-        # wrap function
+        # TODO: dont repeat this function make it work with one wrap function
         def downloadWrapperSingle(*args, **kwargs):
             res = self._searchForElement(*args, **kwargs)
             for i, d in enumerate(res):
@@ -585,7 +584,7 @@ class Indexer(DownloadTyped):
         log("Search terms for %s are %s" % (self.name, terms))
         return terms
 
-    def commentOnDownload(self, download):
+    def commentOnDownload(self, message, download):
         return True
 
 

@@ -24,11 +24,8 @@ import os
 import re
 import sys
 import webbrowser
-import math
 from logger import *
 from datetime import datetime, timedelta
-import inspect
-import urllib
 from xdm import common
 import xdm
 import shutil
@@ -37,8 +34,6 @@ import base64
 import random
 import hashlib
 from babel.dates import format_timedelta
-from encodings import base64_codec
-from xdm.classes import Location
 
 
 def getSystemDataDir(progdir):
@@ -336,41 +331,6 @@ releaseThresholdDelta = {1: timedelta(days=1),
                         3: timedelta(days=7), # a week
                         4: timedelta(days=30), # a month
                         5: timedelta(days=60)} # two months
-
-def addLocation(path, element, download=None):
-    log("Adding location %s to %s" % (element, path))
-    try:
-        location = Location.select().where(Location.element == element, Location.path == path)
-    except Location.DoesNotExist:
-        log.info("%s had no location with path %s" % (element, path))
-        location = Location()
-    else: # we found an old location with the same path on the element
-        if location.download:
-            if location.download == download:
-                # old location had a download and it was the same we are adding now
-                # nothing to do here
-                log("Nothing to add. %s had location %s with download %s" % (element, path, download))
-                return
-            else:
-                # old location had a download but was a different download
-                # or new one has no download
-                xdm.tasks.createGenericEvent(
-                    element,
-                    "overwriting location",
-                    "Location is %s from %s" % (path, download))
-        else:
-            # old location has no download attached
-            if download:
-                # new location has no download ... looks like a local mediadder
-                pass
-            else:
-                # but now we have a new download ... did we get a better version ?
-                pass
-    location.element = element
-    location.download = download
-    location.path = path
-    location.save()
-
 
 # http://code.activestate.com/recipes/440514-dictproperty-properties-for-dictionary-attributes/
 class dictproperty(object):

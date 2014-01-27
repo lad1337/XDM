@@ -1,0 +1,48 @@
+
+
+<table style="width:100%;" class="table table-condensed">
+<thead>
+    <tr>
+        <th>Path</th>
+        <th>Available</th>
+        <th>Type</th>
+        <th>Download</th>
+    </tr>
+</thead>
+<tbody>
+    {% for location in locations %}
+    <tr title="{{location.id}}">
+        <td>{{ location.path }}</td>
+        <td>
+            {% if location.available %}
+            <i class="icon-ok text-success"></i>
+            {% else %}
+            <i class="icon-exclamation text-error"></i>
+            {% endif %}
+        </td>
+        <td>
+            {% if location.isdir %}
+            <i class="icon-folder-open"></i>
+            {% elif location.isfile %}
+            <i class="icon-folder-open"></i>
+            {% else %}
+            <i class="icon-question"></i>
+            {% endif %}
+        </td>
+        <td>
+            {% if location.download %}
+            <span title="{{ location.download.id }}">{{ location.download.name }}</span>
+            {% else %}
+                No download connected.
+            {% endif %}
+        </td>
+    </tr>
+    {%else%}
+    <tr class="notice">
+        <td>
+            <h4>No locations available.</h4>
+        </td>
+    </tr>
+{% endfor %}
+</tbody>
+</table>

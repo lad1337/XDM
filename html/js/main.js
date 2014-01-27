@@ -388,6 +388,12 @@ function showDownlads(sender, id){
     ajaxModal(sender, name, webRoot+'/ajax/getDownloadsFrame', data)
 }
 
+function showLocations(sender, id){
+    data = {'id': id}
+    name = 'Locations'
+    ajaxModal(sender, name, webRoot+'/ajax/getLocationsFrame', data)
+}
+
 function showConfigs(sender, id){
     data = {'id': id}
     name = 'Configuration'

@@ -713,6 +713,40 @@ class Element(BaseModel):
     def __repr__(self):
         return "%s-%s" % (self.type, self.id)
 
+    def addLocation(self, path, download=None):
+        log("Adding location %s to %s" % (self, path))
+        try:
+            location = Location.get(Location.element == self, Location.path == path)
+        except Location.DoesNotExist:
+            log.info("%s had no location with path %s" % (self, path))
+            location = Location()
+        else: # we found an old location with the same path on the element
+            if location.download:
+                if location.download == download:
+                    # old location had a download and it was the same we are adding now
+                    # nothing to do here
+                    log("Nothing to add. %s had location %s with download %s" % (self, path, download))
+                    return
+                else:
+                    # old location had a download but was a different download
+                    # or new one has no download
+                    xdm.tasks.createGenericEvent(
+                        self,
+                        "overwriting location",
+                        "Location is %s from %s" % (path, download))
+            else:
+                # old location has no download attached
+                if download:
+                    # new location has no download ... looks like a local mediadder
+                    pass
+                else:
+                    # but now we have a new download ... did we get a better version ?
+                    pass
+        location.element = self
+        location.download = download
+        location.path = path
+        location.save()
+
 
 class Field_V0(BaseModel):
     element = ForeignKeyField(Element, related_name='fields')

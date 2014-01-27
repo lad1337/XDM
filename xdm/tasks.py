@@ -296,9 +296,7 @@ def runChecker():
                     element.save()
 
 
-def ppElement(element, download, path):
-    initial_path = path
-
+def ppElement(element, download, initial_path):
     pp_try = False
     new_location = initial_path
     ppResult = False
@@ -322,6 +320,7 @@ def ppElement(element, download, path):
             if pp.c.stop_after_me_select == common.STOPPPONFAILURE or pp.c.stop_after_me_select == common.STOPPPALWAYS:
                 break
 
+    element.addLocation(new_location, download)
     if not ppResult:
         if pp_try:
             element.status = common.PP_FAIL # tried to pp but fail
@@ -329,9 +328,7 @@ def ppElement(element, download, path):
             download.status = common.PP_FAIL
             download.save()
         return False
-    else:
-        helper.addLocation(new_location, element, download)
-        return True
+    return True
 
 
 def updateElement(element, force=False, withDecendents=True):
