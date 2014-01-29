@@ -5,7 +5,7 @@
 #   chown xdm -R /var/lib/xdm /opt/xdm/
 
 [Unit]
-Description=CouchPotato application instance
+Description=XDM: eXtendable Download Manager
 # if you use https://github.com/jkoelker/XDM-transmission/
 #Wants=transmission
 
