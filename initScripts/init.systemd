@@ -1,0 +1,22 @@
+# Required for this config:
+# XDM code on /opt/xdm
+#   useradd -d /opt/xdm --no-create-home -r  xdm
+#   mkdir /var/lib/xdm
+#   chown xdm -R /var/lib/xdm /opt/xdm/
+
+[Unit]
+Description=CouchPotato application instance
+# if you use https://github.com/jkoelker/XDM-transmission/
+#Wants=transmission
+
+[Service]
+ExecStart=/usr/bin/python /opt/xdm/XDM.py -d -b /var/lib/xdm/ -p /var/lib/xdm/xdm.pid -n
+GuessMainPID=no
+Type=forking
+User=xdm
+Group=xdm
+CPUSchedulingPriority=5
+PIDFile=/var/lib/xdm/xdm.pid
+
+[Install]
+WantedBy=multi-user.target
