@@ -97,7 +97,7 @@ def db():
         try:
             cur_c.select().execute()
         except: # the database structure does not match the classstructure
-            log.error("\n\nFATAL ERROR:\nThe database structure does not match the class structure.\nCheck log.\nOr assume no migration was implemented and you will have to delete your GameZZ.db database file :(")
+            log.exception("\n\nFATAL ERROR:\nThe database structure does not match the class structure.\nCheck log.\nOr assume no migration was implemented and you will have to delete your db database file :(")
             exit(1)
 
     _checkDefaults(migration_was_done)
@@ -208,17 +208,17 @@ def schedule():
 
 def _checkDefaults(resave=False):
 
-    default_statuss = [ {'setter': 'WANTED',      'name': 'Wanted',               'hidden': False},
-                        {'setter': 'SNATCHED',    'name': 'Snatched',             'hidden': False},
-                        {'setter': 'DOWNLOADED',  'name': 'Downloaded',           'hidden': False},
-                        {'setter': 'COMPLETED',   'name': 'Completed',            'hidden': True},
-                        {'setter': 'FAILED',      'name': 'Failed',               'hidden': True},
-                        {'setter': 'PP_FAIL',     'name': 'Post Processing Fail', 'hidden': True},
-                        {'setter': 'UNKNOWN',     'name': 'Unknown',              'hidden': True},
-                        {'setter': 'DELETED',     'name': 'Deleted',              'hidden': True},
-                        {'setter': 'IGNORE',      'name': 'Ignore',               'hidden': False},
-                        {'setter': 'TEMP',        'name': 'Temp',                 'hidden': True},
-                        {'setter': 'DOWNLOADING', 'name': 'Downloading',          'hidden': True}
+    default_statuss = [ {'setter': 'WANTED', 'name': 'Wanted', 'hidden': False},
+                        {'setter': 'SNATCHED', 'name': 'Snatched', 'hidden': False},
+                        {'setter': 'DOWNLOADED', 'name': 'Downloaded', 'hidden': False},
+                        {'setter': 'COMPLETED', 'name': 'Completed', 'hidden': True},
+                        {'setter': 'FAILED', 'name': 'Failed', 'hidden': True},
+                        {'setter': 'PP_FAIL', 'name': 'Post Processing Fail', 'hidden': True},
+                        {'setter': 'UNKNOWN', 'name': 'Unknown', 'hidden': True},
+                        {'setter': 'DELETED', 'name': 'Deleted', 'hidden': True},
+                        {'setter': 'IGNORE', 'name': 'Ignore', 'hidden': False},
+                        {'setter': 'TEMP', 'name': 'Temp', 'hidden': True},
+                        {'setter': 'DOWNLOADING', 'name': 'Downloading', 'hidden': True}
                       ]
     _('Wanted')
     _('Snatched')

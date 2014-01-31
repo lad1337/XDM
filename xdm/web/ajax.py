@@ -132,9 +132,18 @@ class AjaxCalls:
         return template.render(downloads=ele.downloads, **self._globals())
 
     @cherrypy.expose
-    def getEventsFrame(self, id):
+    def getEventsFrame(self, id, is_element=False):
+        # this sis so supid -.-
+        if is_element:
+            if is_element == "true":
+                is_element = True
+            else:
+                is_element = False
         template = self.env.get_template('modalFrames/eventsFrame.html')
-        events = History.select().where(History.obj_id == id).order_by(History.time).order_by(History.time.desc())
+        if is_element:
+            events = History.select().where((History.obj_id == id) | (History.element == id)).order_by(History.time.desc())
+        else:
+            events = History.select().where(History.obj_id == id).order_by(History.time.desc())
         return template.render(events=events, **self._globals())
 
     @cherrypy.expose
@@ -147,6 +156,18 @@ class AjaxCalls:
                 pluginWithOptions.append(plugin)
         template = self.env.get_template('modalFrames/configFrame.html')
         return template.render(plugins=pluginWithOptions, element=ele, **self._globals())
+
+    @cherrypy.expose
+    def getLocationsFrame(self, id):
+        ele = Element.get(Element.id == id)
+        template = self.env.get_template('modalFrames/locationsFrame.html')
+        return template.render(locations=ele.locations, **self._globals())
+
+    @cherrypy.expose
+    def getDownloadDetailFrame(self, id):
+        download = Download.get(Download.id == id)
+        template = self.env.get_template('modalFrames/downloadDetailFrame.html')
+        return template.render(download=download, **self._globals())
 
     @cherrypy.expose
     def clearEvents(self, id):
@@ -192,6 +213,11 @@ class AjaxCalls:
             element.save()
             return json.dumps({'result': False, 'data': {"status_id": element.status.id}, 'msg': u'No downloads found for %s' % (element.getName())})
 
+    @cherrypy.expose
+    def deleteLocation(self, id):
+        l = Location.get(Location.id == id)
+        l.delete_instance()
+        return json.dumps({'result': True, 'data': {}, 'msg': u'Location deleted.'})
 
     @cherrypy.expose
     def searchProgress(self, mt, search_query):

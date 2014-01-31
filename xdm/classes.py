@@ -402,8 +402,7 @@ class Element(BaseModel):
         try:
             return common.PM.getMediaTypeManager(self.mediaType.identifier)[0]
         except IndexError:
-            log.error("Could not find MediaTypeManager %s" % self.mediaType.identifier)
-            raise
+            raise LookupError("Could not find MediaTypeManager %s" % self.mediaType.identifier)
     manager = property(_getMyManager)
 
     def _amIaLeaf(self):
@@ -587,7 +586,7 @@ class Element(BaseModel):
         return self._getName
 
     def _getName(self):
-        return u' '.join([str(x.value) for x in self.fields])
+        return u' '.join([unicode(x.value) for x in self.fields])
 
     def getIdentifier(self):
         return self._getIdentifier
@@ -713,6 +712,40 @@ class Element(BaseModel):
     def __repr__(self):
         return "%s-%s" % (self.type, self.id)
 
+    def addLocation(self, path, download=None):
+        log("Adding location {0:s} to {1:s}".format(path, self))
+        try:
+            location = Location.get(Location.element == self, Location.path == path)
+        except Location.DoesNotExist:
+            log.info("{0:s} had no location with path {1:s}".format(self, path))
+            location = Location()
+        else: # we found an old location with the same path on the element
+            if location.download:
+                if location.download == download:
+                    # old location had a download and it was the same we are adding now
+                    # nothing to do here
+                    log("Nothing to add. {0:s} had location {1:s} with download {2:s}".format(self, path, download))
+                    return
+                else:
+                    # old location had a download but was a different download
+                    # or new one has no download
+                    xdm.tasks.createGenericEvent(
+                        self,
+                        "overwriting location",
+                        "Location is {0:s} from {1:s}".format(path, download))
+            else: # old location has no download attached
+                if download:
+                    # new location has a download ... looks like a local mediadder
+                    pass
+                else:
+                    # but now we have a new download ... did we get a better version ?
+                    pass
+        location.element = self
+        location.download = download
+        location.path = path
+        location.save()
+
+
 class Field_V0(BaseModel):
     element = ForeignKeyField(Element, related_name='fields')
     name = CharField()
@@ -725,7 +758,7 @@ class Field_V0(BaseModel):
         db_table = 'Field'
 
     def __str__(self):
-        return 'Field of %s name:%s value:%s' % (self.element, self.name, self.value)
+        return "Field of {0:s} name:{1:s} value:{2:s}".format(self.element, self.name, self.value)
 
 
 class Field(Field_V0):
@@ -939,7 +972,17 @@ class Download(Download_v1):
             self._extra_data = json.dumps(d)
         raise KeyError
 
-    extra_data = dictproperty(_getExtraData, _setExtraData, _delExtraData)
+    def _iterExtraData(self):
+        if self._extra_data:
+            for key in json.loads(self._extra_data):
+                yield key
+
+    extra_data = dictproperty(
+        _getExtraData,
+        _setExtraData,
+        _delExtraData,
+        _iterExtraData
+    )
 
     @classmethod
     def where_extra_data(cls, items):
@@ -970,7 +1013,31 @@ class Download(Download_v1):
 
         raise Download.DoesNotExist
 
-class History(BaseModel):
+
+class Location(BaseModel):
+    element = ForeignKeyField(Element, related_name='locations')
+    download = ForeignKeyField(Download, null=True, related_name='locations')
+    path = TextField()
+
+    def _isfile(self):
+        return os.path.isfile(self.path)
+
+    isfile = property(_isfile)
+
+    def _isdir(self):
+        return os.path.isdir(self.path)
+
+    isdir = property(_isdir)
+
+    def _available(self):
+        return self.isfile or self.isdir
+
+    available = property(_available)
+
+    def __str__(self):
+        return u"Path: {0:s}".format(self.path)
+
+class History_V0(BaseModel):
     time = DateTimeField(default=datetime.datetime.now())
     event = CharField()
     obj_id = IntegerField()
@@ -982,6 +1049,7 @@ class History(BaseModel):
     class Meta():
         database = xdm.HISTORY_DATABASE
         order_by = ('-time',)
+        db_table = 'History'
 
     def save(self, force_insert=False, only=None):
         self.time = datetime.datetime.now()
@@ -1000,9 +1068,9 @@ class History(BaseModel):
             h.obj_id = old.id
             h.event = 'update'
         if obj.__class__.__name__ == 'Element':
-            h.game = obj.id
+            h.element = obj.id
         elif hasattr(obj, 'element'):
-            h.game = obj.element
+            h.element = obj.element
         h.old_obj = json.dumps(old, cls=MyEncoder)
         h.new_obj = json.dumps(obj, cls=MyEncoder)
         h.obj_class = obj.__class__.__name__
@@ -1043,6 +1111,8 @@ class History(BaseModel):
             return self._new()['msg']
         elif self.obj_class == 'Config':
             return self._humanConfig()
+        elif self.obj_class == 'Location':
+            return self._humanLocation()
         return "not implemented for %s" % self.obj_class
 
     def _humanConfig(self):
@@ -1097,6 +1167,25 @@ class History(BaseModel):
             out.append("%s from '%s' to '%s'" % (k, vs[1], vs[0]))
         return u'updated %s' % ", ".join(out)
 
+    def _humanLocation(self):
+        data_o = self._old()
+        data_n = self._new()
+        if self.event == "insert":
+            return "Added location {0:}".format(Location.get())
+        elif self.event == "insert":
+            return "Updated location {0:}".format(Location.get())
+
+
+class History(History_V0):
+    element = ForeignKeyField(Element, null=True)
+
+    class Meta():
+        database = xdm.HISTORY_DATABASE
+        order_by = ('-time',)
+
+    @classmethod
+    def _migrate(cls):
+        return cls._migrateNewField(cls.element)
 
 class Image_V0(BaseModel):
     name = TextField()
@@ -1220,4 +1309,4 @@ class Repo(BaseModel):
         order_by = ('name',)
 
 
-__all__ = ['Status', 'Config', 'Download', 'History', 'Element', 'MediaType', 'Field', 'Image', 'Repo']
+__all__ = ['Status', 'Config', 'Download', 'History', 'Element', 'MediaType', 'Field', 'Image', 'Repo', 'Location']

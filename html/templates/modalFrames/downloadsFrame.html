@@ -1,10 +1,11 @@
 
-
+{% if downloads.count() %}
 <table style="width:100%;" class="table table-condensed">
 <tbody>
 {% for download in downloads %}
     <tr>
         <td style="max-width: 350px;">
+            <a href="javascript:void(0);" onclick="showDownloadDetails(this, {{ download.id }})"><i class="icon-info-sign"></i></a>
             {{download.name.replace('.','.&shy;')}}
         </td>
         <td class="download-size">{{download.humanSize()}}</td>
@@ -38,12 +39,9 @@
             <div class="muted" style="position:absolute;bottom:0;width:200px;right:5px;text-align:right;">{{download.indexer}} ({{download.indexer_instance}})</div>
         </td>
     </tr>
-{%else%}
-    <tr class="notice">
-        <td>
-            <h4>No downloads yet.</h4>
-        </td>
-    </tr>
 {% endfor %}
 </tbody>
 </table>
+{% else %}
+    <h4>No downloads yet.</h4>
+{% endif %}

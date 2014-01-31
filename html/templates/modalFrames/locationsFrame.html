@@ -1,0 +1,48 @@
+
+{% if locations.count() %}
+<table style="width:100%;" class="table table-condensed locations">
+    <thead>
+        <tr>
+            <th>Path</th>
+            <th>Available</th>
+            <th>Type</th>
+            <th>Download</th>
+        </tr>
+    </thead>
+    {% for location in locations %}
+    <tbody>
+    <tr data-id="{{location.id}}" class="location">
+        <td title="{{location.id}}">{{ location.path }}</td>
+        <td>
+            {% if location.available %}
+            <i class="icon-ok text-success" title="Path found"></i>
+            {% else %}
+            <i class="icon-exclamation text-error" title="Path not found"></i>
+            {% endif %}
+            <a href="javascript:void(0);" onclick="ajaxDeleteLocation(this, {{location.id}})" class="pull-right btn btn-danger btn-mini"><i class="icon-trash"></i></a>
+        </td>
+        <td>
+            {% if location.isdir %}
+            <i class="icon-folder-open" title="Folder"></i>
+            {% elif location.isfile %}
+            <i class="icon-folder-open" title="File"></i>
+            {% else %}
+            <i class="icon-question" title="Unknown"></i>
+            {% endif %}
+        </td>
+        <td>
+            {% if location.download %}
+            <a href="javascript:void(0);" onclick="showDownloadDetails(this, {{ location.download.id }})"><i class="icon-info-sign"></i></a>
+            <span title="{{ location.download.id }}">{{ location.download.name }}</span>
+            {% else %}
+                No download connected.
+            {% endif %}
+        </td>
+    </tr>
+    {% endfor %}
+</tbody>
+</table>
+
+{%else%}
+    <h4>No locations available.</h4>
+{% endif %}

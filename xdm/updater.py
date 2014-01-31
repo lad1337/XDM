@@ -155,7 +155,7 @@ class CoreUpdater(object):
         try:
             result = self.updater.update()
         except:
-            msg = "Error while trying to updateing. Please see log"
+            msg = "Error while trying to update. Please see log"
             log.error(msg)
             common.SM.setNewMessage(msg, lvl='error')
             return False
