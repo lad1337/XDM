@@ -92,7 +92,6 @@ class StructuredMessage(object):
                                 self.time,
                                 self.message)
 
-
     def __str__(self):
         def _json(time, lvl, message, calframe, kwargs={}):
             return json.dumps({'time': time,
@@ -129,9 +128,12 @@ class LogWrapper():
         curframe = inspect.currentframe()
         calframe = inspect.getouterframes(curframe, 0)
         sm = StructuredMessage(lvl, msg, calframe, **kwargs)
-        cLogger.log(lvl, sm.console())
-        _line = '%s' % sm
-        fLogger.log(lvl, _line)
+        try:
+            cLogger.log(lvl, sm.console())
+            _line = u'%s' % sm
+            fLogger.log(lvl, _line)
+        except (UnicodeDecodeError, UnicodeEncodeError):
+            return
         self._logLineCache.append(_line)
         if len(self._logLineCache) > LOGLINECACHESIZE:
             self._logLineCache = self._logLineCache[1:]

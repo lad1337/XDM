@@ -1,0 +1,10 @@
+<div class="location-button text-buttons btn-group">
+    <a href="javascript:void(0)" onclick="modalLocations(this, {{this.id}})" class="action-search btn btn-primary btn-mini">Locations</a>
+    {% if this.locations.count() %}
+        {% for location in this.locations %}
+        <!-- {{location.path}} -->
+        {% endfor %}
+    {% else %}
+        <!-- no locations found -->
+    {% endif %}
+</div>

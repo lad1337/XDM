@@ -459,6 +459,7 @@ class DownloadTyped(Plugin):
         if not self.types:
             for downloadType in common.PM.DT:
                 self.types.append(downloadType.identifier)
+        self._config["comment_on_download"] = False
         Plugin.__init__(self, instance=instance)
 
     def _getDownloadTypeExtension(self, downloadTypeIdentifier):
@@ -532,8 +533,7 @@ class Indexer(DownloadTyped):
     name = "Does Noting"
 
     def __init__(self, instance='Default'):
-        # TODO: dont repeat this function make it wor with one
-        # wrap function
+        # TODO: dont repeat this function make it work with one wrap function
         def downloadWrapperSingle(*args, **kwargs):
             res = self._searchForElement(*args, **kwargs)
             for i, d in enumerate(res):
@@ -585,7 +585,7 @@ class Indexer(DownloadTyped):
         log("Search terms for %s are %s" % (self.name, terms))
         return terms
 
-    def commentOnDownload(self, download):
+    def commentOnDownload(self, message, download):
         return True
 
 
@@ -675,6 +675,17 @@ class PostProcessor(Plugin):
     def __init__(self, instance='Default'):
         self._config['stop_after_me_select'] = common.STOPPPONSUCCESS
         self.config_meta['stop_after_me_select'] = {'human': 'Stop other PostProcessors on'}
+
+        def ppWrapper(*args, **kwargs):
+            res = self._postProcessPath(*args, **kwargs)
+            if len(res) == 2:
+                return (res[0], None, res[1])
+            return res
+
+        # wrapper to make "old" pp plugins work with the added location
+        self._postProcessPath = self.postProcessPath
+        self.postProcessPath = ppWrapper
+
         Plugin.__init__(self, instance=instance)
 
     def _stop_after_me_select(self):
@@ -684,7 +695,12 @@ class PostProcessor(Plugin):
                 common.DONTSTOPPP: "Don't stop others"}
 
     def postProcessPath(self, element, path):
-        return (False, '')
+        """should return a tuple with
+        overal result bool()
+        new location str()
+        process log str()
+        """
+        return (False, None, 'Nothing happend')
 
 
 class System(Plugin):
@@ -745,6 +761,7 @@ class MediaAdder(Plugin):
             self.elementType = elementType
             self.name = name
             self.additionalData = additionalData
+            self.status = None
 
     def runShedule(self):
         """This method is called periodically and has to return a list of Media objects"""

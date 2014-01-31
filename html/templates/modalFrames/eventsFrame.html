@@ -4,7 +4,7 @@
 <tbody>
     {% for event in events %}
     <tr title="{{event.id}}">
-        <td class="nice-time">{{event.time|relativeTime}} {{_('time_ago')}}</td>
+        <td class="nice-time">{{event.time|relativeTime}}</td>
         <td class="event-type">{{event.event}}</td>
         <td>{{event.human()}}</td>
     </tr>

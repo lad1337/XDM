@@ -24,11 +24,8 @@ import os
 import re
 import sys
 import webbrowser
-import math
 from logger import *
 from datetime import datetime, timedelta
-import inspect
-import urllib
 from xdm import common
 import xdm
 import shutil
@@ -37,7 +34,6 @@ import base64
 import random
 import hashlib
 from babel.dates import format_timedelta
-from encodings import base64_codec
 
 
 def getSystemDataDir(progdir):
@@ -341,11 +337,12 @@ class dictproperty(object):
 
     class _proxy(object):
 
-        def __init__(self, obj, fget, fset, fdel):
+        def __init__(self, obj, fget, fset, fdel, fiter):
             self._obj = obj
             self._fget = fget
             self._fset = fset
             self._fdel = fdel
+            self._fiter = fiter
 
         def __getitem__(self, key):
             if self._fget is None:
@@ -371,15 +368,22 @@ class dictproperty(object):
             except KeyError:
                 return False
 
-    def __init__(self, fget=None, fset=None, fdel=None, doc=None):
+        def __iter__(self):
+              return self._fiter(self._obj)
+
+        def items(self):
+            return [(key, self[key]) for key in self._fiter(self._obj)]
+
+    def __init__(self, fget=None, fset=None, fdel=None, fiter=None, doc=None):
         self._fget = fget
         self._fset = fset
         self._fdel = fdel
+        self._fiter = fiter
         self.__doc__ = doc
 
     def __get__(self, obj, objtype=None):
         if obj is None:
             return self
-        return self._proxy(obj, self._fget, self._fset, self._fdel)
+        return self._proxy(obj, self._fget, self._fset, self._fdel, self._fiter)
 
 
