@@ -306,19 +306,19 @@ def ppElement(element, download, initial_path):
         log(u'Starting PP on %s with %s at %s' % (element, pp, new_location))
         ppResult, _new_location, pp_log = pp.postProcessPath(element, new_location)
         pp_try = True
+        download.pp_log = u'LOG from %s:\n%s\n######\n%s' % (pp, pp_log, download.pp_log)
         if ppResult:
             if _new_location:
                 new_location = _new_location
             element.status = common.COMPLETED
             element.save()
             download.status = common.COMPLETED
-            download.pp_log = u'LOG from %s:\n%s\n######\n%s' % (pp, pp_log, download.pp_log)
-            download.save()
             if pp.c.stop_after_me_select == common.STOPPPONSUCCESS or pp.c.stop_after_me_select == common.STOPPPALWAYS:
                 break
         else:
             if pp.c.stop_after_me_select == common.STOPPPONFAILURE or pp.c.stop_after_me_select == common.STOPPPALWAYS:
                 break
+        download.save()
 
     element.addLocation(new_location, download)
     if not ppResult:

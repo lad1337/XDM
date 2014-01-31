@@ -4,7 +4,7 @@ var firstMessage = true;
 
 var green_arrow_small;
 var green_arrow_big;
-var logo_animate_run = true;
+var logo_animate_running = false;
 
 $(document).ready(function() {
     $(".youtube").youtube();
@@ -85,20 +85,20 @@ $(document).ready(function() {
     green_arrow_small = logo.select("#plugin1");
     green_arrow_big = logo.select("#plugin2");
     $(document).ajaxComplete(function(){
-        logo_animate_run = false;
+        logo_animate_running = false;
     });
     $(document).ajaxStart(function(event){
-        if(!logo_animate_run){
-            logo_animate_run = true;
+        if(!logo_animate_running){
+            logo_animate_running = true;
             animate_logo();
         }
     });
 });
 
 function animate_logo(){
-    if(!logo_animate_run){
+    if(!logo_animate_running){
         console.log("told to stop logo animation");
-        return
+        return;
     }
     console.log("staring logo animation");
     green_arrow_big.animate({ 
@@ -308,8 +308,7 @@ function setStatusText(element_id, status_id){
 
 function ajaxForceSearch(sender, element_id){
     $(sender).addClass('btn-striped animate');
-    data = {};
-    data['id'] = element_id;
+    data = {'id': element_id};
     $.getJSON(webRoot+'/ajax/forceSearch', data, function(res){
         $(sender).removeClass('btn-striped animate');
         if(res['result']){
@@ -321,31 +320,42 @@ function ajaxForceSearch(sender, element_id){
     })
 };
 
+function ajaxDeleteLocation(sender, location_id){
+    $(sender).addClass('btn-striped animate');
+    data = {'id': location_id};
+    $.getJSON(webRoot+'/ajax/deleteLocation', data, function(res){
+        $(sender).removeClass('btn-striped animate');
+        if(res['result']){
+            $('table.locations tr.location[data-id="'+element_id+'"]').hide();
+        }
+    })
+
+}
+
 function createModal(name){
     var id = makeSafeForCSS(name+'Frame');
     var modalFrame = $('#'+id);
-    
-    modalFrame.remove()
-    $('body>.modal').remove()
+    modalFrame.remove();
+    $('body>.modal').remove();
     // set up the bootstrap dialog
     modalFrame = $('<div id="'+id+'" class="modal hide fade modal-wide"><div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button><h3>'+name+'</h3></div><div class="modal-body"></div></div>').appendTo('body')
-    modalFrame.append('<div class="modal-footer"><button class="btn" data-dismiss="modal">Close</button></div>')
+    modalFrame.append('<div class="modal-footer"><button class="btn" data-dismiss="modal">Close</button></div>');
     
-    var otherOpenModals = $('body>div.modal:not([style="display: none;"]):not(#'+id+')').modal('hide')
-    console.log(otherOpenModals)
-    $('body').append(modalFrame)
+    var otherOpenModals = $('body>div.modal:not([style="display: none;"]):not(#'+id+')').modal('hide');
+    console.log(otherOpenModals);
+    $('body').append(modalFrame);
     if(otherOpenModals.length){
         $('[data-dismiss="modal"]', modalFrame).click(function(e){
-            otherOpenModals.modal('show')
+            otherOpenModals.modal('show');
         });
-        $('.modal-footer button:first',modalFrame).text('Back')
+        $('.modal-footer button:first',modalFrame).text('Back');
     }
     return modalFrame
 }
 
 function ajaxModal(sender, name, url, data){
     $(sender).addClass('btn-striped animate');
-    var myModal = createModal(name)
+    var myModal = createModal(name);
     $.post(url, data, function(res){
         $('.modal-body', myModal).html(res)
         myModal.modal();
@@ -354,10 +364,35 @@ function ajaxModal(sender, name, url, data){
     return myModal;
 }
 
+function ajaxQtip(sender, url, data){
+    sender = $(sender);
+    sender.addClass('btn-striped animate');
+    $.post(url, data, function(res){
+        console.log(res);
+        sender.qtip({
+            content: {
+                text: res
+            },
+            show: {
+                ready: true,
+                solo: true
+            },
+            style: {
+                classes: 'qtip-bootstrap'
+            }
+        });
 
-function showEvents(sender, id){
-    data = {'id': id}
-    name = 'Events'
+        sender.removeClass('btn-striped animate');
+    });
+}
+
+
+function showEvents(sender, id, is_element){
+    if(typeof is_element == "undefined")
+        is_element = false;
+
+    data = {'id': id, 'is_element': is_element};
+    name = 'Events';
     var myModal = ajaxModal(sender, name, webRoot+'/ajax/getEventsFrame', data)
     // check for events
     if(!$('.modal-body tr:not(.notice)', myModal).length)
@@ -383,20 +418,26 @@ function showEvents(sender, id){
 }
 
 function showDownlads(sender, id){
-    data = {'id': id}
-    name = 'Downloads'
-    ajaxModal(sender, name, webRoot+'/ajax/getDownloadsFrame', data)
+    data = {'id': id};
+    name = 'Downloads';
+    ajaxModal(sender, name, webRoot+'/ajax/getDownloadsFrame', data);
 }
 
 function showLocations(sender, id){
-    data = {'id': id}
-    name = 'Locations'
-    ajaxModal(sender, name, webRoot+'/ajax/getLocationsFrame', data)
+    data = {'id': id};
+    name = 'Locations';
+    ajaxModal(sender, name, webRoot+'/ajax/getLocationsFrame', data);
+}
+
+function showDownloadDetails(sender, id){
+    data = {'id': id};
+    name = 'Download details';
+    ajaxQtip(sender, webRoot+'/ajax/getDownloadDetailFrame', data);
 }
 
 function showConfigs(sender, id){
-    data = {'id': id}
-    name = 'Configuration'
+    data = {'id': id};
+    name = 'Configuration';
     var myModal = ajaxModal(sender, name, webRoot+'/ajax/getConfigFrame', data);
     console.log("the modal", myModal);
     myModal.on('shown', function() {
@@ -430,7 +471,6 @@ function labelInputConnector(labels){
         }
     });
 }
-
 
 function formAjaxSaveConnect(saveButtons, theForm){
     saveButtons.click(function(event){

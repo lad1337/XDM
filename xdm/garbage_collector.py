@@ -82,5 +82,6 @@ def fixImages():
     if old_files:
         log.info(u"Removing %s old files" % len(old_files))
         for unneeded_file_path in old_files:
+            unneeded_file_path = unneeded_file_path.decode("utf-8")
             log.debug(u"Deleting unneeded image file %s" % unneeded_file_path)
             os.remove(unneeded_file_path)

@@ -459,6 +459,7 @@ class DownloadTyped(Plugin):
         if not self.types:
             for downloadType in common.PM.DT:
                 self.types.append(downloadType.identifier)
+        self._config["comment_on_download"] = False
         Plugin.__init__(self, instance=instance)
 
     def _getDownloadTypeExtension(self, downloadTypeIdentifier):
@@ -674,6 +675,17 @@ class PostProcessor(Plugin):
     def __init__(self, instance='Default'):
         self._config['stop_after_me_select'] = common.STOPPPONSUCCESS
         self.config_meta['stop_after_me_select'] = {'human': 'Stop other PostProcessors on'}
+
+        def ppWrapper(*args, **kwargs):
+            res = self._postProcessPath(*args, **kwargs)
+            if len(res) == 2:
+                return (res[0], None, res[1])
+            return res
+
+        # wrapper to make "old" pp plugins work with the added location
+        self._postProcessPath = self.postProcessPath
+        self.postProcessPath = ppWrapper
+
         Plugin.__init__(self, instance=instance)
 
     def _stop_after_me_select(self):
