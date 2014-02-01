@@ -6,6 +6,10 @@ XDM is in BETA
 Current official site [http://xdm.lad1337.de](http://xdm.lad1337.de)<br/>
 Official main plugin repository at [https://github.com/lad1337/XDM-main-plugin-repo/](https://github.com/lad1337/XDM-main-plugin-repo/)
 
+[![tip for next commit](http://tip4commit.com/projects/534.svg)](http://tip4commit.com/projects/534)
+[![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/lad1337/xdm/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
+
+
 ## Requirements
 
 - python 2.7.x
@@ -16,10 +20,12 @@ optional but recomended when running on source
 
 ## Known support for Mediatypes
 
-- Movies: add Movies and find and Postprocess
-- Music: add Albums and find and Postprocess (only for Mac OSX adding to iTunes)
-- Games: add PC, Xbox360, PS3 and Wii Games and find and Postprocess
-- Books: add Books
+- Movies: Movies and find and Postprocess
+- Music: Albums and find and Postprocess (only for Mac OSX adding to iTunes)
+- Games: PC, Xbox360, PS3 and Wii Games and find and Postprocess
+- Books: Books
+- TV: TV shows
+- Anime: Animes
 
 For more info on available first party plugins see the main repository at [https://github.com/lad1337/XDM-main-plugin-repo/](https://github.com/lad1337/XDM-main-plugin-repo/).
 
@@ -154,10 +160,4 @@ GNU General Public License for more details.<br>
 You should have received a copy of the GNU General Public License<br>
 along with this program.  If not, see http://www.gnu.org/licenses/.
 
-
-
-
-
-
-[![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/lad1337/xdm/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
 
