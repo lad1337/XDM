@@ -275,9 +275,11 @@ def reboot_handler(signum, frame):
     actionManager.executeAction('reboot', 'SIGHUP')
 
 def main():
-
-    signal.signal(signal.SIGTERM, shutdown_handler)
-    signal.signal(signal.SIGHUP, reboot_handler)
+    try:
+        signal.signal(signal.SIGTERM, shutdown_handler)
+        signal.signal(signal.SIGHUP, reboot_handler)
+    except AttributeError:
+        log.debug("Could not connect signal handler")
 
     app = App()
     if not app.options.noWebServer:
