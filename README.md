@@ -6,9 +6,15 @@ XDM is in BETA
 Current official site [http://xdm.lad1337.de](http://xdm.lad1337.de)<br/>
 Official main plugin repository at [https://github.com/lad1337/XDM-main-plugin-repo/](https://github.com/lad1337/XDM-main-plugin-repo/)
 
-[![tip for next commit](http://tip4commit.com/projects/534.svg)](http://tip4commit.com/projects/534)
 [![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/lad1337/xdm/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
 [![Gitter chat](https://badges.gitter.im/lad1337/XDM.png)](https://gitter.im/lad1337/XDM)
+
+
+[![tip for next commit](http://tip4commit.com/projects/534.svg)](http://tip4commit.com/projects/534)
+[Gittip][tip]
+
+[![Gittip](http://img.shields.io/gittip/Homebrew.png)](https://www.gittip.com/Homebrew/)
+[tip]:https://www.gittip.com/Homebrew/
 
 ## Requirements
 
