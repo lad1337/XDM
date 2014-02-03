@@ -11,10 +11,8 @@ Official main plugin repository at [https://github.com/lad1337/XDM-main-plugin-r
 
 
 [![tip for next commit](http://tip4commit.com/projects/534.svg)](http://tip4commit.com/projects/534)
-[Gittip][tip]
+[![Gittip](http://img.shields.io/gittip/lad1337.png)](https://www.gittip.com/lad1337/)
 
-[![Gittip](http://img.shields.io/gittip/Homebrew.png)](https://www.gittip.com/Homebrew/)
-[tip]:https://www.gittip.com/Homebrew/
 
 ## Requirements
 
