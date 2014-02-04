@@ -24,6 +24,8 @@ import sys
 import site
 import os
 import time
+import signal 
+
 # Fix for correct path
 if hasattr(sys, 'frozen'):
     app_path = os.path.abspath(os.path.join(os.path.abspath(sys.executable), '..', '..', 'Resources'))
@@ -263,8 +265,22 @@ class App():
         except:
             pass
 
+def shutdown_handler(signum, frame):
+    log.info("Shutdown handler invoked with signal: %d " % signum)
+    actionManager.executeAction('shutdown', 'SIGTERM')
+    os._exit()
+
+def reboot_handler(signum, frame):
+    log.info("reboot handler invoked with signal: %d " % signum)
+    actionManager.executeAction('reboot', 'SIGHUP')
 
 def main():
+    try:
+        signal.signal(signal.SIGTERM, shutdown_handler)
+        signal.signal(signal.SIGHUP, reboot_handler)
+    except AttributeError:
+        log.debug("Could not connect signal handler")
+
     app = App()
     if not app.options.noWebServer:
         try:
