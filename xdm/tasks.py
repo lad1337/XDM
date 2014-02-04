@@ -331,7 +331,16 @@ def ppElement(element, download, initial_path):
     return True
 
 
-def updateElement(element, force=False, withDecendents=True):
+def updateElement(element, force=False, new_node_status=None):
+    if new_node_status is None:
+        new_node_status = common.getStatusByID(element.manager.c.new_node_status_select)
+    if isinstance(new_node_status, Status):
+        log.error(
+            "I expected the new_node_status to be of instance Status but i got {}. Not updating {}".format(
+                new_node_status,
+                element)
+        )
+
     for p in common.PM.getProvider(runFor=element.manager):
         # TODO: make sure we use the updated element after one provider is done
         for current_tag in p.tags:
@@ -360,9 +369,8 @@ def updateElement(element, force=False, withDecendents=True):
                     new_parent = helper.findOldNode(new_node.parent, element, current_tag)
                     log.debug("attaching %s to %s" % (new_node, new_parent))
                     new_node.parent = new_parent
-                    new_status = common.getStatusByID(new_node.manager.c.new_node_status_select)
-                    log.debug("Setting status of new node %s to %s" % (new_node, new_status))
-                    new_node.status = new_status
+                    log.debug("Setting status of new node %s to %s" % (new_node, new_node_status))
+                    new_node.status = new_node_status
                     new_node.save()
                     common.Q.put(('image.download', {'id': new_node.id}))
             else:
@@ -376,7 +384,7 @@ def updateElement(element, force=False, withDecendents=True):
             for updated_node in [new_e] + new_e.decendants:
                 old_node = helper.findOldNode(updated_node, element, current_tag)
                 if old_node is None:
-                    log.error("NO old node found for %s in %s" % (updated_node, element))
+                    log.error("No old node found for %s in %s" % (updated_node, element))
                     continue
 
                 if not helper.sameElements(old_node, updated_node):
