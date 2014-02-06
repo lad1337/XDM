@@ -24,7 +24,9 @@ import sys
 import site
 import os
 import time
-import signal 
+import signal
+
+import hashlib
 
 # Fix for correct path
 if hasattr(sys, 'frozen'):
@@ -185,17 +187,28 @@ class App():
         bootstrap_path = os.path.join(app_path, 'html', 'bootstrap')
         images = xdm.IMAGEPATH
 
-        username = common.SYSTEM.c.login_user
-        password = common.SYSTEM.c.login_password
+        # Default config : there is no auth.
+        def sha512(passwd):
+            return hashlib.sha512(hashlib.sha512(passwd).hexdigest()).hexdigest()
 
         useAuth = False
-        if username and password:
-            useAuth = True
-        userPassDict = {username: password}
-        checkpassword = cherrypy.lib.auth_basic.checkpassword_dict(userPassDict)
-        conf = {'/': {'tools.auth_basic.on': useAuth,
-                      'tools.auth_basic.realm': 'XDM',
-                      'tools.auth_basic.checkpassword': checkpassword,
+        userPassDict = {}
+
+
+        # get auth dictionnary from system plugins that contains credentials
+        systemPlugins = common.PM.getSystem(returnAll=True)
+        for sysPlugin in systemPlugins:
+            username = sysPlugin.c.getConfig('login_user')
+            password = sysPlugin.hc.getConfig('login_password')
+            if username and password: # if there is credentials in the plugin
+                useAuth = True
+                userPassDict[username.value] = password.value
+
+        #checkpassword = cherrypy.lib.auth_basic.checkpassword_dict(userPassDict)
+        conf = {'/': {'tools.basic_auth.on': useAuth,
+                      'tools.basic_auth.realm': 'XDM',
+                      'tools.basic_auth.users': userPassDict,
+                      'tools.basic_auth.encrypt': sha512,
                       'tools.encode.encoding': 'utf-8'},
                 '/api': {'tools.auth_basic.on': False},
                 '/css': {'tools.staticdir.on': True, 'tools.staticdir.dir': css_path},
