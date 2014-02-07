@@ -196,7 +196,7 @@ class App():
 
 
         # get auth dictionnary from system plugins that contains credentials
-        systemPlugins = common.PM.getSystem(returnAll=True)
+        systemPlugins = common.PM.getSystem()
         for sysPlugin in systemPlugins:
             username = sysPlugin.c.getConfig('login_user')
             password = sysPlugin.hc.getConfig('login_password')
