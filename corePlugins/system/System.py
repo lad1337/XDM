@@ -33,11 +33,10 @@ import inspect
 
 # this class is special because it will be set to SYSTEM in the whole app
 class SystemConfig(System):
+    identifier = "de.lad1337.systemconfig"
     version = "0.23"
     _config = OrderedDict([
                ('defaut_mt_select', ''),
-               ('login_user', ''),
-               ('login_password', ''),
                ('port', 8085),
                ('port_api', 8086),
                ('socket_host', '0.0.0.0'),
