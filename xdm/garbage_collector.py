@@ -65,7 +65,10 @@ def deleteOrphanImages():
 def fixImages():
     needed_files = set()
     for image in Image.select():
-        path = image.getPath()
+        try:
+            path = image.getPath()
+        except LookupError:
+            continue
         if not os.path.isfile(path):
             log.debug("%s has no file adding it to the Q" % image)
             common.Q.put(('image.download', {'id': image.element.id}))

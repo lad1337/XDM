@@ -459,7 +459,8 @@ class DownloadTyped(Plugin):
         if not self.types:
             for downloadType in common.PM.DT:
                 self.types.append(downloadType.identifier)
-        self._config["comment_on_download"] = False
+        if hasattr(self.__class__, "commentOnDownload"):
+            self._config["comment_on_download"] = False
         Plugin.__init__(self, instance=instance)
 
     def _getDownloadTypeExtension(self, downloadTypeIdentifier):
@@ -657,7 +658,7 @@ class Provider(Plugin):
         """
         return Element()
 
-    def getElement(self, id, element=None):
+    def getElement(self, id, element=None, tag=None):
         return False
 
     def _getSupportedManagers(self):
@@ -753,7 +754,7 @@ class MediaAdder(Plugin):
     name = 'Does Nothing'
 
     class Media(object):
-        """Class that holds the iformation needed by XDM to add the Media"""
+        """Class that holds the information needed by XDM to add the Media"""
         def __init__(self, mediaTypeIdentifier, externalID, providerTag, elementType, name, additionalData={}):
             self.mediaTypeIdentifier = mediaTypeIdentifier
             self.externalID = externalID
@@ -762,6 +763,9 @@ class MediaAdder(Plugin):
             self.name = name
             self.additionalData = additionalData
             self.status = None
+            self.root = None
+            """this is set by XDM of the Media was succesfully added,
+            it is the element(root) that represents the Media in XDM"""
 
     def runShedule(self):
         """This method is called periodically and has to return a list of Media objects"""

@@ -83,6 +83,10 @@ class App():
         p.add_argument('-P', '--port', dest='port', type=int, default=None, help="Force webinterface to listen on this port.")
         p.add_argument('-n', '--nolaunch', action="store_true", dest='nolaunch', help="Don't start the browser.")
         p.add_argument('-b', '--datadir', dest='datadir', default=None, help="Set the directory for created data.")
+        p.add_argument('--configJSON', dest='configJSON', default=None, help="Set the path to the config JSON file (or folder with then) to read from")
+        p.add_argument('--systemIdentifer', dest='systemIdentifer', default="de.lad1337.system", help="Set the identifier for the system plugin")
+
+
         p.add_argument('--config_db', dest='config_db', default=None, help="Path to config database")
         p.add_argument('--data_db', dest='data_db', default=None, help="Path to data database")
         p.add_argument('--history_db', dest='history_db', default=None, help="Path to history database")
@@ -99,6 +103,18 @@ class App():
         common.STARTOPTIONS = options
 
         log.info('Starting XDM %s' % common.getVersionHuman())
+
+
+        if options.configJSON:
+            config_files = []
+            if os.path.isdir(options.configJSON):
+                import glob
+                config_files = [os.path.abspath(p) for p in glob.glob(os.path.join(options.configJSON, '*.json'))]
+            else:
+                config_files.append(os.path.abspath(options.configJSON))
+            for config_file in config_files:
+                log.info('Loading config from file {}'.format(config_file))
+                options = helper.spreadConfigsFromFile(options, config_file)
 
         # Set the Paths
         if options.datadir:

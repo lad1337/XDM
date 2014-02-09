@@ -139,6 +139,8 @@ class Common(object):
 
     FAKEDATE = datetime.datetime(1987, 5, 24, 13, 37, 6)
 
+    CONFIGOVERWRITE = {}
+
     def getLocale(self):
         """get the current local string
         e.g. en_US
@@ -225,6 +227,16 @@ class Common(object):
             return self._provider_tags_cache
         self._provider_tags_cache = [p.tag for p in self.PM.P]
         return self._provider_tags_cache
+
+    def updateConfigOverwrite(self, config):
+        self.CONFIGOVERWRITE.update(config)
+
+    def getConfigOverWriteForPlugin(self, plugin):
+        if plugin.identifier in self.CONFIGOVERWRITE and plugin.instance in self.CONFIGOVERWRITE[plugin.identifier]:
+            return self.CONFIGOVERWRITE[plugin.identifier][plugin.instance]
+        else:
+            return {}
+
 
 common = Common()
 

@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # Author: Dennis Lutter <lad1337@gmail.com>
 # URL: https://github.com/lad1337/XDM
 #
@@ -18,6 +19,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see http://www.gnu.org/licenses/.
+import xdm
 
 from xdm.logger import *
 import collections
@@ -104,10 +106,19 @@ class ConfigWrapper(object):
         return out
 
     def __getattr__(self, name):
-        try:
+        if name in self._configValueCache:
             return self._configValueCache[name]
-        except KeyError:
-            pass
+        if xdm.common.CONFIGOVERWRITE:
+            overwrite = xdm.common.getConfigOverWriteForPlugin(self._plugin)
+            if name in overwrite:
+                if isinstance(overwrite[name], dict):
+                    if "store" in overwrite[name] and overwrite[name]["store"]:
+                        setattr(self, name, overwrite[name]["value"])
+                    self._configValueCache[name] = overwrite[name]["value"]
+                else:
+                    self._configValueCache[name] = overwrite[name]
+                return self._configValueCache[name]
+
         for cur_c in self.configs:
             if cur_c.name == name:
                 self._configValueCache[name] = cur_c.value

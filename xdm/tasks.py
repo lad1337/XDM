@@ -334,12 +334,14 @@ def ppElement(element, download, initial_path):
 def updateElement(element, force=False, new_node_status=None):
     if new_node_status is None:
         new_node_status = common.getStatusByID(element.manager.c.new_node_status_select)
-    if isinstance(new_node_status, Status):
+    if not isinstance(new_node_status, Status):
         log.error(
             "I expected the new_node_status to be of instance Status but i got {}. Not updating {}".format(
-                new_node_status,
-                element)
+                new_node_status.__class__, element)
         )
+        return
+    else:
+        log.debug("Using new_node_status %s" % new_node_status)
 
     for p in common.PM.getProvider(runFor=element.manager):
         # TODO: make sure we use the updated element after one provider is done
@@ -352,7 +354,7 @@ def updateElement(element, force=False, new_node_status=None):
                 log.warning('getting an element by name is not implemented can not refresh')
                 continue
             log(u'Getting %s with provider id %s on %s' % (element, pID, p))
-            new_e = p.getElement(pID, element)
+            new_e = p.getElement(pID, element, tag=current_tag)
             createGenericEvent(element, 'refreshing', u'Serching for update on %s' % p)
             if new_e:
                 log.info(u"%s returned an element" % p)
@@ -420,8 +422,20 @@ def runMediaAdder():
                 successfulAdd.append(media)
                 continue
             for provider in common.PM.getProvider(runFor=mtm):
-                log.info(u'%s is looking for %s(%s) on %s' % (adder, media.name, media.externalID, provider))
-                ele = provider.getElement(media.externalID)
+                log.info(u'%s is looking for %s(%s:%s) on %s' % (adder, media.name, media.providerTag, media.externalID, provider))
+                ele = provider.getElement(media.externalID, tag=media.providerTag)
+
+                if not ele and common.c.mediaadder_search_by_name:
+                    log.info(u'%s did not find %s(%s) trying now by NAME' % (provider, media.name, media.externalID))
+                    rootElement = mtm.search(media.name)
+                    if len(list(rootElement.children)) == 1:
+                        log.info("We found one by with the name %s adding it!" % media.name)
+                        ele = list(rootElement.children)[0]
+                    else:
+                        log.info("We found multiple results with by name %s" % media.name)
+                        for child in rootElement.children:
+                            log.info("found %s" % child)
+
                 if ele:
                     log.info(u'we found %s. now lets gets real' % ele)
                     if media.status is None:
@@ -431,13 +445,15 @@ def runMediaAdder():
                     if ele.manager.makeReal(ele, new_status):
                         createGenericEvent(ele, u'autoAdd', 'I was added by %s' % adder)
                         common.MM.createInfo(u'%s added %s' % (adder, ele.getName()))
+                        media.root = ele
                         if media not in successfulAdd:
                             successfulAdd.append(media)
                             if new_status == common.WANTED:
                                 t = TaskThread(runSearcherForMediaType, ele.manager, ele)
                                 t.start()
                 else:
-                    log.info(u'%s did not find %s(%s)' % (provider, media.name, media.externalID))
+                    log.info("Nothing found :(")
+
         adder.successfulAdd(successfulAdd)
 
 

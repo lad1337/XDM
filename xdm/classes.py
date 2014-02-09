@@ -638,7 +638,11 @@ class Element(BaseModel):
 
     @classmethod
     def getWhereField(cls, mt, type, attributes, provider='', parent=0):
-        fs = list(Field.select().where(Field.name << attributes.keys(), Field.provider == provider).order_by(Field.element))
+        fs = list(Field.select().where(
+            Field.name << attributes.keys(),
+            Field.provider == provider
+        ).order_by(Field.element))
+
         last_e = None
         lastAttributeOK = False
         for f in fs:
