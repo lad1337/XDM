@@ -419,6 +419,7 @@ def runMediaAdder():
                 pass
             else:
                 log(u'We already have %s' % new_e)
+                media.root = new_e
                 successfulAdd.append(media)
                 continue
             for provider in common.PM.getProvider(runFor=mtm):
