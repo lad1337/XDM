@@ -425,7 +425,7 @@ def runMediaAdder():
                 log.info(u'%s is looking for %s(%s:%s) on %s' % (adder, media.name, media.providerTag, media.externalID, provider))
                 ele = provider.getElement(media.externalID, tag=media.providerTag)
 
-                if not ele and common.c.mediaadder_search_by_name:
+                if not ele and common.SYSTEM.c.mediaadder_search_by_name:
                     log.info(u'%s did not find %s(%s) trying now by NAME' % (provider, media.name, media.externalID))
                     rootElement = mtm.search(media.name)
                     if len(list(rootElement.children)) == 1:
