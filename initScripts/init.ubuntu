@@ -70,8 +70,7 @@ EXTRA_SSD_OPTS=${SSD_OPTS-}
 ##
 
 PID_PATH=`dirname $PID_FILE`
-DAEMON_OPTS=" XDM.py -q --daemon --nolaunch --pidfile=${PID_FILE} --datadir=${DATA_DIR} ${EXTRA_DAEMON_OPTS}"
-
+DAEMON_OPTS=" XDM.py --daemonize --nolaunch --pidfile=${PID_FILE} --datadir=${DATA_DIR} ${EXTRA_DAEMON_OPTS}"
 ##
 
 test -x $DAEMON || exit 0
