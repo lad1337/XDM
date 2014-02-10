@@ -20,6 +20,7 @@
 # along with this program.  If not, see http://www.gnu.org/licenses/.
 
 import sys
+import sqlite3
 import os
 import xdm
 from classes import *
@@ -91,8 +92,11 @@ def db():
 
     migration_was_done = False
     for cur_c in classes:
-        if cur_c.updateTable():
-            migration_was_done = True
+        try:
+            if cur_c.updateTable():
+                migration_was_done = True
+        except sqlite3.DatabaseError:
+            log.critical("@!&%&*$% ... *sigh* i am sorry but the database %s is broken!" % cur_c.Meta.database)
         log("Selecting all of %s" % cur_c.__name__)
         try:
             cur_c.select().execute()
@@ -110,7 +114,7 @@ def postDB():
     common.PM = PluginManager()
     common.PM.cache(debug=common.STARTOPTIONS.pluginImportDebug, systemOnly=True,)
     # load system config !
-    common.SYSTEM = common.PM.getSystem('Default')[0] # yeah SYSTEM is a plugin
+    common.SYSTEM = common.PM.getPluginByIdentifier(common.STARTOPTIONS.systemIdentifer, 'Default') # yeah SYSTEM is a plugin
     # system config loaded
 
     # init i18n

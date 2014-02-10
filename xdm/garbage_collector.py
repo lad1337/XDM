@@ -37,6 +37,7 @@ def soFreshAndSoClean():
         deleteOrphanFields()
         deleteOrphanImages()
         fixImages()
+        deleteOrphanElements()
     except:
         raise
     finally:
@@ -88,3 +89,14 @@ def fixImages():
             unneeded_file_path = unneeded_file_path.decode("utf-8")
             log.debug(u"Deleting unneeded image file %s" % unneeded_file_path)
             os.remove(unneeded_file_path)
+
+
+def deleteOrphanElements():
+    """this will delete elements with no parent and are not root elements"""
+    roots = [mtm.root for mtm in common.PM.getMediaTypeManager(returnAll=True)]
+    if not roots:
+        return
+    lost_children = Element.select().where(Element.parent >> None, ~(Element.id << roots))
+    for lost_child in lost_children:
+        log.info("Element %s is lost. Begone." % lost_child.id)
+    Element.delete().where(Element.id << lost_children).execute()

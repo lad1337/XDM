@@ -336,7 +336,7 @@ releaseThresholdDelta = {1: timedelta(days=1),
 
 def spreadConfigsFromFile(options, config_file_path):
     pre_run_system_settings_fields = ("port", "api_port", "socket_host",
-        "dont_open_browser", "login_user", "login_password")
+        "dont_open_browser", "login_user", "login_password", "datadir")
     if not os.path.isfile(config_file_path):
         log.warning("Can't find config file at {}".format(config_file_path))
         return options
@@ -352,7 +352,7 @@ def spreadConfigsFromFile(options, config_file_path):
         pre_run_system_settings = config[options.systemIdentifer]["Default"]
         for field in pre_run_system_settings_fields:
             if field in pre_run_system_settings:
-                options.port = pre_run_system_settings[field]
+                setattr(options, field, pre_run_system_settings[field])
     return options
 
 

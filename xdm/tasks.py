@@ -48,13 +48,17 @@ def checkQ():
         key, body = common.Q.get(False)
     except Queue.Empty:
         return
-    if key == 'image.download':
-        try:
-            e = Element.get(Element.id == body['id'])
-            e.downloadImages()
-        except Element.DoesNotExist:
-            pass
-    common.Q.task_done()
+    try:
+        if key == 'image.download':
+            try:
+                e = Element.get(Element.id == body['id'])
+                e.downloadImages()
+            except Element.DoesNotExist:
+                pass
+    except:
+        raise
+    finally:
+        common.Q.task_done()
 
 
 def coreUpdateCheck():
