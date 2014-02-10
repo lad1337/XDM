@@ -295,6 +295,8 @@ def runChecker():
                     element.status = common.FAILED
                     element.save()
 
+def ppElementLocations():
+    pass
 
 def ppElement(element, download, initial_path):
     pp_try = False
