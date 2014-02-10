@@ -1272,7 +1272,7 @@ class Image_V0(BaseModel):
         log("Downloading image: %s %s" % (self.name, self.url))
         try:
             r = requests.get(self.url)
-        except requests.exceptions.MissingSchema:
+        except:
             log.error("Downloading image %s failed" % self.url)
             self.type = self._extByHeader('')
             return
@@ -1313,13 +1313,12 @@ class Image_V0(BaseModel):
             return self.url
 
     def imgName(self):
-        return helper.turn_into_ascii(helper.fileNameClean(u"%s (%s) %s-%s.%s" % (
-            helper.replace_all(self.element.getName()),
+        return helper.fileNameClean(u"e%s-%s-%s.%s" % (
             self.element.id,
             self.name,
             self.provider,
             self.type
-        )))
+        ))
 
 class Image(Image_V0):
     provider = TextField(True)
