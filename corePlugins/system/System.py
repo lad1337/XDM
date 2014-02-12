@@ -34,7 +34,7 @@ import inspect
 # this class is special because it will be set to SYSTEM in the whole app
 class SystemConfig(System):
     version = "0.24"
-    identifier = "de.lad1337.system"
+    identifier = "de.lad1337.systemconfig"
     _config = OrderedDict([
                ('defaut_mt_select', ''),
                ('login_user', ''),
