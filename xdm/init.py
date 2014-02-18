@@ -53,7 +53,7 @@ def preDB(app_path, datadir):
 
     # config db
     if common.STARTOPTIONS.config_db is not None:
-        xdm.CONFIG_DATABASE_PATH = common.STARTOPTIONS.config
+        xdm.CONFIG_DATABASE_PATH = common.STARTOPTIONS.config_db
     else:
         xdm.CONFIG_DATABASE_PATH = os.path.join(xdm.DATADIR, xdm.CONFIG_DATABASE_NAME)
     log('Set CONFIG_DATABASE_PATH to %s' % xdm.CONFIG_DATABASE_PATH)
