@@ -166,6 +166,6 @@ class SystemConfig(System):
                     'dont_open_browser': {'human': 'Dont open the browser on start'},
                     'language_select': {'human': 'XDM language', 'on_change_actions': [_switchLanguage]},
                     'mediaadder_search_by_name': {'human': 'Fallback to search by name', 'desc': "This will search by name if a MediaAdder wants to add something but is not found by the id."},
-                    'use_derefer_me': {'human': 'Use http://derefer.me/ for external links', 'desc': 'Using this makes XDM safer but a little slower (not noticeable) to render pages.'}
+                    'use_derefer_me': {'human': 'Use http://derefer.org/ for external links', 'desc': 'Using this makes XDM safer but a little slower (not noticeable) to render pages.'}
                     }
     single = True

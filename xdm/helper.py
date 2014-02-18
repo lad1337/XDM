@@ -257,7 +257,7 @@ def generateApiKey():
 
 def dereferMe(url):
     if common.SYSTEM.c.use_derefer_me:
-        return "http://base64.derefer.me/?%s" % base64.b64encode(url)
+        return "http://www.dereferer.org/?%s" % urllib.quote(url, "")
     return url
 
 
