@@ -9,7 +9,10 @@ function ajaxRepoRecache(){
 }
 
 function ajaxRepo(){
-    jQuery.get( webRoot+'/ajax/repo', {}, function(res){
+    var sort_mode = $("#plugin-type-select a.active").data("type");
+    if(!sort_mode)
+        sort_mode = "type";
+    jQuery.get( webRoot+'/ajax/plugins_by_'+sort_mode, {}, function(res){
         if(!res){
             console.log('retrying')
             window.setTimeout(function() {ajaxRepo()}, 1000);

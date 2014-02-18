@@ -1,0 +1,84 @@
+
+{% set plugins = common.PM.getAll(returnAll=True, instance='Default')%}
+
+
+<div class="btn-group" data-toggle="buttons-radio" id="repo-select">
+    {% for repo in repos %}
+        <a href="#{{repo.name|idSafe}}" data-toggle="tab" class="btn btn-primary">
+            {{repo.name}}
+        </a>
+    {% endfor %}
+</div>
+
+<div class="btn-group pull-right" data-toggle="buttons-radio" id="plugin-type-select">
+    <a class="btn btn-default" data-type="type" title="Click again to reload">
+    by type
+    </a>
+    <a class="btn btn-default active" data-type="repo" title="Click again to reload">
+    by repo
+    </a>
+</div>
+
+<div class="clearfix"></div>
+<div class="tab-content">
+    {% for repo in repos %}
+    <table class="table table-condensed table-striped table-bordered repo tab-pane fade in" style="background: #fff;box-sizing: border-box;" id="{{repo.name|idSafe}}">
+        <tr>
+            <td colspan="7" style="text-align: center;">
+                <a href="{{repo.info_url|dereferMe}}" target="_blank">{{repo.name}}</a>
+                <button href="javascript:void(0)" onClick="removeRepo(this);" data-url="{{repo.url}}" class="btn btn-mini pull-right">
+                    <i class="icon-trash"></i> Remove Repo
+                </button>
+            </td>
+        </tr>
+        <tr>
+            <th>Name</th>
+            <!-- <th>Identifier</th> -->
+            <th>Type</th>
+            <th>Version</th>
+            <th>Description</th>
+            <th>Link</th>
+            <th style="position:relative;width:100px;">Action</th>
+        </tr>
+        {% for plugin in repo.getPlugins()%}
+        <tr>
+            <td>{{plugin.name}}</td>
+            <!-- <td class="identifier">{{plugin.identifier}}</td> -->
+            <td>{{plugin.type}}{%if not plugin.checkType()%}<span class="label label-important">Unkown type!</span>{%endif%}</td>
+            <td>{{plugin.versionHuman()}}</td>
+            <td>{{plugin.desc|striptags|urlize|dereferMeText}}</td>
+            <td><a href="{{plugin.download_url|dereferMe}}"  title="{{plugin.identifier}}">Download Link</a></td>
+            <td style="position:relative;width:100px;">
+                {%if common.REPOMANAGER.isInstalled(plugins, plugin.identifier)%}
+                    {% set new_version = common.REPOMANAGER.hasUpdate(plugin.identifier)%}
+                    {%if new_version%}
+                        <a href="javascript:void(0)" class="btn btn-success btn-block" onClick="installModal(this);" data-identifier="{{plugin.identifier}}"><i class="icon-upload"></i>Update</a>
+                    {%else%}
+                        <span class="btn disabled btn-block"><i class="icon-ok"></i>Installed</span>
+                        <a class="btn btn-danger btn-block" href="javascript:void(0)" onClick="deinstallModal(this);" data-identifier="{{plugin.identifier}}" data-type="{{plugin.type}}">
+                            <i class="icon-trash"></i>Deinstall
+                        </a>
+                    {%endif%}
+                {%else%}
+                        {% if plugin.xdmMeetsVersionRequirement() %}
+                            {%if plugin.checkType()%}
+                                <div class="input-append">
+                                    <button class="btn btn-info btn-block span1" onClick="installModal(this);" data-identifier="{{plugin.identifier}}" title="Install {{plugin.identifier}}">
+                                        <i class="icon-download-alt"></i>Install
+                                    </button>
+                                    <label class="add-on btn btn-info" style="border-color: #2f96b4 #2f96b4 #1f6377;">
+                                        <input type="checkbox" data-identifier="{{plugin.identifier}}"/>
+                                    </label>
+                                </div>
+                            {%endif%}
+                        {%else%}
+                            <span class="btn btn-danger disabled btn-block"><i class="icon-warning-sign"></i>Plugin requires XDM version {{common.makeVersionHuman(*plugin.xdm_version)}} you have {{common.getVersionHuman()}}</span>
+                        {%endif%}
+                {%endif%}
+
+            </td>
+        </tr>
+        {%endfor%}
+    </table>
+    {% endfor %}
+</div>

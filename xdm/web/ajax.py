@@ -229,10 +229,17 @@ class AjaxCalls:
         return json.dumps({'count': 0, 'percent': 0, 'total': 0})
 
     @cherrypy.expose
-    def repo(self):
+    def plugins_by_repo(self):
         if common.REPOMANAGER.caching or not common.REPOMANAGER.cached:
             return ''
-        template = self.env.get_template('repos.html')
+        template = self.env.get_template('plugins_by_repo.html')
+        return template.render(repos=common.REPOMANAGER.getRepos(), **self._globals())
+
+    @cherrypy.expose
+    def plugins_by_type(self):
+        if common.REPOMANAGER.caching or not common.REPOMANAGER.cached:
+            return ''
+        template = self.env.get_template('plugins_by_type.html')
         return template.render(repos=common.REPOMANAGER.getRepos(), **self._globals())
 
     @cherrypy.expose

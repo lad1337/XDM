@@ -2,78 +2,14 @@
 {% set title = 'Plugin Repos' -%}
 {% set active_page = active_page|default('settings') -%}
 {% set active_sub_page = active_sub_page|default('plugins') -%}
-{% block content %}
 
 {% block headInject %}
 <script src="{{webRoot}}/js/managePlugins.js?v={{common.getVersionString()}}"></script>
 {% endblock %}
 
-<div class="plugin-container">
-    <h4 class="pull-left">Installed Plugins</h4>
-    <div class="clearfix"></div>
-    <table class="table table-condensed table-striped table-bordered" style="background: #fff;">
-            <tr>   
-                <th>Name</th>
-                <th>Type</th>
-                <th>Running Version</th>
-                <th>Description</th>
-                <th>Pylint score</th>
-                <th>Test</th>
-                <th>Actions</th>
-            </tr>
-        {% for plugin in common.PM.getAll(True, 'Default')%}
-            <tr>
-                <td>
-                    <span title="{{plugin.identifier}}">{{plugin.screenName}}</span>
-                    {%if plugin.identifier%}
-                    <br/>
-                    <a href="#json_{{plugin.identifier|idSafe}}" data-toggle="modal"><i class="icon-code"></i></a>
-                    <div class="modal modal-wide hide fade" id="json_{{plugin.identifier|idSafe}}" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-                        <div class="modal-header">
-                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                            <h3>JSON for {{plugin.screenName}} ({{plugin.identifier}})</h3>
-                        </div>
-                        <div class="modal-body">
-                            <pre>{{plugin.createRepoJSON()}}</pre>
-                        </div>
-                        <div class="modal-footer">
-                            <p class="muted pull-left">
-                                Use this in your repo JSON 
-                            </p>
-                            <button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
-                        </div>
-                    </div>
-                    {%endif%}
-                </td>
-                <td>{{plugin._type}}</td>
-                <td>
-                    {{plugin.version}}
-                </td>
-                <td>
-                    <p>{{plugin.config_meta['plugin_desc']|striptags|urlize|dereferMeText}}</p>
-                    <span class="muted" style="font-size:90%;">
-                        {{plugin.get_plugin_isntall_path()['path'].replace('/','/&shy;')}}
-                    </span>
-                </td>
-                <td>{{plugin.getMyScore()|round(2)}}</td>
-                <td>{%if plugin.testMe()%}<i class="icon-check"></i>{%else%}<i class="icon-warning-sign"></i>{%endif%}</td>
-                <td style="width: 120px;">
-                    {%if common.SYSTEM.c.extra_plugin_path in plugin.get_plugin_isntall_path()['path']%}
-                    <a class="btn btn-danger btn-block" href="javascript:void(0)" onClick="deinstallModal(this);" data-identifier="{{plugin.identifier}}" data-type="{{plugin.type}}""><i class="icon-trash"></i>Deinstall</a>
-                    {% set new_version = common.REPOMANAGER.hasUpdate(plugin.identifier)%}
-                    {%if new_version%}
-                    <a href="javascript:void(0)" class="btn btn-success btn-block" onClick="installModal(this);" data-identifier="{{plugin.identifier}}"><i class="icon-upload"></i>Update to {{new_version}}</a>
-                    {%endif%}
-                    {%endif%}
-                </td>
-            </tr>
-        {% endfor %}
-        </table>
-</div>
 
-<div class="repo-container">
-    <h4 class="pull-left">Repositories</h4>
-    <a href="javascript:void(0)" onClick="ajaxRepoRecache();" class="btn pull-right repo-refresh"><i class="icon-repeat"></i>Refresh Repositories</a>
+{% block content %}
+<div class="repo-container" id="repos" style="position: relative">
     <div class="clearfix"></div>
     <div class="progress progress-striped active">
         <span class="progressbar-back-text">Loading...</span>
@@ -81,11 +17,12 @@
             <span class="progressbar-front-text">Loading...</span>
         </div>
     </div>
-    <div class="inner" style="display:none;"></div>
+    <div class="inner"></div>
     <div class="input-prepend pull-left">
         <a class="btn add-on" href="javascript:void(0)" onClick="if(checkAndSetup(this)) addRepo(this);" data-url="">Add Repository</a>
         <input type="text" placeholder="URL to the meta.json or GitHub page" style="width: 300px;"/>
     </div>
+    <a href="javascript:void(0)" onClick="ajaxRepoRecache();" class="btn pull-left repo-refresh"><i class="icon-repeat"></i>Refresh Repositories</a>
     <a href="javascript:void(0)" class="btn btn-info pull-right" onClick="selectedInstallModal(this)">
         <i class="icon-download-alt"></i>Install selected
     </a>

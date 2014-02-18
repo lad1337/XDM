@@ -35,6 +35,7 @@ import base64
 import random
 import hashlib
 from babel.dates import format_timedelta
+import urllib
 
 
 def getSystemDataDir(progdir):
@@ -335,8 +336,6 @@ releaseThresholdDelta = {1: timedelta(days=1),
 
 
 def spreadConfigsFromFile(options, config_file_path):
-    pre_run_system_settings_fields = ("port", "api_port", "socket_host",
-        "dont_open_browser", "login_user", "login_password", "datadir")
     if not os.path.isfile(config_file_path):
         log.warning("Can't find config file at {}".format(config_file_path))
         return options
@@ -347,7 +346,10 @@ def spreadConfigsFromFile(options, config_file_path):
             log.critical("Looks like i could not parse the config file!")
             raise
     common.updateConfigOverwrite(config)
-
+    # TODO: create a XDM name space in config and use these as args
+    # if they have not been set by args
+    pre_run_system_settings_fields = ("port", "api_port", "socket_host",
+        "dont_open_browser", "login_user", "login_password", "datadir")
     if options.systemIdentifer in config and "Default" in config[options.systemIdentifer]:
         pre_run_system_settings = config[options.systemIdentifer]["Default"]
         for field in pre_run_system_settings_fields:
