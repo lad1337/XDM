@@ -839,33 +839,41 @@ class ComplexDataType(object):
     value = None
     def __init__(self, **kwargs):
         for arg, value in kwargs.iteritems():
-            if not arg.startswith("__"):
-                setattr(self, arg, value)
+            setattr(self, arg, value)
 
     def dump(self):
         base = dict(self.__class__.__dict__)
         base.update({"_className_": self.__class__.__name__})
         base.update(dict(self.__dict__))
-        return json.dumps(base)
+
+        # drop internals, we currently don't need them saved
+        dumped = dict((key, base[key]) for key in [key for key in base.keys() if not key.startswith("__") and not key.endswith("__")])
+        return json.dumps(dumped)
 
     @staticmethod
-    def load(*data, **po):
+    def load(data):
         if "_className_" in data:
             cls = data.pop("_className_")
-            return locals()[cls](**data)
+            return complexDataTypes[cls](**data)
         return data
 
 class ListType(ComplexDataType):
     multiple = False
-    selected = None
+
+    def _get_selected(self):
+        return self.value
+    def _set_selected(self, value):
+        self.value = value
+
+    selected = property(_get_selected, _set_selected)
 
 class Select(ListType):
     pass
 
 class MultiSelect(ListType):
     multiple = True
-    selected = []
 
+complexDataTypes = dict([(cls.__name__, cls) for cls in (Select, MultiSelect)])
 
 class Config(BaseModel):
     module = CharField(default='system') # system, plugin ... you know this kind of thing
@@ -908,7 +916,7 @@ class Config(BaseModel):
                 return int(self._value_int)
             return self._value_int
         elif self._value_data != None:
-            # try json decoding, based on a quick stupid check
+            # try json decoding, based on complex data types
             try:
                 return json.loads(self._value_data, object_hook=ComplexDataType.load)
             except ValueError, e:
