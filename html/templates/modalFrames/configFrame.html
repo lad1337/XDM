@@ -23,28 +23,30 @@
                     <label class="control-label" title="{{plugin['elementConfig_meta'][config.name]['desc']}}">{% if plugin['config_meta'][config.name]['human'] %}{{ plugin['config_meta'][config.name]['human'] }}{% else %}{{ config.name.replace("_", " ") }}{% endif %}</label>
                     <div class="controls">
                         {% if 'select' in config.name %}
-                        <select name="{{ plugin.type }}-{{ plugin.instance }}-{{ config.name }}" data-configname="{{config.name}}" title="{{plugin['config_meta'][config.name]['desc']}}">
-                        {% for k,v in plugin['_'+config.name]().items() %}
-                            <option value="{{k}}" {% if config.value == k %}selected{% endif %}>{{v}}</option>
-                        {% endfor %}
-                        </select>
+                            <select name="{{ plugin.type }}-{{ plugin.instance }}-{{ config.name }}" data-configname="{{config.name}}" title="{{plugin['config_meta'][config.name]['desc']}}">
+                            {% for k,v in plugin['_'+config.name]().items() %}
+                                <option value="{{k}}" {% if config.value == k %}selected{% endif %}>{{v}}</option>
+                            {% endfor %}
+                            </select>
                         {% else %}
-                        {% if config.curType() == 'int' and 'enable' not in config.name -%}
-                        {% set inputType = 'number" step="any'%}
-                        {% elif config.curType() == 'bool' or 'enable' in config.name%}
-                        {% if config.value %}
-                        
-                        {# this is a little dodgy. we append the checked attr with manipulating the string that is set for the input type#}
-                        {% set inputType = 'checkbox" checked="checked'%}
-                        {% else %}
-                        {% set inputType = 'checkbox'%}
-                        {% endif %}
-                        <input name="{{ plugin.type }}-{{ plugin.instance }}-{{ config.name}}" type="hidden" value="off"/>
-                        {% elif 'password' in config.name %}
-                        {% set inputType = 'password'%}
-                        {% else %}
-                        {% set inputType = 'text'%}
-                        {%- endif %}
+                            {% if config.curType() == 'complex' -%}
+                                gommblex
+                            {% elif config.curType() == 'int' and 'enable' not in config.name %}
+                                {% set inputType = 'number" step="any'%}
+                            {% elif config.curType() == 'bool' or 'enable' in config.name%}
+                                {% if config.value %}
+
+                                    {# this is a little dodgy. we append the checked attr with manipulating the string that is set for the input type#}
+                                    {% set inputType = 'checkbox" checked="checked'%}
+                                {% else %}
+                                    {% set inputType = 'checkbox'%}
+                                {% endif %}
+                                <input name="{{ plugin.type }}-{{ plugin.instance }}-{{ config.name}}" type="hidden" value="off"/>
+                            {% elif 'password' in config.name %}
+                                {% set inputType = 'password'%}
+                            {% else %}
+                                {% set inputType = 'text'%}
+                            {%- endif %}
                         <input data-belongsto="{{plugin.name|idSafe}}" name="{{ plugin.type }}-{{ plugin.instance }}-{{ config.name}}" data-configname="{{config.name}}" type="{{inputType}}" {% if config.value %} value="{{ config.value }}"{% endif %} {% if plugin['config_meta'][config.name]['placeholder'] %}placeholder="{{ plugin['config_meta'][config.name]['placeholder'] }}"{% endif %} onChange="{{onChange}}" title="{{plugin['config_meta'][config.name]['desc']}}"/>
                         {% endif %}
                     </div>
