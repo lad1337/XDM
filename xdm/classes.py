@@ -782,6 +782,8 @@ class Field(Field_V0):
                 return datetime.replace(tzinfo=None)
             else:
                 return self._value_datetime
+        #elif self._value_data != None:
+        #    return self._value_data
         else:
             return self._value_char
 
@@ -833,6 +835,37 @@ class Field(Field_V0):
             return -1
         return 1
 
+class ComplexDataType(object):
+    value = None
+    def __init__(self, **kwargs):
+        for arg, value in kwargs.iteritems():
+            if not arg.startswith("__"):
+                setattr(self, arg, value)
+
+    def dump(self):
+        base = dict(self.__class__.__dict__)
+        base.update({"_className_": self.__class__.__name__})
+        base.update(dict(self.__dict__))
+        return json.dumps(base)
+
+    @staticmethod
+    def load(*data, **po):
+        if "_className_" in data:
+            cls = data.pop("_className_")
+            return locals()[cls](**data)
+        return data
+
+class ListType(ComplexDataType):
+    multiple = False
+    selected = None
+
+class Select(ListType):
+    pass
+
+class MultiSelect(ListType):
+    multiple = True
+    selected = []
+
 
 class Config(BaseModel):
     module = CharField(default='system') # system, plugin ... you know this kind of thing
@@ -845,10 +878,15 @@ class Config(BaseModel):
     _value_int = FloatField(True)
     _value_char = CharField(True)
     _value_bool = BooleanField(True)
+    _value_data = TextField(True)
 
     class Meta:
         database = xdm.CONFIG_DATABASE
         order_by = ('name',)
+
+    @classmethod
+    def _migrate(cls):
+        return cls._migrateNewField(cls._value_data)
 
     def copy(self):
         new = Config()
@@ -869,25 +907,48 @@ class Config(BaseModel):
             if float(self._value_int).is_integer():
                 return int(self._value_int)
             return self._value_int
-        else:
-            return unicode(self._value_char)
+        elif self._value_data != None:
+            # try json decoding, based on a quick stupid check
+            try:
+                return json.loads(self._value_data, object_hook=ComplexDataType.load)
+            except ValueError, e:
+                raise Exception("couldn't decode value for config %s, value: %s; error: %s" % (self.name, self._value_data, e))
+        return unicode(self._value_char)
 
     def _set_value(self, value):
-        if type(value).__name__ in ('float', 'int'):
-            self._value_char = None
-            self._value_bool = None
+        _type = type(value).__name__
+        self._value_char = None
+        self._value_bool = None
+        self._value_data = None
+        self._value_int = None
+
+        if _type in ('float', 'int'):
             self._value_int = value
             return
-        if type(value).__name__ in ('str', 'unicode'):
-            self._value_bool = None
-            self._value_int = None
+        if _type in ('str', 'unicode'):
             self._value_char = value
             return
-        if type(value).__name__ in ('bool', 'NoneType'):
-            self._value_char = None
-            self._value_int = None
+        if _type in ('bool', 'NoneType'):
             self._value_bool = value
             return
+
+        if _type == "dict":
+            if not "selected" in value or not "options" in value:
+                raise Exception("need to supply 'options' and 'selected' to a ComplexType in config")
+
+            obj = None
+            selType = type(value["selected"])
+
+            # single selection
+            if selType in types.StringTypes:
+                cls = Select
+            # multi selection
+            elif selType in (types.ListType, types.TupleType):
+                cls = MultiSelect
+
+            self._value_data = cls(**value).dump()
+            return
+
         raise Exception('unknown config save type %s for config %s' % (type(value), self.name))
 
     value = property(_get_value, _set_value)
@@ -897,6 +958,8 @@ class Config(BaseModel):
             return 'bool'
         elif self._value_int:
             return 'int'
+        elif self._value_data:
+            return "complex"
         else:
             return 'str'
 
