@@ -915,12 +915,6 @@ class MultiSelect(ListType):
     multiple = True
     use_checkboxes = False # use multiple checkboxes instead of select[type=multiple]; can be True or "inline"
 
-    #def __init__(self, **kwargs):
-    #    super(MultiSelect, self).__init__(**kwargs)
-    #
-    #    # inherit skipStorage; may be done automatically i guess
-    #    self._skipStorage = list(super(MultiSelect, self)._skipStorage) + list(self._skipStorage)
-
 complexDataTypes = dict([(cls.__name__, cls) for cls in (Select, MultiSelect)])
 
 class Config(BaseModel):
