@@ -30,6 +30,7 @@ from datetime import datetime, timedelta
 from xdm import common
 import xdm
 import shutil
+import types
 
 import base64
 import random
@@ -305,8 +306,19 @@ def sameElements(a, b):
             return False
     return True
 
-def convertV(cur_v):
+def convertV(cur_v, _type):
     """helper function to convert kwargs to python typed values"""
+
+    # this is a pretty nasty hack around the weird handling below to support lists which do not consist of ["on", "off"] (enabled checkbox).
+    # it basically is a multiselect scenario
+    #fixme: rewrite the whole area
+    if _type == "complex":
+        if cur_v != "__none__":
+            cur_v = [cur_v] if type(cur_v) != types.ListType else cur_v
+        else:
+            cur_v = []
+
+        return {"selected": cur_v}
     try:
         f = float(cur_v)
         if f.is_integer():

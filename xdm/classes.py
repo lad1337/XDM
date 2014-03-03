@@ -842,9 +842,24 @@ class Field(Field_V0):
 
 class ComplexDataType(object):
     value = None
+    _skipStorage = ("_skipStorage",) # don't store those attributes in the database (most likely class attributes, not settings)
+
     def __init__(self, **kwargs):
         for arg, value in kwargs.iteritems():
             setattr(self, arg, value)
+
+        # recursively merge self._skipStorage
+        #fixme:; may be used for self._config inheritance later on
+        ss = []
+        for parentClass in self.__class__.__mro__[:-1]:
+            ss += list(parentClass._skipStorage)
+        self._skipStorage = ss
+
+    def __eq__(self, other):
+        """
+        the data of this instance equals other? implement!
+        """
+        raise NotImplementedError
 
     def dump(self):
         base = dict(self.__class__.__dict__)
@@ -852,7 +867,8 @@ class ComplexDataType(object):
         base.update(dict(self.__dict__))
 
         # drop internals, we currently don't need them saved
-        dumped = dict((key, base[key]) for key in [key for key in base.keys() if not key.startswith("__") and not key.endswith("__")])
+        dumped = dict((key, base[key]) for key in [key for key in base.keys() if not key.startswith("__") and not key.endswith("__")\
+            and key not in self._skipStorage])
         return json.dumps(dumped)
 
     @staticmethod
@@ -864,7 +880,18 @@ class ComplexDataType(object):
 
 class ListType(ComplexDataType):
     multiple = False
+    required = False #fixme: handle this if true
+    _options = None
 
+    def __eq__(self, other):
+        """
+        compares self.selected to other["selected"], expects other to be a dict
+        """
+        if not type(other) == types.DictType or ("selected" in other and not type(other["selected"] == types.ListType)):
+            raise ValueError
+        return self.selected == other["selected"]
+
+    # self.value holds the selected value list
     def _get_selected(self):
         return self.value
     def _set_selected(self, value):
@@ -872,11 +899,27 @@ class ListType(ComplexDataType):
 
     selected = property(_get_selected, _set_selected)
 
+    # self._options holds the available options
+    def _get_options(self):
+        return self._options
+
+    def _set_options(self, value):
+        self._options = value
+
+    options = property(_get_options, _set_options)
+
 class Select(ListType):
     pass
 
 class MultiSelect(ListType):
     multiple = True
+    use_checkboxes = False # use multiple checkboxes instead of select[type=multiple]; can be True or "inline"
+
+    #def __init__(self, **kwargs):
+    #    super(MultiSelect, self).__init__(**kwargs)
+    #
+    #    # inherit skipStorage; may be done automatically i guess
+    #    self._skipStorage = list(super(MultiSelect, self)._skipStorage) + list(self._skipStorage)
 
 complexDataTypes = dict([(cls.__name__, cls) for cls in (Select, MultiSelect)])
 
@@ -930,24 +973,28 @@ class Config(BaseModel):
 
     def _set_value(self, value):
         _type = type(value).__name__
+
+        oldValueData = self.value if self._value_data else None
         self._value_char = None
         self._value_bool = None
-        self._value_data = None
         self._value_int = None
+        self._value_data = None
 
         if _type in ('float', 'int'):
             self._value_int = value
             return
+
         if _type in ('str', 'unicode'):
             self._value_char = value
             return
+
         if _type in ('bool', 'NoneType'):
             self._value_bool = value
             return
 
         if _type == "dict":
-            if not "selected" in value or not "options" in value:
-                raise Exception("need to supply 'options' and 'selected' to a ComplexType in config")
+            if not "selected" in value:
+                raise Exception("need to supply 'selected' to a ComplexType in config")
 
             obj = None
             selType = type(value["selected"])
@@ -958,6 +1005,12 @@ class Config(BaseModel):
             # multi selection
             elif selType in (types.ListType, types.TupleType):
                 cls = MultiSelect
+
+            if not "options" in value:
+                # "options" is missing, we're coming from a form which only supplies the selected values. reuse old config instance and update it
+                oldValueData.selected = value["selected"]
+                self._value_data = oldValueData.dump()
+                return
 
             self._value_data = cls(**value).dump()
             return

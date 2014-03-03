@@ -69,11 +69,36 @@
                             {% endfor %}
                             </select>
                         {% elif config.curType() == 'complex' %}
-                            <select name="{{ plugin.type }}-{{ plugin.instance }}-{{ config.name }}" data-configname="{{config.name}}" title="{{plugin['config_meta'][config.name]['desc']}}"{% if config.value.multiple %} multiple="multiple"{% endif %}>
+                            {% if config.value.use_checkboxes %}
+                                {% if not config.required %}
+                                    <label class="checkbox{% if config.value.use_checkboxes == 'inline'%} inline{% endif %}"
+                                           style="display: none">
+                                        <input type="checkbox" name="{{ plugin.type }}-{{ plugin.instance }}-{{ config.name }}-{{ config.curType() }}"
+                                               value="__none__" disabled="disabled" />
+                                        --
+                                    </label>
+                                {% endif %}
                                 {% for v in config.value.options %}
-                                    <option value="{{v}}" {% if v in config.value.selected %}selected{% endif %}>{{v}}</option>
+                                    <label class="checkbox{% if config.value.use_checkboxes == 'inline'%} inline{% endif %}"
+                                           style="text-transform: none">
+                                        <input type="checkbox" name="{{ plugin.type }}-{{ plugin.instance }}-{{ config.name }}-{{ config.curType() }}"
+                                                value="{{v}}"{% if v in config.value.selected %} checked="checked"{% endif %}
+                                                onclick="var ti = 'input[name=\''+$(this).attr('name')+'\']'; if ($(ti+':checked').length === 0) { $(ti).eq(0).prop('checked', true).prop('disabled', false); } else { $(ti).eq(0).prop('checked', false).prop('disabled', true); }"
+                                        />
+                                        {{v}}
+                                    </label>
                                 {% endfor %}
-                            </select>
+                            {% else %}
+                                <select name="{{ plugin.type }}-{{ plugin.instance }}-{{ config.name }}-{{ config.curType() }}" data-configname="{{config.name}}" title="{{plugin['config_meta'][config.name]['desc']}}"{% if config.value.multiple %} multiple="multiple"{% endif %}"
+                                        onclick="if ($(this).val() === null) { $(this).val('__none__'); $('[value=\'__none__\']', this).prop('disabled', false); } else { $('[value=\'__none__\']', this).prop('selected', false).prop('disabled', true); }">
+                                    {% if not config.required %}
+                                        <option value="__none__" disabled="disabled">--- none selected ---</option>
+                                    {% endif %}
+                                    {% for v in config.value.options %}
+                                        <option value="{{v}}"{% if v in config.value.selected %} selected="selected"{% endif %}>{{v}}</option>
+                                    {% endfor %}
+                                </select>
+                            {% endif %}
                         {% else %}
                             {% if config.curType() == 'int' and 'enable' not in config.name -%}
                                 {% set inputType = 'number" step="any'%}
