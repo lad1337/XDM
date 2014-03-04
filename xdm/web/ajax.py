@@ -376,8 +376,6 @@ class AjaxCalls:
             except UnicodeDecodeError:
                 k = k.decode('latin-1') # for some obscure reason cherrypy (i think) encodes param key into latin-1 some times
                 k = k.encode('utf-8') # but i like utf-8
-            # print k, repr(k)
-            # print v, repr(v)
 
             log(u"config K:%s V:%s" % (k, v))
             parts = k.split('-')
@@ -389,6 +387,7 @@ class AjaxCalls:
             class_name = parts[0]
             instance_name = parts[1]
             config_name = parts[2]
+            config_type = parts[3] if len(parts) > 3 else None
             _cacheName = "%s %s" % (class_name, instance_name)
             if _cacheName in _plugin_cache:
                 plugin = _plugin_cache[_cacheName]
@@ -397,10 +396,10 @@ class AjaxCalls:
                 _plugin_cache[_cacheName] = plugin
             if plugin:
                 log(u"We have a plugin: %s (%s)" % (class_name, instance_name))
-                new_value = helper.convertV(v)
+                new_value = helper.convertV(v, config_type)
                 if element is None: # normal settings page
                     old_value = getattr(plugin.c, config_name)
-                    new_value = helper.convertV(v)
+                    new_value = helper.convertV(v, config_type)
                     if old_value == new_value:
                         continue
                 if element is not None: # we got an element id so its an element config
@@ -412,7 +411,7 @@ class AjaxCalls:
                     cur_c.value = new_value
                     cur_c.save()
                 else: # normal settings page
-                    setattr(plugin.c, config_name, convertV(v)) # saving value
+                    setattr(plugin.c, config_name, convertV(v, config_type)) # saving value
 
                 if plugin.config_meta[config_name] and element is None: # this returns none
                     if 'on_change_actions' in plugin.config_meta[config_name] and old_value != new_value:
