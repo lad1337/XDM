@@ -179,16 +179,37 @@ class AjaxCalls:
         status = common.getStatusByID(int(status_id))
         try:
             ele = Element.get(Element.id == element_id)
+            oldState = ele.status
             ele.status = status
             ele.save()
         except:
             return json.dumps({'result': False, 'data': {}, 'msg': 'Could not set status.'})
 
+        msgTpl = u'%(name)s set to %(status)s'
+
         if status == common.WANTED:
             t = tasks.TaskThread(tasks.searchElement, ele)
             t.start()
+            msgTpl += ", searching again"
 
-        return json.dumps({'result': True, 'data': {'status_id': status.id}, 'msg': u'%s set to %s' % (ele.getName(), status)})
+        elif status == common.DOWNLOADED and oldState == common.PP_FAIL:
+            # re-run postprocessor
+            #status, download, path = checker.getElementStaus(element)
+            #loc = Location.get(Location.element == ele)
+            #path = loc.path
+            #download = ele.download
+            #log("re-running postprocessors as requested for %s (%s, %s)" % (ele, path, download))
+            log("re-running postprocessors as requested for %s" % ele)
+            msgTpl += ", re-running postprocessors as requested"
+
+            #ppElement(element, download, path)
+            #notify(element)
+            ele.status = common.DOWNLOADING
+            ele.save()
+            t = tasks.TaskThread(tasks.runChecker)
+            t.start()
+
+        return json.dumps({'result': True, 'data': {'status_id': status.id}, 'msg': msgTpl % dict(name=ele.getName(), status=status)})
 
     @cherrypy.expose
     def getDownload(self, id):
