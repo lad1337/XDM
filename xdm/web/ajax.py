@@ -194,16 +194,9 @@ class AjaxCalls:
 
         elif status == common.DOWNLOADED and oldState == common.PP_FAIL:
             # re-run postprocessor
-            #status, download, path = checker.getElementStaus(element)
-            #loc = Location.get(Location.element == ele)
-            #path = loc.path
-            #download = ele.download
-            #log("re-running postprocessors as requested for %s (%s, %s)" % (ele, path, download))
             log("re-running postprocessors as requested for %s" % ele)
             msgTpl += ", re-running postprocessors as requested"
 
-            #ppElement(element, download, path)
-            #notify(element)
             ele.status = common.DOWNLOADING
             ele.save()
             t = tasks.TaskThread(tasks.runChecker)
