@@ -6,7 +6,9 @@
     <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
         {%- for s in globalStatus -%}
         {%- if not s.hidden -%}
-        <li class="{{s.name}}"><a href="javascript:void(0);" onClick="ajaxSetElementStatus(this, {{s.id}}, {{this.id}});return false;">{{s.screenName}}</a></li>
+        <li class="{{s.name}}"><a href="javascript:void(0);" onClick="ajaxSetElementStatus(this, {{s.id}}, {{this.id}});return false;">
+            {% if this.status.name == "Post Processing Fail" and s.name == "Downloaded" %}{{s.screenName}} (redo Post-Processing){% else %}{{s.screenName}}{% endif %}
+        </a></li>
         {%- endif -%}
         {%- endfor -%}
     </ul>
