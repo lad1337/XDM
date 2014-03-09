@@ -57,9 +57,7 @@ class RegEx(DownloadFilter):
                 replacement = ''
             rawRegex = rawRegex.replace('{{' + fieldName + '}}', replacement)
 
-        pattern = re.compile(rawRegex)
-        if self.c.case_sensitive:
-            result = pattern.match(string)
-        else:
-            result = pattern.match(string, re.I)
+        pattern = re.compile(rawRegex) if self.c.case_sensitive else re.compile(rawRegex, re.I)
+        result = pattern.match(string)
+
         return self.FilterResult(bool(result) == bool(self.c.positive), string)
