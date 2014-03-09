@@ -94,7 +94,7 @@ class WebApi:
             for name in p_function.args:
                 log('function %s needs %s' % (method, name))
                 if name in kwargs:
-                    fn_args.append(convertV(kwargs[name]))
+                    fn_args.append(convertV(kwargs[name], None)) #fixme: None correct?
 
         try:
             log("calling %s with %s" % (p_function, fn_args))

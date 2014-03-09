@@ -46,7 +46,7 @@ class AjaxCalls:
 
     @cherrypy.expose
     def pluginCall(self, **kwargs):
-        log("Plugin ajay call with: %s" % kwargs)
+        log("Plugin ajax call with: %s" % kwargs)
         p_type = kwargs['p_type']
         p_instance = kwargs['p_instance']
         action = kwargs['action']
@@ -58,13 +58,14 @@ class AjaxCalls:
                 log('function %s needs %s' % (action, name))
                 field_name = 'field_%s' % name
                 if field_name in kwargs:
-                    fn_args.append(convertV(kwargs[field_name]))
+                    fn_args.append(convertV(kwargs[field_name], None)) #fixme: None correct?
                     continue
                 else:
                     log("Field '%s' not found in kwargs. tring array" % field_name)
                 field_name = 'field_%s[]' % name
                 if field_name in kwargs:
-                    fn_args.append(convertV(kwargs[field_name]))
+                    fn_args.append(convertV(kwargs[field_name], None)) #fixme: None correct?
+
                 else:
                     log.warning("Field %s not found in kwargs. this will probably not work out" % field_name)
 
