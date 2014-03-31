@@ -22,8 +22,9 @@ function init_settings(){
         'selector': '',
         'placement': 'right'
      })
-    
+
     $('input[type="checkbox"][data-configname="enabled"]').change(function(event){
+        console.log(event);
         var icon = $('.nav.nav-list a[href="#'+$(this).data('belongsto')+'"] i')
         if($(this).prop('checked')){
             icon.removeClass('rotateIn').addClass('animated rotateOut')

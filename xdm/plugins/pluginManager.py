@@ -200,6 +200,7 @@ class PluginManager(object):
         """
         plugin_instances = []
         if not cls in self._cache:
+            #log.warning("class: {} not found in cache {}".format(cls, self._cache.keys()))
             return plugin_instances
 
         wanted_i = wanted_i.replace('_', '.')
@@ -210,21 +211,21 @@ class PluginManager(object):
                 if cls == plugins.MediaTypeManager:
                     if cur_c not in self._mt_cache:
                         log('Creating and caching instance from %s' % cur_c)
-                        new = cur_c(cur_instance.replace('_', '.'))
-                        self._mt_cache[cur_c] = new
+                        plugin_instance = cur_c(cur_instance.replace('_', '.'))
+                        self._mt_cache[cur_c] = plugin_instance
                     else:
                         # log('Using cached instance from %s' % cur_c)
-                        new = self._mt_cache[cur_c]
+                        plugin_instance = self._mt_cache[cur_c]
                 else:
-                    new = cur_c(cur_instance)
+                    plugin_instance = cur_c(cur_instance)
                 if wanted_i:
                     if wanted_i == cur_instance or (cls == plugins.MediaTypeManager and wanted_i == 'Default'):
-                        plugin_instances.append(new)
+                        plugin_instances.append(plugin_instance)
                         continue
                     elif cls == plugins.MediaTypeManager and wanted_i == cur_instance:
-                        return [new]
-                elif new.enabled or returnAll:
-                    plugin_instances.append(new)
+                        return [plugin_instance]
+                elif plugin_instance.enabled or returnAll:
+                    plugin_instances.append(plugin_instance)
                 else:
                     pass
                     # log("%s is disabled" % cur_c.__name__)
