@@ -8,8 +8,9 @@ function ajaxRepoRecache(){
     window.setTimeout(function(){ajaxRepo()}, 1000);
 }
 
-function ajaxRepo(){
-    var sort_mode = $("#plugin-type-select a.active").data("type");
+function ajaxRepo(sort_mode){
+    if(!sort_mode)
+        sort_mode = $("#plugin-type-select a.active").data("type");
     if(!sort_mode)
         sort_mode = "type";
     jQuery.get( webRoot+'/ajax/plugins_by_'+sort_mode, {}, function(res){
@@ -107,5 +108,8 @@ $(document).ready(function() {
         $('span', $(this).parent()).css('line-height', $(this).parent().height()+'px')
     });
     $('.progress .bar').resize()
+    $('.repo-container').on('click', '#plugin-type-select a', function(){
+        ajaxRepo($(this).data("type"));
+    })
 });
 

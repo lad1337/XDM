@@ -240,7 +240,14 @@ class AjaxCalls:
         if common.REPOMANAGER.caching or not common.REPOMANAGER.cached:
             return ''
         template = self.env.get_template('plugins_by_type.html')
-        return template.render(repos=common.REPOMANAGER.getRepos(), **self._globals())
+        typed_plugins = {}
+        for repo in common.REPOMANAGER.getRepos():
+            for plugin in repo.plugins:
+                if plugin.type not in typed_plugins:
+                    typed_plugins[plugin.type] = []
+                typed_plugins[plugin.type].append(plugin)
+
+        return template.render(typed_plugins=typed_plugins, **self._globals())
 
     @cherrypy.expose
     def addRepo(self, url):
