@@ -50,7 +50,7 @@
                 <td>{{plugin.desc|striptags|urlize|dereferMeText}}</td>
                 <td><a href="{{plugin.download_url|dereferMe}}"  title="{{plugin.identifier}}">Download Link</a></td>
                 <td style="position:relative;width:100px;">
-                    {%if common.REPOMANAGER.isInstalled(plugins, plugin.identifier)%}
+                    {%if common.REPOMANAGER.isInstalled(installed_plugins, plugin.identifier)%}
                         {% set new_version = common.REPOMANAGER.hasUpdate(plugin.identifier)%}
                         {%if new_version%}
                             <a href="javascript:void(0)" class="btn btn-success btn-block" onClick="installModal(this);" data-identifier="{{plugin.identifier}}"><i class="icon-upload"></i>Update</a>
