@@ -66,7 +66,8 @@ def deleteOrphanElements():
                 _ = element.parent
         except Element.DoesNotExist:
             log("deleting element %s" % element.get_id())
-            element.delete_instance(silent=True)
+            #element.delete_instance(silent=True)
+            super(Element, element).delete_instance()
             delete_count += 1
 
     log.info("deleted %s orphanaged elements" % delete_count)
