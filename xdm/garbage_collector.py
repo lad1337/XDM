@@ -34,6 +34,7 @@ def soFreshAndSoClean():
     try:
         # add more functions here
         cleanTemporaryElements()
+        deleteOrphanElements()
         deleteOrphanFields()
         deleteOrphanImages()
         fixImages()
@@ -54,6 +55,21 @@ def deleteOrphanFields():
     fields_dq = Field.delete().where(~(Field.element << elements))
     deleted_rows = fields_dq.execute()
     log.info("Deleted %s orphanaged fields" % deleted_rows)
+
+def deleteOrphanElements():
+    log.info("Getting elements")
+    elements = Element.select()
+    delete_count = 0
+    for element in list(elements):
+        try:
+            if element.parent:
+                _ = element.parent
+        except Element.DoesNotExist:
+            log("deleting element %s" % element.get_id())
+            element.delete_instance(silent=True)
+            delete_count += 1
+
+    log.info("deleted %s orphanaged elements" % delete_count)
 
 def deleteOrphanImages():
     log.info("Getting orphanaged images")
