@@ -23,6 +23,7 @@ import os
 import xdm
 import re
 import types
+from inspect import getargspec
 from xdm import common, helper
 from xdm.classes import *
 from xdm.logger import *
@@ -652,6 +653,14 @@ class Provider(Plugin):
         if instance != 'Default':
             self.tag = instance
         self.progress = self.Progress()
+
+        arg_spec = getargspec(self.getElement)
+        if "tag" not in arg_spec.args:
+            self._orig_getElement = self.getElement
+            def wrapper(id, element=None, tag=None):
+                return self._orig_getElement(id, element)
+            self.getElement = wrapper
+
 
     def searchForElement(self, term=''):
         """Create a MediaType structure of the type of element.mediaType
