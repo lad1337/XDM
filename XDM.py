@@ -25,7 +25,7 @@ import site
 import os
 import time
 import signal
-
+import json
 import hashlib
 
 # Fix for correct path
@@ -99,13 +99,13 @@ class App():
         p.add_argument('--pluginImportDebug', action="store_true", dest='pluginImportDebug', help="Extra verbosy debug during plugin import is printed.")
         p.add_argument('--profile', dest='profile', nargs='*', default=None, help="Wrap a decorated(!) function in a profiler. By default all decorated functions are profiled. Decorate your function with @profileMeMaybe")
         p.add_argument('--installType', dest='installType', default=None, type=int, help="Force the install type")
+        p.add_argument('--config', dest='config', default=None, type=json.loads, help="Update the config with this json object")
 
         options = p.parse_args(args)
         self.options = options
         common.STARTOPTIONS = options
 
         log.info('Starting XDM %s' % common.getVersionHuman())
-
 
         if options.configJSON:
             config_files = []
@@ -117,6 +117,9 @@ class App():
             for config_file in config_files:
                 log.info('Loading config from file {}'.format(config_file))
                 options = helper.spreadConfigsFromFile(options, config_file)
+
+        if options.config:
+            common.updateConfigOverwrite(options.config)
 
         # Set the Paths
         if options.datadir:

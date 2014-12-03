@@ -229,6 +229,7 @@ class Common(object):
         return self._provider_tags_cache
 
     def updateConfigOverwrite(self, config):
+        xdm.logger.log.info(u"Overwriting config with: %s" % config)
         self.CONFIGOVERWRITE.update(config)
 
     def getConfigOverWriteForPlugin(self, plugin):
