@@ -262,6 +262,11 @@ class RepoManager(object):
             self.setNewMessage('error', '%s' % ex)
 
         if install_result:
+            if not self.install_requirements_for_plugin(install_path):
+                self.setNewMessage('error', 'Error requirements.txt install')
+                install_result = False
+
+        if install_result:
             self.setNewMessage('info', 'Installation successful!')
             if doCleanUp:
                 self.doCleanUp()
@@ -305,6 +310,15 @@ class RepoManager(object):
             init_file.write('')
             init_file.close()
 
+    def install_requirements_for_plugin(self, plugin_install_dir):
+        requirements_path = os.path.join(plugin_install_dir, "requirements.txt")
+        log.debug("looking for requirements.txt at '%s'" % requirements_path)
+        if os.path.isfile(requirements_path):
+            import pip
+            log.info("installing python packages from %s" % requirements_path)
+            return not bool(pip.main(["install", "-U", "-r", requirements_path]))
+        log.debug("No requirements.txt found")
+        return True
 
 class ZipPluginInstaller(object):
 

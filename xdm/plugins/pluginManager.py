@@ -120,7 +120,8 @@ class PluginManager(object):
                 if not systemOnly and extra_plugin_path is not None and os.path.isdir(extra_plugin_path):
                     if debug:
                         print '###### extra path %s #######' % extra_plugin_path
-                    cur_classes.extend(self.find_subclasses(cur_plugin_type, reloadModules, debug=debug, path=extra_plugin_path))
+                    cur_classes.extend(
+                        self.find_subclasses(cur_plugin_type, reloadModules, debug=debug, path=extra_plugin_path))
 
                 if cur_classes:
                     log("I found %s %s: %s" % (len(cur_classes), cur_plugin_type_name, [x[0].__name__ for x in cur_classes]))
@@ -372,10 +373,17 @@ class PluginManager(object):
 
         def look_for_subclass(modulename, cur_path):
             if debug:
-                print("searching %s in path %s" % (modulename, cur_path))
+                print("searching %s in file %s" % (modulename, cur_path))
 
             try:
-                module = __import__(modulename)
+                try:
+                    module = __import__(modulename)
+                except ImportError:
+                    dir = os.path.dirname(cur_path)
+                    if not common.REPOMANAGER.install_requirements_for_plugin(dir):
+                        exit(1)
+                        raise
+                    module = __import__(modulename)
             except Exception as ex: # catch everything we dont know what kind of error a plugin might have
                 tb = traceback.format_exc()
                 log.error("Error during importing of %s" % modulename, traceback=tb, exception=ex)
@@ -392,7 +400,6 @@ class PluginManager(object):
             for key, entry in d.items():
                 if key == cls.__name__:
                     continue
-
                 try:
                     if issubclass(entry, cls):
                         if debug:
