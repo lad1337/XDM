@@ -63,9 +63,14 @@ def deleteOrphanImages():
     deleted_rows = image_dq.execute()
     log.info("Deleted %s orphanaged images" % deleted_rows)
 
-def fixImages():
+def load_missing_images(element_id=None):
     needed_files = set()
-    for image in Image.select():
+    selected_images = []
+    if element_id:
+        selected_images = Image.select().where(element_id=element_id)
+    else:
+        selected_images = Image.select()
+    for image in selected_images:
         try:
             path = image.getPath()
         except LookupError:
@@ -75,7 +80,11 @@ def fixImages():
             common.Q.put(('image.download', {'id': image.element.id}))
         needed_files.add(path)
     log.info("Needed image files %d" % len(needed_files))
+    return needed_files
 
+
+def fixImages():
+    needed_files = load_missing_images()
     all_files = set()
     for root, dirnames, filenames in os.walk(xdm.IMAGEPATH):
         for filename in filenames:
