@@ -27,7 +27,7 @@ import xdm
 from logger import *
 from xdm import common, helper, profileMeMaybe
 import requests, dateutil
-import datetime
+from datetime import date, datetime
 import json
 from jsonHelper import MyEncoder
 from xdm.helper import dict_diff, dictproperty
@@ -598,11 +598,11 @@ class Element(BaseModel):
         return self._getReleaseDate
 
     def _getReleaseDate(self):
-        return datetime.datetime.now()
+        return datetime.now()
 
     def isReleaseDateInPast(self):
         if type(self.getReleaseDate()).__name__ in ('date', 'datetime'):
-            return self.getReleaseDate() < datetime.datetime.now()
+            return self.getReleaseDate() < datetime.now()
         return True
 
     def isDescendantOf(self, granny):
@@ -782,9 +782,9 @@ class Field(Field_V0):
                 return int(self._value_int)
             return self._value_int
         elif self._value_datetime != None:
-            if type(self._value_datetime).__name__ in ('str', 'unicode'):
-                datetime = dateutil.parser.parse(self._value_datetime)
-                return datetime.replace(tzinfo=None)
+            if isinstance(self._value_datetime, (str, unicode)):
+                cur_datetime = dateutil.parser.parse(self._value_datetime)
+                return cur_datetime.replace(tzinfo=None)
             else:
                 return self._value_datetime
         else:
@@ -796,26 +796,25 @@ class Field(Field_V0):
             value = int(value)
         except (ValueError, TypeError):
             pass
-
-        if type(value).__name__ in ('int', 'float'):
+        if isinstance(value, (int, float)):
             self._value_char = None
             self._value_bool = None
             self._value_datetime = None
             self._value_int = value
             return
-        if type(value).__name__ in ('str', 'unicode'):
+        if isinstance(value, (str, unicode)):
             self._value_bool = None
             self._value_int = None
             self._value_datetime = None
             self._value_char = value
             return
-        if type(value).__name__ in ('bool', 'NoneType'):
+        if isinstance(value, bool) or value is None:
             self._value_char = None
             self._value_int = None
             self._value_datetime = None
             self._value_bool = value
             return
-        if type(value).__name__ in ('date', 'datetime'):
+        if isinstance(value, (date, datetime)):
             self._value_char = None
             self._value_int = None
             self._value_bool = None
@@ -1087,7 +1086,7 @@ class Location(Location_V0):
     )
 
 class History_V0(BaseModel):
-    time = DateTimeField(default=datetime.datetime.now())
+    time = DateTimeField(default=datetime.now())
     event = CharField()
     obj_id = IntegerField()
     obj_class = CharField()
@@ -1101,7 +1100,7 @@ class History_V0(BaseModel):
         db_table = 'History'
 
     def save(self, force_insert=False, only=None):
-        self.time = datetime.datetime.now()
+        self.time = datetime.now()
         Model.save(self, force_insert=force_insert, only=only)
 
     @classmethod
