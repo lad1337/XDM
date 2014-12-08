@@ -63,11 +63,10 @@ def deleteOrphanImages():
     deleted_rows = image_dq.execute()
     log.info("Deleted %s orphanaged images" % deleted_rows)
 
-def load_missing_images(element_id=None):
+def load_missing_images(element=None):
     needed_files = set()
-    selected_images = []
-    if element_id:
-        selected_images = Image.select().where(element_id=element_id)
+    if element:
+        selected_images = Image.select().where(Image.element == element)
     else:
         selected_images = Image.select()
     for image in selected_images:

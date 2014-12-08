@@ -401,7 +401,7 @@ def updateElement(element, force=False, new_node_status=None):
                     for f in list(updated_node.fields):
                         old_node.setField(f.name, f.value, f.provider)
                     common.Q.put(('image.download', {'id': old_node.id}))
-    load_missing_images(element.id)
+    load_missing_images(element)
 
 
 def updateAllElements():

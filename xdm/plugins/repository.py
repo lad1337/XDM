@@ -53,7 +53,7 @@ class RepoManager(object):
 
     def autoCache(self):
         self.cache()
-        if common.SYSTEM.c.auto_update_plugins:
+        if common.SYSTEM.c.auto_update_plugins and self.updateable_plugins:
             log.info("Automatically updating plugins! Cross fingers.")
             for plugin_identifer in self.updateable_plugins:
                 self.install(plugin_identifer, False)
@@ -102,12 +102,15 @@ class RepoManager(object):
         plugins = common.PM.getAll(True, 'Default')
         updateable_plugins = {}
         for plugin in plugins:
-            if plugin.identifier:
-                for repo in self.repos:
-                    for repo_plugin in repo.getPlugins():
-                        if repo_plugin.identifier == plugin.identifier and self._updateable(repo_plugin, plugin):
-                            updateable_plugins[plugin.identifier] = (repo_plugin, plugin)
-                            common.MM.createInfo('%s as an update. Update now?' % (plugin.screenName), confirmJavascript="installModalFromMessage(this, '%s')" % plugin.identifier)
+            if not plugin.identifier:
+                continue
+            for repo in self.repos:
+                for repo_plugin in repo.getPlugins():
+                    if repo_plugin.identifier == plugin.identifier and self._updateable(repo_plugin, plugin):
+                        updateable_plugins[plugin.identifier] = (repo_plugin, plugin)
+                        common.MM.createInfo(
+                            '%s as an update. Update now?' % (plugin.screenName),
+                            confirmJavascript="installModalFromMessage(this, '%s')" % plugin.identifier)
 
         log.info('%s Plugins have an update' % len(updateable_plugins))
         self.updateable_plugins = updateable_plugins

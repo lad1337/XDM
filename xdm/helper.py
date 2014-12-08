@@ -256,6 +256,9 @@ def generateApiKey():
     return base64.b64encode(hashlib.sha256(str(random.getrandbits(256))).digest(), random.choice(['rA', 'aZ', 'gQ', 'hH', 'hG', 'aR', 'DD'])).rstrip('==')
 
 
+def items(collection):
+    return collection.items()
+
 def dereferMe(url):
     if common.SYSTEM.c.use_derefer_me:
         return "http://www.dereferer.org/?%s" % urllib.quote(url, "")

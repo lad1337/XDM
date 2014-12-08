@@ -57,7 +57,8 @@ import urllib
 # , bytecode_cache=bcc
 
 WIDGET_PATH = os.path.join('html', 'templates', 'widget')
-elementWidgetEnvironment = Environment(loader=FileSystemLoader(WIDGET_PATH), extensions=['jinja2.ext.i18n'])
+elementWidgetEnvironment = Environment(
+    loader=FileSystemLoader(WIDGET_PATH), extensions=['jinja2.ext.i18n'])
 elementWidgetEnvironment.install_gettext_callables(_, ngettext, newstyle=True)
 elementWidgetEnvironment.filters['relativeTime'] = helper.reltime
 elementWidgetEnvironment.filters['idSafe'] = helper.idSafe
@@ -78,13 +79,15 @@ class MyLoader(BaseLoader):
     def get_source(self, environment, template):
         return (template, None, lambda: True)
 
-elementEnviroment = Environment(loader=FunctionLoader(fake_load), extensions=['jinja2.ext.i18n'])
+elementEnviroment = Environment(
+    loader=FunctionLoader(fake_load), extensions=['jinja2.ext.i18n'])
 elementEnviroment.install_gettext_callables(_, ngettext, newstyle=True)
 elementEnviroment.filters['relativeTime'] = helper.reltime
 elementEnviroment.filters['idSafe'] = helper.idSafe
 elementEnviroment.filters['derefMe'] = helper.dereferMe
 elementEnviroment.filters['derefMeText'] = helper.dereferMeText
 elementEnviroment.filters['json_loads'] = json.loads
+elementEnviroment.filters['items'] = helper.items
 
 
 class BaseModel(Model):
