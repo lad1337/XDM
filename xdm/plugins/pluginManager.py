@@ -233,7 +233,9 @@ class PluginManager(object):
         # print cls, wanted_i, returnAll, plugin_instances, sorted(plugin_instances, key=lambda x: x.c.plugin_order, reverse=False)
         return sorted(plugin_instances, key=lambda x: x.c.plugin_order, reverse=False)
 
-    def _getTyped(self, plugins, types=[]):
+    def _getTyped(self, plugins, types=None):
+        if types is None:
+            types = []
         if not types:
             return plugins
         filtered = []
@@ -322,6 +324,11 @@ class PluginManager(object):
                     'Provider',
                     'DownloadType',
                     'MediaTypeManager']
+
+    def get_classes(self):
+        return [
+            getattr(plugins, cls_name)
+            for cls_name in reversed(self.getAll.order)]
 
     # this is ugly ... :(
     def getInstanceByName(self, class_name, instance):

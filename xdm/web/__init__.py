@@ -70,15 +70,17 @@ def stateCheck():
         if not r.path_info.startswith('/wizard'):
             for path in common.PUBLIC_PATHS + ['/ajax']:
                 if r.path_info.startswith(path) and len(r.path_info) > 1:
-                    # print 'path looks fine %s' % r.path_info
                     break
             else:
-                # print "redirecting %s to %s" % (r.path_info, '%s%s' % (common.SYSTEM.c.webRoot, '/wizard/%s' % common.SYSTEM.hc.setup_wizard_step))
-                raise cherrypy.HTTPRedirect('%s%s' % (common.SYSTEM.c.webRoot, '/wizard/%s' % common.SYSTEM.hc.setup_wizard_step))
+                raise cherrypy.HTTPRedirect(
+                    '{}/wizard/{}'.format(
+                        common.SYSTEM.c.webRoot,
+                        common.SYSTEM.hc.setup_wizard_step)
+                )
 
-    if not (xdm.xdm_states[0] in xdm.common.STATES or\
-            xdm.xdm_states[1] in xdm.common.STATES or\
-            xdm.xdm_states[6] in xdm.common.STATES or\
+    if not (xdm.xdm_states[0] in xdm.common.STATES or
+            xdm.xdm_states[1] in xdm.common.STATES or
+            xdm.xdm_states[6] in xdm.common.STATES or
             xdm.xdm_states[3] in xdm.common.STATES):
         # allow normal handler to run
         # now check if we need tu run the wizard an redirect to it
@@ -212,7 +214,10 @@ class WebRoot:
                     search_query = search_query.replace('%s: ' % mtm.type, '')
                     searchers = [mtm]
                     break
-        return template.render(searchers=searchers, search_query=search_query, **templateGlobals)
+        return template.render(
+            platform=platform,
+            searchers=searchers,
+            search_query=search_query, **templateGlobals)
 
 
     @cherrypy.expose

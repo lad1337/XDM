@@ -23,6 +23,7 @@ function ajaxRepo(sort_mode){
         $('.repo-container .progress').hide("slide", { direction: "up" }, 500);
         $('.repo-container .inner').show("slide", { direction: "up" }, 500);
         check_slected_install();
+        $('#repo-select a').first().click();
     });
 }
 

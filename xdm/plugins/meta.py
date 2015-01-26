@@ -123,7 +123,7 @@ class ConfigWrapper(object):
             if cur_c.name == name:
                 self._configValueCache[name] = cur_c.value
                 return cur_c.value
-        raise AttributeError
+        raise AttributeError("no config with the name '{}'".format(name))
 
     def __setattr__(self, name, value):
         for cur_c in self.configs:
@@ -175,7 +175,12 @@ def pluginMethodWrapper(caller_name, run, alternative):
             # print tb
             out = alternative(*args, **kwargs)
             try:
-                log.error("Error during %s of %s \nError: %s\n\n%s\nNew value:%s" % (run.__name__, caller_name, ex, tb, out), traceback=tb, new_out=out, exception=ex)
+                log.error(
+                    "Error during %s of %s \nError: %s\n\n%s\nNew value:%s" % (
+                        run.__name__, caller_name, ex, tb, out),
+                    traceback=tb,
+                    new_out=out,
+                    exception=ex)
             except:
                 log.error("Error during %s of %s \nError: %s\n\n%s" % (run.__name__, caller_name, ex, tb))
             return out

@@ -443,7 +443,7 @@ class Plugin(object):
 
 
 class DownloadType(Plugin):
-    """Simple skeleton for a "DownloadType"."""
+    """These plugins define the type of download like NZB."""
     _type = 'DownloadType'
     single = True
     addMediaTypeOptions = False
@@ -479,7 +479,7 @@ class DownloadTyped(Plugin):
 
 
 class Downloader(DownloadTyped):
-    """Plugins of this class send Downloads to another Program or directly download stuff"""
+    """These plugins of this class send Downloads to another Programs or directly download stuff."""
     _type = 'Downloader'
     types = [] # types the downloader can handle ... e.g. blackhole can handle both
 
@@ -529,7 +529,9 @@ class Downloader(DownloadTyped):
 
 
 class Indexer(DownloadTyped):
-    """Plugins of this class create elemnts based on mediaType structures"""
+    """These plugins perform searches on sites that hold information of available files.
+
+    Plugins of this class create elemnts based on mediaType structures"""
     _type = 'Indexer'
     types = [] # types this indexer will give back
     name = "Does Noting"
@@ -592,7 +594,7 @@ class Indexer(DownloadTyped):
 
 
 class Notifier(Plugin):
-    """Plugins of this class send out notification"""
+    """These plugins send out notifications."""
     _type = 'Notifier'
     addMediaTypeOptions = True
     name = "prints"
@@ -615,7 +617,9 @@ class Notifier(Plugin):
 
 
 class Provider(Plugin):
-    """Plugins of this class create elemnets based on mediaType structures.
+    """These plugins get meta information for the MediaTypes and perform searches.
+
+    Plugins of this class create elemnets based on mediaType structures.
 
     creating more providers is definety more complicated then other things since
     creating element structures based on the structure defined by the mediaType can be complicated
@@ -679,6 +683,7 @@ class Provider(Plugin):
 
 
 class PostProcessor(Plugin):
+    """These plugins act on downloaded items like move and rename files."""
     _type = 'PostProcessor'
     types = [] # media types the downloader can handle
 
@@ -714,12 +719,13 @@ class PostProcessor(Plugin):
 
 
 class System(Plugin):
-    """Is just a way to handle the config part and stuff"""
+    """These plugins control global issues such as XDMs config."""
     _type = 'System'
     name = "Does Noting"
 
 
 class DownloadFilter(Plugin):
+    """These plugins filter available downloads like vidoe quality."""
     _pre_search = 1
     _post_search = 2
 
@@ -747,6 +753,7 @@ class DownloadFilter(Plugin):
 
 
 class SearchTermFilter(Plugin):
+    """These plugins manipulate the search terms, create new ones or remove others."""
     _type = 'SearchTermFilter'
     addMediaTypeOptions = 'runFor'
     name = 'Does Nothing'
@@ -756,9 +763,7 @@ class SearchTermFilter(Plugin):
 
 
 class MediaAdder(Plugin):
-    """Plugins of this type are called periodically on runShedule() and should retrun a list of Media
-    that should be added
-    """
+    """These plugins are called periodically and can add/manipulate media entries from other sources."""
     _type = 'MediaAdder'
     name = 'Does Nothing'
 
@@ -785,7 +790,9 @@ class MediaAdder(Plugin):
 
 
 class MediaTypeManager(Plugin):
-    """Plugins of this type define a "MediaType" e.g. Movies
+    """These plugins define what XDM manages e.g. Movies, Books etc. They also define how each type looks.
+
+    Plugins of this type define a "MediaType" e.g. Movies
     They define a Structure of Classes simple classes that resemble Objects needed for the media that is being reflected.
     """
     _type = 'MediaTypeManager'

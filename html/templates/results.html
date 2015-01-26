@@ -45,6 +45,16 @@
         {% endfor %}
     </div>
 </div>
+<p id="systemInfo" style="display:none;">
+* XDM version: {{common.getVersionHuman()}}
+* Updater version: {{common.UPDATER.info.localVersion}}
+* Install type: {{common.UPDATER.getHumanInstallType()}}
+* System: {{platform.system()}}<br>
+* Release: {{platform.release()}}<br>
+* Machine: {{platform.machine()}}<br>
+* Python_version: {{platform.python_version()}}<br>
+* Python_implementation: {{platform.python_implementation()}}
+</p>
 {% if search_query %}
 <script>
 var data_{{mt.instance}}  = {}
@@ -66,6 +76,27 @@ jQuery.get( webRoot+'/ajax/search', data_{{mt.instance}}, function(res){
     var p = $('#{{mt.instance}}-current')
     $('.progress', p).addClass('progress-danger').removeClass('active');
     $('.progress span' ,p).html('Error during search please see the log.');
+    //Error during searchForElement of AniDB
+    var data = {entries: 10};
+    var table = $("<table>");
+    p.append(table);
+    table.addClass("table table-condensed");
+    $.getJSON(webRoot+'/ajax/getLogEntries', data, function(entries){
+        $.each(entries, function(index, data){
+            console.log(data);
+            if(data["lvl"] != "ERROR")
+                return;
+            var id = data['id'];
+            var html = data['html'];
+            if(!$('#'+id).length){
+                table.append(html);
+            }
+        });
+        $('table .github textarea[data-systemInfo="no"]')
+                .append($('#systemInfo').text()).attr('data-systemInfo', 'yes');
+    });
+
+
 });
 
 var parent_{{mt.instance}} = $('#{{mt.instance}}-current');
@@ -96,7 +127,7 @@ function ajaxSearchProgress(parent, data){
     jQuery.getJSON( webRoot+'/ajax/searchProgress', data, function(res){
         //FIXME: this does not look like the structure i wanted to have always since its not in data of res
         if(res['percent']){
-            $('.bar' ,parent).css('width', (res['percent'])+'%')
+            $('.bar' ,parent).css('width', (res['percent'])+'%');
             $('.progress span' ,parent).html(res['count'] + '/' + res['total'])
         }else if(res['count']){
             $('.progress span' ,parent).html(res['count'])
@@ -104,20 +135,20 @@ function ajaxSearchProgress(parent, data){
         if(!$('.searchTabPaneInner', parent).html())
             window.setTimeout(function() {ajaxSearchProgress(parent, data)}, 1000);
         });
-};
+}
 
 $(document).ready(function() {
     $('a[data-toggle="tab"]').on('show', function (e) {
-        var t = $(e.target)
+        var t = $(e.target);
         var tab = $(t.attr('href'));
-        data = {}
-        data['id'] = t.data('id')
+        data = {};
+        data['id'] = t.data('id');
         if(data['id'] && !$('.searchTabPaneInner', tab).html())
             jQuery.get( webRoot+'/getPaint', data, function(res){
-                $('.searchTabPaneInner', tab).html(res)
-                $('.progress', tab).hide("slide", { direction: "up" }, 500)
-                $('.searchTabPaneInner', tab).show("slide", { direction: "up" }, 500)
-                var fnName = t.data('instance')+"_init"
+                $('.searchTabPaneInner', tab).html(res);
+                $('.progress', tab).hide("slide", { direction: "up" }, 500);
+                $('.searchTabPaneInner', tab).show("slide", { direction: "up" }, 500);
+                var fnName = t.data('instance')+"_init";
                 var fn = window[fnName];
                 if(typeof fn === 'function') {
                     fn();

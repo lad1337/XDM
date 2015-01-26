@@ -16,3 +16,7 @@
 #container.wizard footer :not(.in-wizard){
    display: none; 
 }
+
+#plugin-type-select{
+    display: none;
+}

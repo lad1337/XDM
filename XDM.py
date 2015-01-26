@@ -87,6 +87,7 @@ class App():
         p.add_argument('-b', '--datadir', dest='datadir', default=None, help="Set the directory for created data.")
         p.add_argument('--configJSON', dest='configJSON', default=None, help="Set the path to the config JSON file (or folder with then) to read from")
         p.add_argument('--systemIdentifer', dest='systemIdentifer', default="de.lad1337.systemconfig", help="Set the identifier for the system plugin")
+        p.add_argument('--resetWizard', dest='reset_wizard', action="store_true", help="reset the wizard state")
 
 
         p.add_argument('--config_db', dest='config_db', default=None, help="Path to config database")
@@ -164,7 +165,6 @@ class App():
         if options.pidfile:
             log.info("Set PIDfile to %s" % options.pidfile)
             PIDFile(cherrypy.engine, options.pidfile).subscribe()
-        if options.pidfile:
             pid = str(os.getpid())
             log(u"Writing PID %s to %s" % (pid, options.pidfile))
             file(os.path.abspath(options.pidfile), 'w').write("%s\n" % pid)
@@ -174,6 +174,9 @@ class App():
         init.db()
         init.postDB()
         init.schedule()
+
+        if options.reset_wizard:
+            common.SYSTEM.hc.setup_wizard_step = 0
 
         # Set port
         if options.port:

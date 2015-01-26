@@ -21,6 +21,7 @@
 
 import cherrypy
 import json
+from collections import OrderedDict
 import xdm
 from xdm import common, tasks, actionManager
 from xdm.logger import *
@@ -241,7 +242,7 @@ class AjaxCalls:
         if common.REPOMANAGER.caching or not common.REPOMANAGER.cached:
             return ''
         template = self.env.get_template('plugins_by_type.html')
-        typed_plugins = {}
+        typed_plugins = OrderedDict()
         for repo in common.REPOMANAGER.getRepos():
             for plugin in repo.plugins:
                 if plugin.type not in typed_plugins:
@@ -334,7 +335,12 @@ class AjaxCalls:
         logEntries = []
         entryTemplate = self.env.get_template('log_entry.html')
         for _log in log.getEntries(int(entries)):
-            logEntries.append({'id': _log['id'], 'html': entryTemplate.render(log=_log)})
+            logEntries.append(
+                {'id': _log['id'],
+                 'html': entryTemplate.render(log=_log),
+                 'lvl': _log['data']['lvl']
+                }
+            )
         return json.dumps(logEntries)
 
     @cherrypy.expose

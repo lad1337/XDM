@@ -29,7 +29,7 @@ $(document).ready(function() {
                 $("#container").removeClass().addClass('wizard');
                 runStepFn(step)
             });
-        }, 800)
+        }, 800);
         event.preventDefault()
     });
     runCurStepFn();
@@ -42,33 +42,33 @@ runStepFn = function(step){
     }catch (e) {
         console.log(step, e)
     }
-}
+};
 
 runCurStepFn = function(){ 
     runStepFn(getCurStep())
-}
+};
 
 getCurStep = function(){
-    var url = window.location + ''
+    var url = window.location + '';
     return url.match(/wizard\/(\d+)/)[1];    
-}
+};
 
 step_1 = function(){
-    $('#container').addClass('settings')
+    $('#container').addClass('settings');
     init_settings();
-}
+};
 
 step_2 = function(){
     ajaxRepo();
     $('#container').addClass('plugins')
-}
+};
 
 step_3 = function(){
     var data = {1: 'getDownloaders',
             2: 'getIndexers',
             3: 'getNotifiers',
             4: 'getProvider',
-            5: 'getMediaTypeManager'}
+            5: 'getMediaTypeManager'};
     $('#settings-in-here').load(webRoot +'/settings/?'+ $.param(data) + ' #content', function() {
         init_settings();
         $.get(webRoot +'/settingsPluginHtml/?'+ $.param(data), function(data, status){
@@ -77,10 +77,10 @@ step_3 = function(){
         });
         
     });
-    $('#container').addClass('settings')
+    $('#container').addClass('settings');
     $('#content > .wizard-main.well').removeClass('well')
-}
+};
 
 step_finished = function(){
     $('#container').removeClass('wizard')
-}
+};

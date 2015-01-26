@@ -185,7 +185,10 @@ class LogWrapper():
                 f.close()
         else:
             logLinesStr = self._logLineCache
-        return [{'data': json.loads(l), 'raw': json.dumps(json.loads(l), indent=4), 'id': 'AA%s' % hash(l)} for l in logLinesStr]
+        return [{
+            'data': json.loads(l),
+            'raw': json.dumps(json.loads(l), indent=4),
+            'id': 'AA%s' % hash(l)} for l in logLinesStr]
 
 log = LogWrapper()
 
