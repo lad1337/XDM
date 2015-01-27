@@ -1,8 +1,14 @@
-
+function oauth_done(){
+    location.reload();
+}
 
 function init_settings(){
-    if(!$('.nav.nav-list a[href="'+decodeURIComponent(window.location.hash)+'"]').tab('show').length)
-        $('.nav.nav-list a[data-toggle="tab"]:first').tab('show')
+
+    var hash_part = decodeURIComponent(window.location.hash);
+    var is_oauth = false;
+
+    if(!$('.nav.nav-list a[href="' + hash_part + '"]').tab('show').length)
+        $('.nav.nav-list a[data-toggle="tab"]:first').tab('show');
 
     $('.control-group.path input').each(function(key, item){
         $(item).fileBrowser({ title: 'Select Folder',
@@ -17,11 +23,35 @@ function init_settings(){
                               autocompleteURL: webRoot + "/browser/complete"});
     });
 
+    $('.control-group.oauth_token input').each(function(key, item){
+        var item = $(item);
+        if(!item.val())
+            item.css("background", "red");
+        else
+            item.css("background", "green");
+        item.click(function(){
+            var plugin_tab_id = item.data("belongsto");
+
+            var plugin_frame = $("#"+plugin_tab_id);
+            var url = plugin_frame.data("oauthauthorizeurl");
+            url += "?response_type=code&client_id=" + plugin_frame.data("oauthclientid");
+            url += "&redirect_uri=" + location.href.replace(location.hash,"");
+            url += "&state="+plugin_frame.data("identifier")+"|"+plugin_frame.data("instance");
+            var windowref = window.open(
+                url, "oAuth", "width=400, height=500, left=500, top=100");
+            windowref.onload = function() {
+                windowref.onunload =  function () {
+                    //location.reload();
+            };
+      }
+        })
+    });
+
     // i cant get the tooltip data api to work so we do a jquery
     $("input").tooltip({
         'selector': '',
         'placement': 'right'
-     })
+     });
 
     $('input[type="checkbox"][data-configname="enabled"]').change(function(event){
         console.log(event);
@@ -47,10 +77,10 @@ function init_settings(){
         }
     });
     $('.nav.nav-list a').hover(function(){
-        var t = $($(this).attr('href'))
+        var t = $($(this).attr('href'));
         $('.nav.nav-list.MediaTypeManager a').each(function(k,i){
             var id = $(i).attr('href').replace('#', '');
-            var input = $('input[name$="'+id+'_runfor"][type="checkbox"]',t)
+            var input = $('input[name$="'+id+'_runfor"][type="checkbox"]',t);
                 if(input.prop('checked')){
                     $(i).addClass('btn-striped animate btn-success')
                 }
@@ -78,12 +108,12 @@ function init_settings(){
     labelInputConnector($('label'));
 
     $('.nav.nav-list a[data-toggle="tab"]').on('show', function (e) {
-        var t = $(e.target)
+        var t = $(e.target);
         var tab = $(t.attr('href'));
         $('.nav.nav-list li').removeClass('active');
         $(this).parent().addClass('active');
         window.location.hash = t.attr('href');
-    })
+    });
     
     $( ".nav-list" ).sortable({
         stop: function(event, ui) {
@@ -100,7 +130,7 @@ function init_settings(){
 
     
     $('input[type="submit"]').click(function(event){
-        console.log(this)
+        console.log(this);
         if($(this).hasClass('animate')){
             event.preventDefault();
             return false;
@@ -109,8 +139,8 @@ function init_settings(){
         }
         event.preventDefault();
         
-        saveButtons = $('input[type="submit"]')
-        saveButtons.addClass('btn-striped animate')
+        saveButtons = $('input[type="submit"]');
+        saveButtons.addClass('btn-striped animate');
         data = $('.tab-pane.active input, .tab-pane.active select, input.plugin_order, .wizard-main.well #theSettingsForm').serialize()
         
         console.log($('.tab-pane.active input, input.plugin_order'), data);
@@ -130,5 +160,5 @@ function init_settings(){
         });
 
     });
-};
+}
 

@@ -35,6 +35,8 @@ from babel.dates import format_timedelta
 import datetime
 
 
+DEFAULT_INSTANCE_NAME = "Default"
+
 """plugins should not set the status of an element !!! it will be done in the loops that call / use the plugins"""
 
 
@@ -96,7 +98,16 @@ class Plugin(object):
     _hidden_config = {}
     _hidden_config_meta = {}
 
-    def __init__(self, instance='Default'):
+    oauth = None
+
+    oauth_client_id = ""
+    oauth_client_secret = ""
+    oauth_authorize_url = ""
+    oauth_token_url = ""
+
+    def __init__(self, instance=None):
+        if instance is None:
+            instance = DEFAULT_INSTANCE_NAME
         """returns a new instance of the Plugin with the config loaded get the configuration as self.c.<name_of_config>"""
         # setup names
         if not self.screenName:
@@ -135,6 +146,8 @@ class Plugin(object):
             alternative = getattr(super(self.__class__, self), method_name)
             method = getattr(self, method_name)
             setattr(self, method_name, pluginMethodWrapper(self.name, method, alternative))
+        if self.oauth is not None:
+            self.oauth.set_plugin(self)
 
     def _get_enabled(self):
         return self.c.enabled

@@ -340,7 +340,9 @@ class PluginManager(object):
                             return pClass(instance)
         return None
 
-    def getPluginByIdentifier(self, identifier, instance):
+    def getPluginByIdentifier(self, identifier, instance=None):
+        if instance is None:
+            instance = plugins.DEFAULT_INSTANCE_NAME
         for pType in self._cache:
             for pClass in self._cache[pType]:
                 if identifier == pClass.identifier:

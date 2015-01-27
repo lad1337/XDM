@@ -164,14 +164,42 @@ class WebRoot:
         template = env.get_template('completed.html')
         return template.render(**self._globals())
 
+    def handle_oauth(self, code, state):
+        log("oauth redirect code: %s state: %s" % (code, state))
+        plugin_identifier, instance = state.split("|")
+        plugin = common.PM.getPluginByIdentifier(plugin_identifier, instance)
+        import requests
+        data = {
+            "code": code,
+            "client_id": plugin.oauth_client_id,
+            "client_secret": plugin.oauth_client_secret,
+            "redirect_uri": "http://localhost:8085/settings/",
+            "grant_type": "authorization_code"
+        }
+        response = requests.post(plugin.oauth_token_url, json=data).json()
+
+        log("oauth repsonse: %s" % response)
+        plugin.c.oauth_token = response["access_token"]
+        raise cherrypy.HTTPRedirect('%s/oauth_final/' % common.SYSTEM.c.webRoot)
+
+    @cherrypy.expose
+    def oauth_final(self):
+        return "<script>try { window.opener.oauth_done(); } catch (err) {};window.close();</script>"
+
+
     @cherrypy.expose
     def settings(self, **kwargs):
         plugins = []
         if kwargs:
             indexes = sorted(kwargs.keys())
-            for index in indexes:
-                pluginClassGetter = kwargs[index]
-                plugins.extend(getattr(common.PM, pluginClassGetter)(returnAll=True))
+
+            if "code" in kwargs and "state" in kwargs:
+                self.handle_oauth(kwargs.pop("code"), kwargs.pop("state"))
+            else:
+                for index in indexes:
+                    pluginClassGetter = kwargs[index]
+                    plugins.extend(
+                        getattr(common.PM, pluginClassGetter)(returnAll=True))
         else:
             plugins = common.PM.getAll(True)
         template = env.get_template('settings.html')
