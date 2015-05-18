@@ -864,7 +864,11 @@ class MediaTypeManager(Plugin):
         self.s = {'root': self.__class__.__name__}
         l = list(self.order)
         for i, e in enumerate(l):
-            attributes = [attr for attr in dir(e) if isinstance(getattr(e, attr), (int, str)) and not attr.startswith('_')]
+            attributes = [attr
+                  for attr in dir(e)
+                  if isinstance(getattr(e, attr), (int, str))
+                  and not attr.startswith('_')
+            ]
             attributes = sorted(attributes, key=lambda a: getattr(e, a))
             if not i:
                 if len(l) > 1:
@@ -912,15 +916,13 @@ class MediaTypeManager(Plugin):
                         e.save()
 
     def checkElementFields(self):
-        # FIXME
-        return
         for cur_class in self.order:
             for element in self.getElementsWithStatusIn(common.getEveryStatusBut([common.TEMP])):
                 for attrName in self.s[element.type]['attr']:
                     try:
                         getattr(element, attrName)
                     except AttributeError:
-                        log(u"%s is missing attr: '%s'. Fixing that for you." % (element, attrName))
+                        log(u"%s is missing attr: '%s'. Fixing that for you." % (element.id, attrName))
                         element.setField(attrName, getattr(cur_class, attrName), 'XDM')
 
     def getDownloadableElements(self, asList=True):
