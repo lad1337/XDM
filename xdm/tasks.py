@@ -21,7 +21,7 @@
 
 from xdm.logger import *
 from xdm import common, helper
-from xdm.classes import *
+from xdm.models import *
 from xdm.plugins.bases import DownloadFilter
 import json
 from xdm.jsonHelper import MyEncoder
@@ -52,9 +52,9 @@ def checkQ():
     try:
         if key == 'image.download':
             try:
-                e = Element.get(Element.id == body['id'])
-                e.downloadImages()
-            except Element.DoesNotExist:
+                e = Element.objects.get(id=body['id'])
+                e.download_images()
+            except DoesNotExist:
                 pass
     except:
         raise
@@ -121,6 +121,8 @@ def notify(element):
 
 
 def createGenericEvent(ele, event_type, event_msg):
+    log.warning("history not implemented")
+    return
     h = History()
     h.event = event_type
     h.obj_id = ele.id
@@ -353,15 +355,16 @@ def updateElement(element, force=False, new_node_status=None):
     for p in common.PM.getProvider(runFor=element.manager):
         # TODO: make sure we use the updated element after one provider is done
         for current_tag in p.tags:
-            pID = element.getField('id', current_tag)
+            pID = element.get_field('id', current_tag)
             if not pID:
                 log.info(u'we dont have this element(%s) on provider(%s) with tag %s' % (element, p, current_tag))
                 # TODO search element by name or with help of xem ... yeah wishful thinking
                 # new_e = p.searchForElement(element.getName())
-                log.warning('getting an element by name is not implemented can not refresh')
+                log.warning('getting an element by name is not implemented, can not refresh')
                 continue
             log(u'Getting %s with provider id %s on %s' % (element, pID, p))
             new_e = p.getElement(pID, element, tag=current_tag)
+
             createGenericEvent(element, 'refreshing', u'Serching for update on %s' % p)
             if new_e:
                 log.info(u"%s returned an element" % p)
@@ -386,17 +389,19 @@ def updateElement(element, force=False, new_node_status=None):
                 log("No new nodes found in %s" % new_e)
 
             log("Clearing cache from %s" % element)
-            element.clearTreeCache()
+            element.clear_tree_cache()
             log("Clearing cache from %s" % new_e)
-            new_e.clearTreeCache()
+            new_e.clear_tree_cache()
 
+
+            print "the loop:", [new_e] + new_e.decendants
             for updated_node in [new_e] + new_e.decendants:
                 old_node = helper.findOldNode(updated_node, element, current_tag)
                 if old_node is None:
                     log.error("No old node found for %s in %s" % (updated_node, element))
                     continue
-
-                if not helper.sameElements(old_node, updated_node):
+                if old_node != updated_node:
+#                if not helper.sameElements(old_node, updated_node):
                     log.info(u"Found new version of %s" % old_node)
                     for f in list(updated_node.fields):
                         old_node.setField(f.name, f.value, f.provider)
@@ -467,6 +472,8 @@ def runMediaAdder():
 
 
 def removeTempElements():
+    log.warning("depricated with mongo")
+    return
     common.addState(6)
     silent = not common.STARTOPTIONS.dev
     for temp in list(Element.select().where(Element.status == common.TEMP)):

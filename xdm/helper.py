@@ -24,13 +24,13 @@ import os
 import re
 import sys
 import json
+import pytz
 import webbrowser
 from logger import *
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 from xdm import common
 import xdm
 import shutil
-
 import base64
 import random
 import hashlib
@@ -167,13 +167,16 @@ def updateCherrypyPluginDirs():
         log.error("Setting the static plugins folder for the server failed, there is no CHERRYPY_APP.")
 
 
-def reltime(date):
-    if date == common.FAKEDATE or not date:
+def reltime(check_date):
+    check_date = check_date.replace(tzinfo=pytz.UTC)
+    if check_date == common.FAKEDATE or not check_date:
         return "unknown"
-    # FIXME use isinstance() ... but test it
-    if type(date).__name__ not in ('date', 'datetime'):
-        return "reltime needs a date or datetime we got: '%s'" % repr(date)
-    return format_timedelta(date - datetime.now(), locale=common.getLocale(), add_direction=True)
+    if not isinstance(check_date, (date, datetime)):
+        return "reltime needs a check_date or datetime we got: '%s'" % repr(check_date)
+    return format_timedelta(
+        check_date - datetime.now().replace(tzinfo=pytz.UTC),
+        locale=common.getLocale(),
+        add_direction=True)
 
 # http://code.activestate.com/recipes/576644-diff-two-dictionaries/
 KEYNOTFOUND = '<KEYNOTFOUND>' # KeyNotFound for dictDiff
@@ -282,14 +285,16 @@ def getNewNodes(old_tree, new_tree, tag):
             new_nodes.append(node)
     return new_nodes
 
+
 def findOldNode(node, root, tag):
-    new_XDMID = node.getXDMID(tag)
+    new_XDMID = node.get_XDMID(tag)
     # print "looking for node with XDMID: %s" % new_XDMID
     for old_node in [root] + root.decendants:
         # print "new: %s vs %s" % (new_XDMID, old_node.getXDMID(tag))
-        if old_node.getXDMID(tag) == new_XDMID:
+        if old_node.get_XDMID(tag) == new_XDMID:
             return old_node
     return None
+
 
 def sameElements(a, b):
     """b is considered the new version"""
@@ -298,11 +303,11 @@ def sameElements(a, b):
 
     a_fields = list(a.fields)
     b_fields = list(b.fields)
-    a_fields_dict = {f.name:f.value for f in a_fields}
-    b_fields_dict = {f.name:f.value for f in b_fields}
+    a_fields_dict = {f.name: f.value for f in a_fields}
+    b_fields_dict = {f.name: f.value for f in b_fields}
 
     for b_name, b_value in b_fields_dict.items():
-        if not b_name in a_fields_dict:
+        if b_name not in a_fields_dict:
             return False
         if b_value != a_fields_dict[b_name]:
             return False
@@ -323,12 +328,13 @@ def convertV(cur_v):
         return cur_v
 
 def guiGlobals(self):
-    return {'mtms': common.PM.MTM,
-            'system': common.SYSTEM,
-            'PM': common.PM,
-            'common': common,
-            'messages': common.MM.getMessages(),
-            'webRoot': common.SYSTEM.c.webRoot}
+    return {
+        'mtms': common.PM.MTM,
+        'system': common.SYSTEM,
+        'PM': common.PM,
+        'common': common,
+        'messages': common.MM.getMessages(),
+        'webRoot': common.SYSTEM.c.webRoot}
 
 
 releaseThresholdDelta = {1: timedelta(days=1),

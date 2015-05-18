@@ -161,6 +161,8 @@ class PluginManager(object):
                                     self.crashed_on_init_cache[cur_class] = {}
                                 self.crashed_on_init_cache[cur_class] = instance
                                 continue
+                            except KeyboardInterrupt:
+                                raise
                             if clearUnsedConfgs:
                                 i.cleanUnusedConfigs()
                             testResult, testMessage = i.testMe()
@@ -211,7 +213,7 @@ class PluginManager(object):
                 # log("Will create new instance (%s) from %s" % (cur_instance, cur_c.__name__))
                 if cls == plugins.MediaTypeManager:
                     if cur_c not in self._mt_cache:
-                        log('Creating and caching instance from %s' % cur_c)
+                        log('Creating and caching instance from %s(%s)' % (cur_c, cur_instance))
                         plugin_instance = cur_c(cur_instance.replace('_', '.'))
                         self._mt_cache[cur_c] = plugin_instance
                     else:
@@ -397,6 +399,8 @@ class PluginManager(object):
                 tb = traceback.format_exc()
                 log.error("Error during importing of %s" % modulename, traceback=tb, exception=ex)
                 return
+            except KeyboardInterrupt:
+                raise
 
             # walk the dictionaries to get to the last one
             d = module.__dict__

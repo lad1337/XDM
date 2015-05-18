@@ -22,14 +22,16 @@
 import json
 import datetime
 from time import mktime
-
+from mongomock import ObjectId
 
 class MyEncoder(json.JSONEncoder):
 
     def default(self, obj):
-        if isinstance(obj, datetime.datetime):
+        if isinstance(obj, (datetime.datetime, datetime.date)):
             #return int(mktime(obj.timetuple()))
             return u'%s' % obj
+        elif isinstance(obj, ObjectId):
+            return str(obj)
         elif hasattr(obj, '__json__'):
             return obj.__json__()
 

@@ -35,7 +35,7 @@ from wizard import Wizard
 
 from ajax import AjaxCalls
 from jinja2 import Environment, FileSystemLoader
-from xdm.classes import *
+from xdm.models import *
 from xdm import common, tasks, helper
 from xdm.logger import *
 from xdm import actionManager
@@ -186,6 +186,12 @@ class WebRoot:
     def oauth_final(self):
         return "<script>try { window.opener.oauth_done(); } catch (err) {};window.close();</script>"
 
+    @cherrypy.expose
+    def oauth_token(self, oauth_token, authorize):
+        if authorize != "1":
+            log.warning("oauth not authorized")
+        log("received an oauth_token: %s" % oauth_token)
+        return "<script>try { window.opener.oauth_token('%s'); } catch (err) {};window.close();</script>" % oauth_token
 
     @cherrypy.expose
     def settings(self, **kwargs):
@@ -260,12 +266,16 @@ class WebRoot:
 
     @cherrypy.expose
     def getPaint(self, id):
-        e = Element.get(Element.id == id)
-        return e.manager.paint(e)
+        try:
+            e = Element.objects.get(id=id)
+        except DoesNotExist:
+            with switch_collection(Element, Element.temp_collection) as TempElement:
+                e = TempElement.objects.get(id=id)
+        return e.paint()
 
     @cherrypy.expose
     def getChildrensPaint(self, id):
-        e = Element.get(Element.id == id)
+        e = Element.objects.get(id=id)
         return e.manager.paintChildrenOf(e)
 
     @cherrypy.expose
@@ -294,19 +304,19 @@ class WebRoot:
     @cherrypy.expose
     def refreshinfo(self, id):
         log("init update")
-        tasks.updateElement(Element.get(Element.id == id))
-        raise cherrypy.HTTPRedirect('%s/' % common.SYSTEM.c.webRoot)
+        tasks.updateElement(Element.objects.get(id=id))
+        self.redirect('/')
 
     @cherrypy.expose
     def delete(self, id):
-        e = Element.get(Element.id == id)
+        e = Element.objects.get(id=id)
         manager = e.manager
         manager.deleteElement(e)
         self.redirect('/')
 
     @cherrypy.expose
     def setStatus(self, id, s):
-        ele = Element.get(Element.id == id)
+        ele = Element.objects.get(id=id)
         ele.status = common.getStatusByID(int(s))
         ele.save()
         if ele.status == common.WANTED:
@@ -315,16 +325,18 @@ class WebRoot:
 
     @cherrypy.expose
     def getDownload(self, id):
-        download = Download.get(Download.id == id)
+        download = Download.objects.get(id=id)
         tasks.snatchOne(download.element, [download])
         self.redirect('/')
 
     @cherrypy.expose
     def makePermanent(self, id):
-        element = Element.get(Element.id == id)
-        status = common.getStatusByID(element.manager.c.default_new_status_select)
-        element.manager.makeReal(element, status)
-        if status == common.WANTED:
+        with switch_collection(Element, Element.temp_collection) as TempElement:
+            element = TempElement.objects.get(id=id)
+            element.manager.make_real(element)
+        # TODO: only search for the correct downloadable types
+        # this only works if the e.g. movies not TV nor anime
+        if element.status == common.WANTED:
             t = tasks.TaskThread(tasks.searchElement, element)
             t.start()
         self.redirect('/')

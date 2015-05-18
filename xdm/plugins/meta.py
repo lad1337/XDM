@@ -30,84 +30,15 @@ from xdm.classes import Config
 class ConfigWrapper(object):
     """this will be the "c", "hc" or "e" of a plugin to easily get the config for the current plugin
     also handels the saving of the new config"""
-    configs = []
 
-    def __init__(self, plugin, configDefinition):
-        self._plugin = plugin
-        self._configDefinition = configDefinition
-        self.configs = []
-        self._configValueCache = {}
+    plugin_config = None
+    hidden = None
 
-    def addConfig(self, c):
-        self.configs.append(c)
-
-    def finalSort(self, enabled=None):
-        if not isinstance(self._plugin._config, collections.OrderedDict):
-            self.configs.sort(key=lambda x: x.name, reverse=False)
-        if enabled is not None:
-            self.configs.insert(0, self.configs.pop(self.configs.index(enabled)))
-
-    def getConfig(self, name, element=None):
-        if element is not None:
-            for cur_c in self.getConfigsFor(element):
-                if cur_c.name == name:
-                    return cur_c
-        else:
-            for cur_c in self.configs:
-                if cur_c.name == name:
-                    return cur_c
-        return None
-
-    def getConfigsFor(self, element):
-        out = []
-        for cur_element in element.ancestors:
-            # print "checking ancestor '%s' from '%s'" % (cur_element, element)
-            for k, v in self._configDefinition.items():
-                try:
-                    cur_c = Config.get(Config.section == self._plugin.__class__.__name__,
-                                       Config.module == 'Plugin',
-                                       Config.instance == self._plugin.instance,
-                                       Config.name == k,
-                                       Config.element == cur_element)
-                except Config.DoesNotExist:
-                    continue
-                out.append(cur_c)
-                self.addConfig(cur_c)
-            # print "element configs for %s" % element
-        if out:
-            # for c in out:
-            #    print c
-            return out
-
-        for k, v in self._configDefinition.items():
-            try:
-                cur_c = Config.get(Config.section == self._plugin.__class__.__name__,
-                                   Config.module == 'Plugin',
-                                   Config.instance == self._plugin.instance,
-                                   Config.name == k,
-                                   Config.element == element)
-            except Config.DoesNotExist:
-                cur_c = Config()
-                cur_c.module = 'Plugin'
-                cur_c.section = self._plugin.__class__.__name__
-                cur_c.instance = self._plugin.instance
-                cur_c.name = k
-                if v == k:
-                    v = getattr(self._plugin.c, v)
-                cur_c.value = v
-                cur_c.type = 'element_config'
-                cur_c.element = element
-                cur_c.save()
-            out.append(cur_c)
-            self.addConfig(cur_c)
-        # print "element configs for %s" % element
-        # for c in out:
-        #    print c
-        return out
+    def __init__(self, config, hidden=False):
+        self.plugin_config = config
+        self.hidden = hidden
 
     def __getattr__(self, name):
-        if name in self._configValueCache:
-            return self._configValueCache[name]
         if xdm.common.CONFIGOVERWRITE:
             overwrite = xdm.common.getConfigOverWriteForPlugin(self._plugin)
             if name in overwrite:
@@ -119,21 +50,26 @@ class ConfigWrapper(object):
                     self._configValueCache[name] = overwrite[name]
                 return self._configValueCache[name]
 
-        for cur_c in self.configs:
-            if cur_c.name == name:
-                self._configValueCache[name] = cur_c.value
-                return cur_c.value
-        raise AttributeError("no config with the name '{}'".format(name))
+        for config in self.configs:
+            if config.name == name:
+                return config.value
+        raise AttributeError(
+            "no config with the name '{}' hidden: {}".format(
+                name, self.hidden))
+
+    @property
+    def configs(self):
+        return [c for c in self.plugin_config.configs if c.hidden == self.hidden]
 
     def __setattr__(self, name, value):
-        for cur_c in self.configs:
-            if cur_c.name == name:
-                self._configValueCache = {}
-                cur_c.value = value
-                cur_c.save()
-                return
-        else:
-            super(ConfigWrapper, self).__setattr__(name, value)
+        if self.plugin_config:
+            for config in self.plugin_config.configs:
+                if self.hidden == config.hidden and config.name == name:
+                    config.value = value
+                    self.plugin_config.save()
+                    return
+
+        super(ConfigWrapper, self).__setattr__(name, value)
 
 
 class ConfigMeta(collections.MutableMapping):

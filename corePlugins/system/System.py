@@ -35,39 +35,39 @@ import inspect
 class SystemConfig(System):
     version = "0.24"
     identifier = "de.lad1337.systemconfig"
-    _config = OrderedDict([
-               ('defaut_mt_select', ''),
-               ('login_user', ''),
-               ('login_password', ''),
-               ('port', 8085),
-               ('port_api', 8086),
-               ('socket_host', '0.0.0.0'),
-               ('https', False),
-               ('https_cert_filepath', 'server.crt'),
-               ('https_key_filepath', 'server.key'),
-               ('extra_plugin_path', ''),
-               ('interval_update', 1440), # 24 hours in minutes
-               ('interval_check', 3), # minutes
-               ('interval_mediaadder', 3), # minutes
-               ('interval_core_update', 720),
-               ('interval_clean', 1440), # 24 hours in minutes
-               ('enabled', True),
-               ('again_on_fail', False),
-               ('resnatch_same', False),
-               ('mediaadder_search_by_name', False),
-               ('dont_open_browser', False),
-               ('webRoot', ''),
-               ('show_feed', True),
-               ('api_active', False),
-               ('api_key', ''),
-               ('language_select', 'automatic'),
-               ('use_derefer_me', True),
-               ('auto_update_plugins', False),
-               ('auto_update_core', False),
-               ('censor_xdm_dir', False),
-               ])
+    config = OrderedDict([
+        ('defaut_mt_select', ''),
+        ('login_user', ''),
+        ('login_password', ''),
+        ('port', 8085),
+        ('port_api', 8086),
+        ('socket_host', '0.0.0.0'),
+        ('https', False),
+        ('https_cert_filepath', 'server.crt'),
+        ('https_key_filepath', 'server.key'),
+        ('extra_plugin_path', ''),
+        ('interval_update', 1440), # 24 hours in minutes
+        ('interval_check', 3), # minutes
+        ('interval_mediaadder', 3), # minutes
+        ('interval_core_update', 720),
+        ('interval_clean', 1440), # 24 hours in minutes
+        ('enabled', True),
+        ('again_on_fail', False),
+        ('resnatch_same', False),
+        ('mediaadder_search_by_name', False),
+        ('dont_open_browser', False),
+        ('webRoot', ''),
+        ('show_feed', True),
+        ('api_active', False),
+        ('api_key', ''),
+        ('language_select', 'automatic'),
+        ('use_derefer_me', True),
+        ('auto_update_plugins', False),
+        ('auto_update_core', False),
+        ('censor_xdm_dir', False),
+    ])
 
-    _hidden_config = {'last_known_version': '0.4.18', # this was introduced in 0.4.19. so in order to run migration for 0.4.19 we have a value of 0.4.18
+    hidden_config = {'last_known_version': '0.4.18', # this was introduced in 0.4.19. so in order to run migration for 0.4.19 we have a value of 0.4.18
                       'setup_wizard_step': 0 # starting point of wizard step, when the wizard only has like 5 steps but a later has an additional step 6 it should start at that step
                       }
     """this is the attr for hidden config it can be used just as the _config but is not visable to the user / settings page"""
@@ -148,24 +148,24 @@ class SystemConfig(System):
             out[language] = Locale.parse(language, sep='_').display_name
         return out
 
-    config_meta = {'plugin_buttons': {'clearAllUnsedConfgs': {'action': _clearAllUnsedConfgs, 'name': 'Clear unused configs', 'desc': 'Clear configs that are not used.'}},
-                   'login_user': {'on_change_actions': ['serverReStart']},
-                    'login_password': {'on_change_actions': ['serverReStart']},
-                    'https': {'human': 'https / SSL', 'desc': 'If changed XDM will reboot', 'on_change_actions': ['reboot']},
-                    'https_cert_filepath': {'human': 'SSL certificate file', 'desc': 'If changed XDM will reboot', 'on_change_actions': ['reboot']},
-                    'https_key_filepath': {'human': 'SSL key file', 'desc': 'If changed XDM will reboot', 'on_change_actions': ['reboot']},
-                    'webRoot': {'human': 'WebRoot', 'desc': 'Use this if you want to run XDM behind a reverse proxy. If changed XDM will reboot', 'on_change_actions': ['reboot']},
-                    'interval_search': {'human': 'Search interval (minutes)', 'on_change_actions': ['serverReStart']},
-                    'interval_update': {'human': 'Update interval (minutes)', 'desc': 'Set this to 0 if you want to disable XDM core update checks', 'on_change_actions': ['serverReStart']},
-                    'interval_check': {'human': 'Download check interval (minutes)', 'on_change_actions': ['serverReStart']},
-                    'again_on_fail': {'human': 'Retry a different download after a failed one', 'desc': 'If on XDM tries to find (another) download after a failure, also see Resnatch Same'},
-                    'resnatch_same': {'human': 'Resnatch Same', 'desc': 'If on XDM will resnatch the same download after a failure (if Retry is on at all)'},
-                    'extra_plugin_path': {'human': 'Extra Plugin Path', 'on_change_actions': ['serverReStart']},
-                    'plugin_desc': 'System wide configurations',
-                    'defaut_mt_select': {'human': 'Default MediaType'},
-                    'dont_open_browser': {'human': 'Dont open the browser on start'},
-                    'language_select': {'human': 'XDM language', 'on_change_actions': [_switchLanguage]},
-                    'mediaadder_search_by_name': {'human': 'Fallback to search by name', 'desc': "This will search by name if a MediaAdder wants to add something but is not found by the id."},
-                    'use_derefer_me': {'human': 'Use http://derefer.org/ for external links', 'desc': 'Using this makes XDM safer but a little slower (not noticeable) to render pages.'}
-                    }
+    config_meta = {
+        'login_user': {'on_change_actions': ['serverReStart']},
+        'login_password': {'on_change_actions': ['serverReStart']},
+        'https': {'human': 'https / SSL', 'desc': 'If changed XDM will reboot', 'on_change_actions': ['reboot']},
+        'https_cert_filepath': {'human': 'SSL certificate file', 'desc': 'If changed XDM will reboot', 'on_change_actions': ['reboot']},
+        'https_key_filepath': {'human': 'SSL key file', 'desc': 'If changed XDM will reboot', 'on_change_actions': ['reboot']},
+        'webRoot': {'human': 'WebRoot', 'desc': 'Use this if you want to run XDM behind a reverse proxy. If changed XDM will reboot', 'on_change_actions': ['reboot']},
+        'interval_search': {'human': 'Search interval (minutes)', 'on_change_actions': ['serverReStart']},
+        'interval_update': {'human': 'Update interval (minutes)', 'desc': 'Set this to 0 if you want to disable XDM core update checks', 'on_change_actions': ['serverReStart']},
+        'interval_check': {'human': 'Download check interval (minutes)', 'on_change_actions': ['serverReStart']},
+        'again_on_fail': {'human': 'Retry a different download after a failed one', 'desc': 'If on XDM tries to find (another) download after a failure, also see Resnatch Same'},
+        'resnatch_same': {'human': 'Resnatch Same', 'desc': 'If on XDM will resnatch the same download after a failure (if Retry is on at all)'},
+        'extra_plugin_path': {'human': 'Extra Plugin Path', 'on_change_actions': ['serverReStart']},
+        'plugin_desc': 'System wide configurations',
+        'defaut_mt_select': {'human': 'Default MediaType'},
+        'dont_open_browser': {'human': 'Dont open the browser on start'},
+        'language_select': {'human': 'XDM language', 'on_change_actions': [_switchLanguage]},
+        'mediaadder_search_by_name': {'human': 'Fallback to search by name', 'desc': "This will search by name if a MediaAdder wants to add something but is not found by the id."},
+        'use_derefer_me': {'human': 'Use http://derefer.org/ for external links', 'desc': 'Using this makes XDM safer but a little slower (not noticeable) to render pages.'}
+    }
     single = True

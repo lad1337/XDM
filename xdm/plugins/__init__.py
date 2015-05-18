@@ -22,8 +22,8 @@
 import datetime
 from bases import *
 from pluginManager import PluginManager
-from xdm.classes import *
+from xdm.models import *
 from xdm.logger import *
 from xdm import common
 from xdm import profileMeMaybe
-del Field
+

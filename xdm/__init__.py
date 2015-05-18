@@ -32,6 +32,12 @@ from xdm.scheduler import Scheduler
 import xdm
 import datetime
 from Queue import Queue
+import pytz
+
+import mongomock
+MONGO_CONNECTION = mongomock.Connection()
+MONGO_DB = MONGO_CONNECTION["data"]
+
 
 HOME_PATH = ""
 APP_PATH = ""
@@ -55,6 +61,8 @@ LOGPATH = ''
 LOGFILE = 'xdm.log'
 
 DATABASE_NAME = "data.db"
+MONGO_NAME = "data.json"
+MONGO_PATH = "./"
 DATABASE_PATH = "./"
 DATABASE = SqliteDatabase(None, threadlocals=True, autocommit=True)
 CONFIG_DATABASE_NAME = "config.db"
@@ -137,7 +145,7 @@ class Common(object):
     SCHEDULER = Scheduler()
     Q = Queue()
 
-    FAKEDATE = datetime.datetime(1987, 5, 24, 13, 37, 6)
+    FAKEDATE = datetime.datetime(1987, 5, 24, 13, 37, 6, tzinfo=pytz.UTC)
 
     CONFIGOVERWRITE = {}
 

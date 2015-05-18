@@ -20,6 +20,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see http://www.gnu.org/licenses/.
 
+
 from peewee import *
 from peewee import QueryCompiler
 import os
@@ -169,6 +170,12 @@ class BaseModel(Model):
             if self.element is not None and self.element.status != common.TEMP:
                 History.createEvent(self)
 
+        """
+        collection = getattr(xdm.MONGO_DB, self.__class__.__name__)
+        collection.insert(
+            self.__json__()
+        )
+        """
         Model.save(self, force_insert=force_insert, only=only)
 
     def __json__(self):
@@ -176,7 +183,6 @@ class BaseModel(Model):
         if self.__class__.__name__ == 'Element':
             if '_tmp_fields' in dic:
                 del dic['_tmp_fields']
-                pass
             # TODO: rather check for bound method type
             for method in self._overwriteableFunctions:
                 if method in dic:
@@ -476,14 +482,15 @@ class Element(BaseModel):
         # add the field values to the widgets dict. this makes the <field_name> available as {{<field_name>}} in the templates
         widgets_html.update(self.buildFieldDict())
 
-        return elementTemplate.render(children='{{children}}',
-                                      this=self,
-                                      statusCssClass=statusCssClass,
-                                      loopIndex=curIndex,
-                                      webRoot=webRoot,
-                                      myUrl=self.manager.myUrl(),
-                                      common=common,
-                                      **widgets_html)
+        return elementTemplate.render(
+            children='{{children}}',
+            this=self,
+            statusCssClass=statusCssClass,
+            loopIndex=curIndex,
+            webRoot=webRoot,
+            myUrl=self.manager.myUrl(),
+            common=common,
+            **widgets_html)
 
     def buildFieldDict(self):
         out = {}

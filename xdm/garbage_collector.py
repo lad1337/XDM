@@ -22,7 +22,7 @@ import os
 import fnmatch
 import xdm
 from xdm import common
-from xdm.classes import Element, Field, Image
+from xdm.models import Element, Field, Image
 from xdm.logger import *
 
 
@@ -66,17 +66,17 @@ def deleteOrphanImages():
 def load_missing_images(element=None):
     needed_files = set()
     if element:
-        selected_images = Image.select().where(Image.element == element)
+        selected_images = element.images
     else:
-        selected_images = Image.select()
+        selected_images = Image.objects
     for image in selected_images:
         try:
-            path = image.getPath()
+            path = image.get_path()
         except LookupError:
             continue
         if not os.path.isfile(path):
             log.debug("%s has no file adding it to the Q" % image)
-            common.Q.put(('image.download', {'id': image.element.id}))
+            common.Q.put(('image.download', {'id': image._instance.id}))
         needed_files.add(path)
     log.info("Needed image files %d" % len(needed_files))
     return needed_files

@@ -25,7 +25,7 @@ from collections import OrderedDict
 import xdm
 from xdm import common, tasks, actionManager
 from xdm.logger import *
-from xdm.classes import *
+from xdm.models import *
 from xdm.helper import convertV
 import traceback
 from xdm.plugins.repository import RepoManager
@@ -43,7 +43,12 @@ class AjaxCalls:
         return 'nothing here'
 
     def _globals(self):
-        return {'mtms': common.PM.MTM, 's': Status.select(), 'system': common.SYSTEM, 'PM': common.PM, 'common': common}
+        return {
+            'mtms': common.PM.MTM,
+            's': Status.objects,
+            'system': common.SYSTEM,
+            'PM': common.PM,
+            'common': common}
 
     @cherrypy.expose
     def pluginCall(self, **kwargs):
@@ -82,29 +87,33 @@ class AjaxCalls:
     def search(self, mt, search_query, ignorePrevious=False):
         mtm = common.PM.getMediaTypeManager(mt)[0]
         oldS = None
-        for s in Element.select().where(Element.status == common.TEMP, Element.type == mtm.s['root']):
-            if s.getField('term') == search_query:
-                oldS = s
-                break
-        if oldS is None or ignorePrevious:
-            return mtm.paint(mtm.search(search_query))
-        return mtm.paint(oldS)
+        with switch_collection(Element, 'temp_Element'):
+            for s in Element.objects(type=mtm.s['root']):
+                if s.get_field('term') == search_query:
+                    oldS = s
+                    break
+            if oldS is None or ignorePrevious:
+                return mtm.paint(mtm.search(search_query))
+            return mtm.paint(oldS)
 
     @cherrypy.expose
     def preview(self, term='', mt=''):
         if len(term) < 3:
-            return json.dumps({'result': False, 'data': [], 'msg': 'did not search'})
+            return json.dumps(
+                {'result': False, 'data': [], 'msg': 'did not search'})
         term = u"%{}%".format(term.strip())
-        mt = MediaType.select().where(MediaType.name == mt)
-        fields = Field.select().join(Element).where(Field._value_char ** term, Element.mediaType == mt, Element.status != common.TEMP)
+        mt = MediaType.objects.get(name=mt)
+        elements = Element.objects(fields__value__contains=term, media_type=mt)
         results = {}
-        for index, field in enumerate(fields):
-            if field.element.id not in results:
-                img = field.element.getAnyImage()
-                results[field.element.id] = {'name': field.element.getName(),
-                                             'img': unicode(img if img else ""),
-                                             'type': field.element.type,
-                                             'status': _(field.element.status.name)}
+        for index, element in enumerate(elements):
+            if element.id not in results:
+                img = element.getAnyImage()
+                results[element.id] = {
+                    'name': element.getName(),
+                    'img': unicode(img if img else ""),
+                    'type': element.type,
+                    'status': _(element.status.name)
+                }
             if index >= 5:
                 break
         return json.dumps({'result': bool(results), 'data': results, 'msg': ''})
@@ -200,7 +209,6 @@ class AjaxCalls:
             return json.dumps({'result': True, 'data': {'element_id': download.element.id, 'status_id': download.status.id}, 'msg': u'%s was snatched' % (download.name)})
         else:
             return json.dumps({'result': False, 'data': [], 'msg': u'%s not was snatched' % (download.name)})
-
 
     @cherrypy.expose
     def forceSearch(self, id):
@@ -442,8 +450,6 @@ class AjaxCalls:
                         actions[plugin] = plugin.config_meta[config_name]['actions'] # this is a list of actions
                     if 'on_enable' in plugin.config_meta[config_name] and new_value:
                         actions[plugin] = plugin.config_meta[config_name]['on_enable'] # this is a list of actions
-                elif plugin.elementConfig_meta[config_name] and element is not None:
-                    pass
                 continue
             else: # no plugin with that class_name or instance found
                 log(u"We don't have a plugin: %s (%s)" % (class_name, instance_name))
@@ -465,4 +471,12 @@ class AjaxCalls:
         return json.dumps({'result': True, 'data': {}, 'msg': 'Configuration saved.'})
 
 
-
+    @cherrypy.expose
+    def oauth_init(self, **body):
+        plugin = common.PM.getPluginByIdentifier(
+            body["identifier"], body["instance"])
+        if plugin.oauth is None:
+            return json.dumps({"error": "plugins does not support oauth"})
+        return json.dumps(
+            {"access_url": plugin.oauth.request_access_url}
+        )

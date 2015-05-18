@@ -38,7 +38,7 @@
         <script>
             var mediaTypenames = [{% for mediaType in mtms%}'{{mediaType.type}}',{%endfor%}];
             var webRoot = '{{webRoot}}';
-            var status_by_id = { {% for s in common.getAllStatus()%} {{s.id}}:{"name": "{{s.name}}","screenName": "{{s.screenName}}" }, {%endfor%} };
+            var status_by_id = { {% for s in common.getAllStatus()%} "{{s.id}}":{"name": "{{s.name}}","screenName": "{{s.screenName}}" }, {%endfor%} };
             var debug = {%if common.STARTOPTIONS.debug %}true{%else%}false{%endif%};
         </script>
         

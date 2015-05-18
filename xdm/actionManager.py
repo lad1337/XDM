@@ -21,6 +21,7 @@
 
 import os
 import sys
+import glob
 import cherrypy
 import traceback
 from xdm.logger import *
@@ -29,8 +30,10 @@ import xdm
 import re
 import subprocess
 import time
+from mongomock import ObjectId
+from bson.json_util import loads, dumps
 
-ACTIONS = ['serverReStart', 'reboot', 'recachePlugins', 'shutdown']
+ACTIONS = ['serverReStart', 'reboot', 'recachePlugins', 'shutdown', 'persist']
 
 
 def executeAction(action, callers):
@@ -53,6 +56,52 @@ def executeAction(action, callers):
             _callMethod(caller, action)
 
 
+def persist_mongo():
+    for db_name, db in xdm.MONGO_CONNECTION._databases.items():
+        for collection_name in db.collection_names(False):
+            out = {}
+            document_count = 0
+            if collection_name.startswith("temp_") or "read_preference" in collection_name:
+               continue
+            collection = db[collection_name]
+            out[collection_name] = [d for d in collection.find()]
+            document_count += len(out[collection_name])
+            dir = os.path.join(xdm.DATADIR, "snapshot", db_name)
+            if not os.path.isdir(dir):
+                os.makedirs(dir)
+            path = os.path.join(dir, "%s.json" % collection_name)
+            with open(path, "w") as snapshot:
+                snapshot.write(dumps(out))
+                log("persisted {} documents in {}.{}".format(
+                    document_count, db_name, collection_name))
+
+
+def load_mongo():
+    # TODO: get that from the mogoengine fake settings
+    # or store it somewhere central
+    database_names = ["data"]
+    for db_name in database_names:
+        db = xdm.MONGO_CONNECTION[db_name]
+        document_count = 0
+
+        path = os.path.join(xdm.DATADIR, "snapshot", db_name, "*.json")
+        for collection_file in glob.glob(path):
+            if not os.path.isfile(collection_file):
+                continue
+            with open(collection_file) as snapshot:
+                collection_name = os.path.basename(collection_file)[:-5]
+                if collection_name.startswith("temp_"):
+                    continue
+                collection = db[collection_name]
+                collection_object = loads(snapshot.read())
+                for document in collection_object[collection_name]:
+                    collection.insert(document)
+                    document_count += 1
+
+        log("loaded {} documents for {}.{}".format(
+            document_count, db_name, collection_name))
+
+
 def _callMethod(o, function):
     if type(o) == str:
         log.error("Error during action call %s by %s. Caller was a string but i expected an object" % (function, o))
@@ -65,6 +114,7 @@ def _callMethod(o, function):
 
 def shutdown():
     common.SCHEDULER.stopAllTasks()
+    persist_mongo()
     msg = "Shutting down. Bye bye and good luck!"
     common.SM.setNewMessage(msg)
     log.info(msg)

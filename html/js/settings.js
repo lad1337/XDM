@@ -2,6 +2,24 @@ function oauth_done(){
     location.reload();
 }
 
+function oauth_token(data){
+    alert("oauth_token call" + data)
+}
+
+function oauth_start(plugin_identifier, plugin_instance){
+    var data = {
+        identifier: plugin_identifier,
+        instance: plugin_instance
+    };
+    $.post(webRoot + "/ajax/oauth_init", data, function(res, test_status){
+        console.log(res);
+        var windowref = window.open(
+            res["access_url"],
+            "oAuth", "width=400, height=500, left=500, top=100");
+    }, "json");
+}
+
+
 function init_settings(){
 
     var hash_part = decodeURIComponent(window.location.hash);
@@ -23,6 +41,16 @@ function init_settings(){
                               autocompleteURL: webRoot + "/browser/complete"});
     });
 
+    $(".tab-pane").each(function(key, item){
+        var item = $(item);
+        if(item.data("oauth") == "1"){
+            $("h4", item).click(function(){
+                oauth_start(item.data("identifier"), item.data("instance"))
+            });
+        }
+    });
+
+
     $('.control-group.oauth_token input').each(function(key, item){
         var item = $(item);
         if(!item.val())
@@ -42,8 +70,8 @@ function init_settings(){
             windowref.onload = function() {
                 windowref.onunload =  function () {
                     //location.reload();
-            };
-      }
+                };
+            }
         })
     });
 

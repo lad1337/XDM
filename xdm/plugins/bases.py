@@ -23,9 +23,10 @@ import os
 import xdm
 import re
 import types
-from inspect import getargspec
+from functools import partial
 from xdm import common, helper
-from xdm.classes import *
+from xdm.models import *
+from xdm.models import temp_element_wrapper
 from xdm.logger import *
 from meta import *
 from xdm.helper import replace_all
@@ -46,7 +47,7 @@ class Plugin(object):
     """The plugin type name e.g. Downloader"""
     single = False
     """if True the gui will not give the option for more configurations. but there is no logic to stop you do it anyways"""
-    _config = {}
+    config = {}
     """The configuration defining dict"""
     config_meta = {}
     """Meta information on the the config keys"""
@@ -95,8 +96,8 @@ class Plugin(object):
     elementConfig = {}
     elementConfig_meta = {}
 
-    _hidden_config = {}
-    _hidden_config_meta = {}
+    hidden_config = {}
+    hidden_config_meta = {}
 
     oauth = None
 
@@ -120,24 +121,23 @@ class Plugin(object):
         if self.addMediaTypeOptions:
             self._create_media_type_configs() # this adds the configs for media types
 
-        self._claimed_configs = []
-        # plugin configs
-        self.c = ConfigWrapper(self, self._config)
-        self.config_meta = ConfigMeta(self.config_meta)
-        if not ('enabled' in self._config and self._config['enabled']):
-            self._config['enabled'] = False
-        self._config['plugin_order'] = 0
-        self._collect_plugin_configs()
 
+        # plugin configs
+        if not ('enabled' in self.config and self.config['enabled']):
+            self.config['enabled'] = False
+        self.config['plugin_order'] = 0
+        self._config = self._get_plugin_config()
+        self.c = ConfigWrapper(self._config)
+        self.config_meta = ConfigMeta(self.config_meta)
+        """
         # element configs
         self.e = ConfigWrapper(self, self.elementConfig)
         self.elementConfig_meta = ConfigMeta(self.elementConfig_meta)
         # self._collect_element_configs()
-
+        """
         # hidden configs
-        self.hc = ConfigWrapper(self, self._hidden_config)
-        self._hidden_config_meta = ConfigMeta(self._hidden_config_meta)
-        self._collect_hidden_configs()
+        self.hc = ConfigWrapper(self._config, True)
+        self.hidden_config_meta = ConfigMeta(self.hidden_config_meta)
 
         # method wrapping
         methodList = [method for method in self.getMethods() if not method.startswith('_')]
@@ -158,120 +158,34 @@ class Plugin(object):
     # shortcut to the enabled config option
     enabled = property(_get_enabled, _set_enabled)
 
-    def _collect_plugin_configs(self):
-        enabled_obj = None
-        for k, v in self._config.items():
-            # print "looking for", self.__class__.__name__, 'Plugin', k, instance
-            try:
-                cur_c = Config.get(Config.section == self.__class__.__name__,
-                                  Config.module == 'Plugin',
-                                  Config.name == k,
-                                  Config.instance == self.instance)
-            except Config.DoesNotExist:
-                cur_c = Config()
-                cur_c.module = 'Plugin'
-                cur_c.section = self.__class__.__name__
-                cur_c.instance = self.instance
-                cur_c.name = k
-                cur_c.value = v
-                if cur_c.name in self.config_meta and self.config_meta[cur_c.name]:
-                    for field in ('type', 'element', 'mediaType'):
-                        if field in self.config_meta[cur_c.name] is not None:
-                            if self.config_meta[cur_c.name][field] is not None:
-                                log('%s setting %s for %s to %s' % (self, cur_c.name, field, self.config_meta[cur_c.name][field]))
-                                setattr(cur_c, field, self.config_meta[cur_c.name][field])
-                cur_c.save()
+    def _get_plugin_config(self):
+        try:
+            config = PluginConfig.objects.get(
+                name=self.__class__.__name__,
+                instance=self.instance)
+        except DoesNotExist:
+            config = PluginConfig()
+            config.name = self.__class__.__name__
+            config.instance = self.instance
+            config.configs = [
+                Config(name=k, value=v) for k, v in self.config.items()]
+            config.configs.extend(
+                [Config(name=k, value=v, hidden=True)
+                 for k, v in self.hidden_config.items()]
+            )
+            config.save()
 
-            if cur_c.type == 'element_config':
-                continue
-            self._claimed_configs.append(cur_c.get_id())
-            if k == 'enabled':
-                enabled_obj = cur_c
-            self.c.addConfig(cur_c)
-        self.c.finalSort(enabled_obj)
-
-    def _collect_element_configs(self):
-        for k, v in self.elementConfig.items():
-            cur_configs = Config.select().where(Config.section == self.__class__.__name__,
-                                          Config.module == 'Plugin',
-                                          Config.name == k,
-                                          Config.instance == self.instance,
-                                          Config.type == 'element_config')
-            cur_configs = list(cur_configs)
-            if len(cur_configs):
-                for c in cur_configs:
-                    self.e.addConfig(c)
-                    self._claimed_configs.append(c.get_id())
-        self.e.finalSort()
-
-    def _collect_hidden_configs(self):
-        for k, v in self._hidden_config.items():
-            # print "looking for", self.__class__.__name__, 'Plugin', k, instance
-            try:
-                cur_c = Config.get(Config.section == self.__class__.__name__,
-                                  Config.module == 'Plugin',
-                                  Config.name == k,
-                                  Config.instance == self.instance,
-                                  Config.type == 'hidden')
-            except Config.DoesNotExist:
-                cur_c = Config()
-                cur_c.module = 'Plugin'
-                cur_c.section = self.__class__.__name__
-                cur_c.instance = self.instance
-                cur_c.type = 'hidden'
-                cur_c.name = k
-                cur_c.value = v
-                if cur_c.name in self._hidden_config_meta and self._hidden_config_meta[cur_c.name]:
-                    for field in ('type', 'element', 'mediaType'):
-                        if field in self._hidden_config_meta[cur_c.name] is not None:
-                            if self._hidden_config_meta[cur_c.name][field] is not None:
-                                log('%s setting %s for %s to %s' % (self, cur_c.name, field, self._hidden_config_meta[cur_c.name][field]))
-                                setattr(cur_c, field, self._hidden_config_meta[cur_c.name][field])
-                cur_c.save()
-
-            self._claimed_configs.append(cur_c.get_id())
-            self.hc.addConfig(cur_c)
-        self.hc.finalSort()
+        return config
 
     def getMethods(self):
         return [method for method in dir(self) if isinstance(
             getattr(self, method), (types.FunctionType, types.BuiltinFunctionType, types.MethodType, types.BuiltinMethodType, types.UnboundMethodType))]
 
     def deleteInstance(self):
-        for c in self.c.configs:
-            log("Deleting config %s from %s" % (c, self))
-            c.delete_instance()
-        for c in self.e.configs:
-            log("Deleting config %s from %s" % (c, self))
-            c.delete_instance()
+        pass
 
     def cleanUnusedConfigs(self):
-        amount = 0
-        configs = list(Config.select().where(Config.section == self.__class__.__name__,
-                                  Config.module == 'Plugin',
-                                  Config.instance == self.instance))
-        for cur_c in configs:
-
-            try:
-                _e = cur_c.element
-            except Element.DoesNotExist:
-                log('Element for the config was not found, probably because the MediaType is not installed any more: %s' % cur_c)
-                log('Deleting config with missing element %s(%s) in %s' % (cur_c, cur_c.get_id(), self))
-                cur_c.delete_instance()
-                amount += 1
-                continue
-            else:
-                if cur_c.element is not None and cur_c.type == 'element_config':
-                    # element configs are only loade on the fly,
-                    # to register them we get them all if the current config has an element attached
-                    self.e.getConfigsFor(cur_c.element)
-            if cur_c in self.c.configs or cur_c in self.e.configs:
-                continue
-            else:
-                log('Deleting unclaimed config %s(%s) in %s' % (cur_c, cur_c.get_id(), self))
-                cur_c.delete_instance()
-                amount += 1
-        return amount
+        return 1
 
     def __str__(self):
         return self.name
@@ -296,23 +210,24 @@ class Plugin(object):
             # enable options for mediatype on this plugin
             # log('Creating runFor field on %s from %s' % (self.__class__, mtm.__class__))
             name = helper.replace_some('%s_runfor' % mtm.name)
-            self._config[name] = False
+            self.config[name] = False
             self.config_meta[name] = {'human': 'Run for %s' % mtm.type, 'type': 'enabled', 'mediaType': mtm.mt}
             if self.addMediaTypeOptions == 'runFor':
                 continue
 
             # log('Creating multi config fields on %s from %s' % (self.__class__, mtm.__class__))
             for configType in [x.__name__ for x in mtm.elementConfigsFor]:
-                for element in Element.select().where(Element.type == configType, Element.status != common.TEMP):
+                for element in Element.objects(type=configType):
                     prefix = self.useConfigsForElementsAs
-                    sufix = element.getName()
+                    sufix = element.get_name()
                     h_name = '%s for %s' % (prefix, sufix)
                     c_name = helper.replace_some('%s %s %s' % (mtm.name, prefix.lower(), sufix))
-                    self._config[c_name] = None
-                    self.config_meta[c_name] = {'human': h_name,
-                                                'type': self.useConfigsForElementsAs.lower(),
-                                                'mediaType': mtm.mt,
-                                                'element': element}
+                    self.config[c_name] = None
+                    self.config_meta[c_name] = {
+                        'human': h_name,
+                        'type': self.useConfigsForElementsAs.lower(),
+                        'mediaType': mtm.mt,
+                        'element': element}
 
             # add costum options
             if self.__class__.__bases__[0] in mtm.addConfig:
@@ -326,7 +241,7 @@ class Plugin(object):
                         h_name = '%s for %s' % (self.useConfigsForElementsAs, config['sufix'])
                         c_type = prefix.lower()
                     c_name = helper.replace_some('%s %s %s' % (mtm.name, prefix, config['sufix']))
-                    self._config[c_name] = config['default']
+                    self.config[c_name] = config['default']
                     element = mtm.root
                     self.config_meta[c_name] = {'human': h_name, 'type': c_type.lower(), 'mediaType': mtm.mt, 'element': element}
 
@@ -474,7 +389,7 @@ class DownloadTyped(Plugin):
             for downloadType in common.PM.DT:
                 self.types.append(downloadType.identifier)
         if hasattr(self.__class__, "commentOnDownload"):
-            self._config["comment_on_download"] = False
+            self.config["comment_on_download"] = False
         Plugin.__init__(self, instance=instance)
 
     def _getDownloadTypeExtension(self, downloadTypeIdentifier):
@@ -613,15 +528,15 @@ class Notifier(Plugin):
     name = "prints"
 
     def __init__(self, *args, **kwargs):
-        self._config['on_snatch'] = False
+        self.config['on_snatch'] = False
         self.config_meta['on_snatch'] = {'human': 'Send on snatch'}
-        self._config['on_complete'] = True # this is called after ppe
+        self.config['on_complete'] = True # this is called after ppe
         self.config_meta['on_complete'] = {'human': 'Send on complete'}
-        self._config['on_warning'] = False
+        self.config['on_warning'] = False
         self.config_meta['on_warning'] = {'human': 'Send on warning'}
-        self._config['on_error'] = False
+        self.config['on_error'] = False
         self.config_meta['on_error'] = {'human': 'Send on error'}
-        self._config['on_update'] = False
+        self.config['on_update'] = False
         self.config_meta['on_update'] = {'human': 'Send notice when update is available'}
         super(Notifier, self).__init__(*args, **kwargs)
 
@@ -637,6 +552,7 @@ class Provider(Plugin):
     creating more providers is definety more complicated then other things since
     creating element structures based on the structure defined by the mediaType can be complicated
     """
+    __metaclass__ = temp_element_wrapper("searchForElement", "getElement")
     _type = 'Provider'
     _tag = 'unknown'
     _additional_tags = []
@@ -653,16 +569,15 @@ class Provider(Plugin):
         def addItem(self):
             self.count += 1
 
-        def _getPercent(self):
+        @property
+        def percent(self):
             if self.total:
                 return (self.count / float(self.total)) * 100
             else:
                 return 0
 
-        percent = property(_getPercent)
-
     def __init__(self, instance='Default'):
-        self._config['searcher'] = False
+        self.config['searcher'] = False
 
         Plugin.__init__(self, instance=instance)
         self.tag = self._tag
@@ -670,14 +585,6 @@ class Provider(Plugin):
         if instance != 'Default':
             self.tag = instance
         self.progress = self.Progress()
-
-        arg_spec = getargspec(self.getElement)
-        if "tag" not in arg_spec.args:
-            self._orig_getElement = self.getElement
-            def wrapper(id, element=None, tag=None):
-                return self._orig_getElement(id, element)
-            self.getElement = wrapper
-
 
     def searchForElement(self, term=''):
         """Create a MediaType structure of the type of element.mediaType
@@ -701,7 +608,7 @@ class PostProcessor(Plugin):
     types = [] # media types the downloader can handle
 
     def __init__(self, instance='Default'):
-        self._config['stop_after_me_select'] = common.STOPPPONSUCCESS
+        self.config['stop_after_me_select'] = common.STOPPPONSUCCESS
         self.config_meta['stop_after_me_select'] = {'human': 'Stop other PostProcessors on'}
 
         def ppWrapper(*args, **kwargs):
@@ -757,7 +664,7 @@ class DownloadFilter(Plugin):
 
     def __init__(self, instance='Default'):
         if DownloadFilter._pre_search in self.stages:
-            self._config['skip_on_forced_search'] = True
+            self.config['skip_on_forced_search'] = True
             self.config_meta['skip_on_forced_search'] = {'desc': 'If true this filter will be skipped when you manualy started a search.'}
         Plugin.__init__(self, instance=instance)
 
@@ -849,13 +756,13 @@ class MediaTypeManager(Plugin):
 
         self.config_meta['enable'] = {'on_enable': 'recachePlugins'}
         # status the elements get when adding a (root) element
-        self._config['default_new_status_select'] = common.WANTED.id
+        self.config['default_new_status_select'] = common.WANTED.id
         self.config_meta['default_new_status_select'] = {'human': 'Status for newly added %s' % self.__class__.__name__}
         # new added nodes from an update
-        self._config['new_node_status_select'] = common.WANTED.id
+        self.config['new_node_status_select'] = common.WANTED.id
         self.config_meta['new_node_status_select'] = {'human': 'Status for newly added nodes from updates'}
         # new added nodes from an update
-        self._config['automatic_new_status_select'] = common.WANTED.id
+        self.config['automatic_new_status_select'] = common.WANTED.id
         self.config_meta['automatic_new_status_select'] = {'human': 'Status for automaticaly added %s' % self.__class__.__name__}
 
         super(MediaTypeManager, self).__init__(instance)
@@ -879,37 +786,42 @@ class MediaTypeManager(Plugin):
                 else:
                     self.s[e.__name__] = {'parent': l[i - 1], 'child': l[i + 1], 'class': e, 'attr': attributes}
         try:
-            self.mt = MediaType.get(MediaType.identifier == self.identifier)
-        except MediaType.DoesNotExist:
+            self.mt = MediaType.objects.get(identifier=self.identifier)
+        except DoesNotExist:
             self.mt = MediaType()
             self.mt.name = self.__class__.__name__
             self.mt.identifier = self.identifier
             self.mt.save()
 
         try:
-            self.root = Element.get(Element.type == self.__class__.__name__, Element.status != common.TEMP)
-        except Element.DoesNotExist:
+            self.root = Element.objects.get(type=self.__class__.__name__)
+        except DoesNotExist:
             self.root = Element()
             self.root.type = self.__class__.__name__
             self.root.parent = None
-            self.root.mediaType = self.mt
+            self.root.media_type = self.mt
+            self.root.status = common.UNKNOWN
             self.root.save()
 
         for elementType in self.defaultElements:
             for defaultElement in self.defaultElements[elementType]:
                 for providerTag, defaultAttributes in defaultElement.items():
-                    try:
-                        e = Element.getWhereField(self.mt, elementType.__name__, defaultAttributes, providerTag)
-                    except Element.DoesNotExist:
-                        log('Creating default element for %s. type:%s, attrs:%s' % (self.identifier, elementType.__name__, defaultAttributes))
+                    elements = Element.object_by_fields(
+                        defaultAttributes,
+                        providerTag,
+                        self.mt,
+                        self.root
+                    )
+                    if not elements:
                         e = Element()
                         e.type = elementType.__name__
-                        e.mediaType = self.mt
+                        e.media_type = self.mt
                         e.parent = self.root
                         e.status = common.UNKNOWN
                         for name, value in defaultAttributes.items():
-                            e.setField(name, value, providerTag)
+                            e.set_field(name, value, providerTag)
                         e.save()
+                        log("created %s" % e)
 
     def checkElementFields(self):
         # FIXME
@@ -955,7 +867,7 @@ class MediaTypeManager(Plugin):
     def getOrderFields(self, eType):
         if eType in self.s and '_orderBy' in self.s[eType]['class'].__dict__:
             fields = self.s[eType]['class'].__dict__['_orderBy']
-            if type(fields) is tuple:
+            if isinstance(fields, tuple):
                 return fields
             else:
                 return (fields,)
@@ -1033,34 +945,46 @@ class MediaTypeManager(Plugin):
         self.searcher = None
         return rootElement
 
-    def makeReal(self, element, status):
-        log.warning('Default makereal/save method called but the media type should have implemented this')
-        return False
+    def make_real(self, element, status=None):
+        log.debug('Default makereal/save method called.')
+        if status is None:
+            status = common.getStatusByID(self.c.default_new_status_select)
+
+        element.switch_to_permanent(status)
+        element.parent = self.root
+        element.save()
+
+        # TODO: recursive download all images
+        # fyi we have the nesting depth
+        common.Q.put(('image.download', {'id': element.id}))
+        return True
 
     def deleteElement(self, element):
         self._deleteElement(element)
 
     def _deleteElement(self, element):
-        element.deleteWithChildren()
+        element.cascade_delete()
 
     def _deleteElementAndEmptyParent(self, element):
         parent = element.parent
         if Element.select().where(Element.parent == parent).count() == 1:
-            parent.deleteWithChildren()
+            parent.cascade_delete()
         else:
             self._deleteElement(element)
 
     def getSearches(self):
-        return Element.select().where(Element.status == common.TEMP, Element.type == self.__class__.__name__)
+        return Element.objects(type=self.__class__.__name__)
 
     def getFakeRoot(self, term=''):
-        root = Element()
-        root.type = self.__class__.__name__
-        root.parent = None
-        root.mediaType = self.mt
-        root.setField('term', term, 'XDM')
-        root.saveTemp()
-        return root
+        with switch_collection(Element, Element.temp_collection) as TempElement:
+            root = TempElement()
+            root.type = self.__class__.__name__
+            root.parent = None
+            root.media_type = self.mt
+            root.set_field('term', term, 'XDM')
+            #root.switch_collection("temp_Element")
+            root.save()
+            return root
 
     def _default_new_status_select(self):
         return {common.UNKNOWN.id: common.UNKNOWN.screenName,
