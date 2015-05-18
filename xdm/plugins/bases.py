@@ -923,7 +923,11 @@ class MediaTypeManager(Plugin):
                         getattr(element, attrName)
                     except AttributeError:
                         log(u"%s is missing attr: '%s'. Fixing that for you." % (element.id, attrName))
-                        element.setField(attrName, getattr(cur_class, attrName), 'XDM')
+                        try:
+                            value = getattr(cur_class, attrName)
+                        except AttributeError:
+                            value = ""
+                        element.setField(attrName, value, 'XDM')
 
     def getDownloadableElements(self, asList=True):
         return self.getElementsWithStatusIn(self.homeStatuses(), asList, [self.download.__name__])
