@@ -313,9 +313,9 @@ class Element(BaseModel):
                 img = self.getImage(name)
                 if img is not None:
                     return img.getSrc()
-            fd = self.getField(name)
+            fd = self.getField(name, returnObject=True)
             if fd is not None:
-                return fd
+                return fd.value
             else:
                 raise AttributeError("No attribute '%s' nor field with that name" % name)
 
@@ -368,7 +368,7 @@ class Element(BaseModel):
                 f.provider = provider
                 f.save()
         else: # field does not exist
-            if  self.id: # do we exist ? yes
+            if self.id: # do we exist ? yes
                 f = Field()
                 f.element = self
                 f.name = name
