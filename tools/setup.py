@@ -8,9 +8,16 @@ from distutils.core import setup
 
 import sys
 import os
-app_path = os.path.dirname(os.path.abspath(__file__))
+import site
+
+app_path = os.path.dirname(
+    os.path.abspath(os.path.join(os.path.abspath(__file__), ".."))
+)
+print app_path
+sys.path.append(app_path)
 os.chdir(app_path)
-sys.path.append(os.path.join(app_path, 'rootLibs'))
+site.addsitedir('site-packages')
+
 
 import re
 import platform
@@ -345,29 +352,34 @@ def buildOSX(buildParams):
     apple_py = 'ActiveState' not in sys.copyright
 
     APP = [buildParams['mainPy']]
-    DATA_FILES = ['html',
-                  'xdm',
-                  'lib',
-                  'rootLibs',
-                  'corePlugins',
-                  'i18n']
-    _NSHumanReadableCopyright = "(c) %s Dennis Lutter\nBuild on: %s %s\nBased on: %s\nPython used & incl: %s" % (buildParams['thisYearString'],
-                                                                                                                    buildParams['osName'],
-                                                                                                                    osVersion,
-                                                                                                                    buildParams['gitNewestCommit'],
-                                                                                                                    str(sys.version))
+    DATA_FILES = [
+        'html',
+        'xdm',
+        'site-packages',
+        'corePlugins',
+        'i18n'
+    ]
+    _NSHumanReadableCopyright = "(c) %s Dennis Lutter\nBuild on: %s %s\nBased on: %s\nPython used & incl: %s" % (
+        buildParams['thisYearString'],
+        buildParams['osName'],
+        osVersion,
+        buildParams['gitNewestCommit'],
+        str(sys.version)
+    )
 
-    OPTIONS = {'argv_emulation': False,
-               'iconfile': osxAppIcon,
-               'packages':["xml", "OpenSSL"],
-               'includes': ["csv"],
-               'plist': {'NSUIElement': 1,
-                        'CFBundleShortVersionString': buildParams['build'],
-                        'NSHumanReadableCopyright': _NSHumanReadableCopyright,
-                        'CFBundleIdentifier': bundleIdentifier,
-                        'CFBundleVersion': buildParams['build']
-                        }
-               }
+    OPTIONS = {
+        'argv_emulation': False,
+        'iconfile': osxAppIcon,
+        'packages':["xml", "OpenSSL"],
+        'includes': ["csv"],
+        'plist': {'NSUIElement': 1,
+                'CFBundleShortVersionString': buildParams['build'],
+                'NSHumanReadableCopyright': _NSHumanReadableCopyright,
+                'CFBundleIdentifier': bundleIdentifier,
+                'CFBundleVersion': buildParams['build']
+                }
+
+    }
     if len(sys.argv) > 1:
         sys.argv = [sys.argv[1]]
     for x in buildParams['py2AppArgs']:
