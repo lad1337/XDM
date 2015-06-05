@@ -790,6 +790,8 @@ class Field(Field_V0):
                 return cur_datetime.replace(tzinfo=None)
             else:
                 return self._value_datetime
+        #elif self._value_data != None:
+        #    return self._value_data
         else:
             return self._value_char
 
@@ -840,6 +842,82 @@ class Field(Field_V0):
             return -1
         return 1
 
+class ComplexDataType(object):
+    value = None
+    _skipStorage = ("_skipStorage",) # don't store those attributes in the database (most likely class attributes, not settings)
+
+    def __init__(self, **kwargs):
+        for arg, value in kwargs.iteritems():
+            setattr(self, arg, value)
+
+        # recursively merge self._skipStorage
+        #fixme:; may be used for self._config inheritance later on
+        ss = []
+        for parentClass in self.__class__.__mro__[:-1]:
+            ss += list(parentClass._skipStorage)
+        self._skipStorage = ss
+
+    def __eq__(self, other):
+        """
+        the data of this instance equals other? implement!
+        """
+        raise NotImplementedError
+
+    def dump(self):
+        base = dict(self.__class__.__dict__)
+        base.update({"_className_": self.__class__.__name__})
+        base.update(dict(self.__dict__))
+
+        # drop internals, we currently don't need them saved
+        dumped = dict((key, base[key]) for key in [key for key in base.keys() if not key.startswith("__") and not key.endswith("__")\
+            and key not in self._skipStorage])
+        return json.dumps(dumped)
+
+    @staticmethod
+    def load(data):
+        if "_className_" in data:
+            cls = data.pop("_className_")
+            return complexDataTypes[cls](**data)
+        return data
+
+class ListType(ComplexDataType):
+    multiple = False
+    required = False #fixme: handle this if true
+    _options = None
+
+    def __eq__(self, other):
+        """
+        compares self.selected to other["selected"], expects other to be a dict
+        """
+        if not type(other) == types.DictType or ("selected" in other and not type(other["selected"] == types.ListType)):
+            raise ValueError
+        return self.selected == other["selected"]
+
+    # self.value holds the selected value list
+    def _get_selected(self):
+        return self.value
+    def _set_selected(self, value):
+        self.value = value
+
+    selected = property(_get_selected, _set_selected)
+
+    # self._options holds the available options
+    def _get_options(self):
+        return self._options
+
+    def _set_options(self, value):
+        self._options = value
+
+    options = property(_get_options, _set_options)
+
+class Select(ListType):
+    pass
+
+class MultiSelect(ListType):
+    multiple = True
+    use_checkboxes = False # use multiple checkboxes instead of select[type=multiple]; can be True or "inline"
+
+complexDataTypes = dict([(cls.__name__, cls) for cls in (Select, MultiSelect)])
 
 class Config(BaseModel):
     module = CharField(default='system') # system, plugin ... you know this kind of thing
@@ -852,10 +930,15 @@ class Config(BaseModel):
     _value_int = FloatField(True)
     _value_char = CharField(True)
     _value_bool = BooleanField(True)
+    _value_data = TextField(True)
 
     class Meta:
         database = xdm.CONFIG_DATABASE
         order_by = ('name',)
+
+    @classmethod
+    def _migrate(cls):
+        return cls._migrateNewField(cls._value_data)
 
     def copy(self):
         new = Config()
@@ -876,25 +959,58 @@ class Config(BaseModel):
             if float(self._value_int).is_integer():
                 return int(self._value_int)
             return self._value_int
-        else:
-            return unicode(self._value_char)
+        elif self._value_data != None:
+            # try json decoding, based on complex data types
+            try:
+                return json.loads(self._value_data, object_hook=ComplexDataType.load)
+            except ValueError, e:
+                raise Exception("couldn't decode value for config %s, value: %s; error: %s" % (self.name, self._value_data, e))
+        return unicode(self._value_char)
 
     def _set_value(self, value):
-        if type(value).__name__ in ('float', 'int'):
-            self._value_char = None
-            self._value_bool = None
+        _type = type(value).__name__
+
+        oldValueData = self.value if self._value_data else None
+        self._value_char = None
+        self._value_bool = None
+        self._value_int = None
+        self._value_data = None
+
+        if _type in ('float', 'int'):
             self._value_int = value
             return
-        if type(value).__name__ in ('str', 'unicode'):
-            self._value_bool = None
-            self._value_int = None
+
+        if _type in ('str', 'unicode'):
             self._value_char = value
             return
-        if type(value).__name__ in ('bool', 'NoneType'):
-            self._value_char = None
-            self._value_int = None
+
+        if _type in ('bool', 'NoneType'):
             self._value_bool = value
             return
+
+        if _type == "dict":
+            if not "selected" in value:
+                raise Exception("need to supply 'selected' to a ComplexType in config")
+
+            obj = None
+            selType = type(value["selected"])
+
+            # single selection
+            if selType in types.StringTypes:
+                cls = Select
+            # multi selection
+            elif selType in (types.ListType, types.TupleType):
+                cls = MultiSelect
+
+            if not "options" in value:
+                # "options" is missing, we're coming from a form which only supplies the selected values. reuse old config instance and update it
+                oldValueData.selected = value["selected"]
+                self._value_data = oldValueData.dump()
+                return
+
+            self._value_data = cls(**value).dump()
+            return
+
         raise Exception('unknown config save type %s for config %s' % (type(value), self.name))
 
     value = property(_get_value, _set_value)
@@ -904,6 +1020,8 @@ class Config(BaseModel):
             return 'bool'
         elif self._value_int:
             return 'int'
+        elif self._value_data:
+            return "complex"
         else:
             return 'str'
 
