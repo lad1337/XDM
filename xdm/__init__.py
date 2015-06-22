@@ -157,7 +157,10 @@ class Common(object):
     def removeState(self, num):
         if xdm_states[num] in self.STATES:
             del self.STATES[self.STATES.index(xdm_states[num])]
-        xdm.logger.log('Removing state "%s". STATES are now %s' % (xdm_states[num], self.STATES))
+        xdm.logger.log(
+            'Removing state "%s". STATES are now: %s' % (
+                xdm_states[num],
+                ", ".join(self.STATES)))
 
     def getAllStatus(self):
         """get all available status instances"""

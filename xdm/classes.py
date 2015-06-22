@@ -579,6 +579,7 @@ class Element(BaseModel):
             d = []
             for c in Element.select().where(Element.parent == self.id):
                 d.append(c)
+            for c in list(d):
                 d.extend(c.decendants)
             self.__decendents_cache = d
         return self.__decendents_cache

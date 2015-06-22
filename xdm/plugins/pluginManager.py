@@ -30,6 +30,7 @@ from cStringIO import StringIO
 from pylint import lint
 import sys
 import site
+from mock import MagicMock
 
 
 class PluginManager(object):
@@ -340,7 +341,7 @@ class PluginManager(object):
                             return pClass(instance)
         return None
 
-    def getPluginByIdentifier(self, identifier, instance=None):
+    def getPluginByIdentifier(self, identifier, instance=None, mock=False):
         if instance is None:
             instance = plugins.DEFAULT_INSTANCE_NAME
         for pType in self._cache:
@@ -349,6 +350,11 @@ class PluginManager(object):
                     for cur_instance in self._cache[pType][pClass]:
                         if instance == cur_instance:
                             return pClass(instance)
+        if mock:
+            log.warning(
+                "no plugin found with identifier '{}' sending Mock".format(
+                    identifier))
+            return MagicMock()
         return None
 
     def clearAllUnsedConfgs(self):

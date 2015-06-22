@@ -100,11 +100,6 @@ class Plugin(object):
 
     oauth = None
 
-    oauth_client_id = ""
-    oauth_client_secret = ""
-    oauth_authorize_url = ""
-    oauth_token_url = ""
-
     def __init__(self, instance=None):
         if instance is None:
             instance = DEFAULT_INSTANCE_NAME
@@ -133,6 +128,10 @@ class Plugin(object):
         self.e = ConfigWrapper(self, self.elementConfig)
         self.elementConfig_meta = ConfigMeta(self.elementConfig_meta)
         # self._collect_element_configs()
+
+        if self.oauth is not None:
+            for key in self.oauth.keys:
+                self._hidden_config[key] = ""
 
         # hidden configs
         self.hc = ConfigWrapper(self, self._hidden_config)
@@ -678,7 +677,6 @@ class Provider(Plugin):
                 return self._orig_getElement(id, element)
             self.getElement = wrapper
 
-
     def searchForElement(self, term=''):
         """Create a MediaType structure of the type of element.mediaType
         """
@@ -1090,4 +1088,7 @@ class MediaTypeManager(Plugin):
         else:
             return helper.getContainerTpl()
 
-__all__ = ['System', 'PostProcessor', 'Provider', 'Indexer', 'Notifier', 'Downloader', 'MediaTypeManager', 'Element', 'DownloadType', 'DownloadFilter', 'SearchTermFilter', 'MediaAdder']
+__all__ = [
+    'System', 'PostProcessor', 'Provider', 'Indexer', 'Notifier', 'Downloader',
+    'MediaTypeManager', 'Element', 'DownloadType', 'DownloadFilter',
+    'SearchTermFilter', 'MediaAdder', "DEFAULT_INSTANCE_NAME"]

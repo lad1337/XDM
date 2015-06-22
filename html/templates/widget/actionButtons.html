@@ -1,5 +1,5 @@
 <div class="action-buttons text-buttons btn-group">
-    <a href="{{webRoot}}/delete?id={{this.id}}" class="action-delete btn btn-danger btn-mini">Delete</a>
+    <a href="javascript:void(0)" onclick="ajaxDeleteElement(this, {{this.id}})" class="action-delete btn btn-danger btn-mini">Delete</a>
     <a href="javascript:void(0)" onclick="ajaxForceSearch(this, {{this.id}})" class="action-search btn btn-primary btn-mini">Search</a>
     <a href="{{webRoot}}/refreshinfo?id={{this.id}}" class="action-reload btn btn-primary btn-mini">Refresh</a>
 </div>

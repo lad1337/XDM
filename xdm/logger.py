@@ -39,7 +39,7 @@ lvlNames = {    logging.ERROR:      {'c': u'   \x1b[31;1mERROR\x1b[0m', 'p': 'ER
                 logging.CRITICAL:   {'c': u'\x1b[43;1m\x1b[31;1mCRITICAL\x1b[49\x1b[0m', 'p': 'CRITICAL'}
                 }
 
-
+logging.captureWarnings(True)
 cLogger = logging.getLogger('XDM.Console')
 fLogger = logging.getLogger('XDM.File')
 cLogger.setLevel(logging.INFO)

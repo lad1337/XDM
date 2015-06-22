@@ -33,7 +33,7 @@ import xdm
 from fileBrowser import WebFileBrowser
 from wizard import Wizard
 
-from ajax import AjaxCalls
+from ajax import AjaxCalls, Oauth
 from jinja2 import Environment, FileSystemLoader
 from xdm.classes import *
 from xdm import common, tasks, helper
@@ -121,6 +121,7 @@ class WebRoot:
     _globals = helper.guiGlobals
     browser = WebFileBrowser()
     ajax = AjaxCalls(env)
+    oauth = Oauth(env)
     wizard = Wizard(env)
     api = WebApi()
 
@@ -140,7 +141,8 @@ class WebRoot:
         else:
             common.SCHEDULER.runTaskNow(runTask)
         template = env.get_template('about.html')
-        return template.render(platform=platform, originalArgs=sys.argv, xdm=xdm, **self._globals())
+        return template.render(
+            platform=platform, originalArgs=sys.argv, xdm=xdm, **self._globals())
 
     @cherrypy.expose
     def plugins(self, recache=''):
@@ -164,23 +166,6 @@ class WebRoot:
         template = env.get_template('completed.html')
         return template.render(**self._globals())
 
-    def handle_oauth(self, code, state):
-        log("oauth redirect code: %s state: %s" % (code, state))
-        plugin_identifier, instance = state.split("|")
-        plugin = common.PM.getPluginByIdentifier(plugin_identifier, instance)
-        import requests
-        data = {
-            "code": code,
-            "client_id": plugin.oauth_client_id,
-            "client_secret": plugin.oauth_client_secret,
-            "redirect_uri": "http://localhost:8085/settings/",
-            "grant_type": "authorization_code"
-        }
-        response = requests.post(plugin.oauth_token_url, json=data).json()
-
-        log("oauth repsonse: %s" % response)
-        plugin.c.oauth_token = response["access_token"]
-        raise cherrypy.HTTPRedirect('%s/oauth_final/' % common.SYSTEM.c.webRoot)
 
     @cherrypy.expose
     def oauth_final(self):
@@ -299,9 +284,7 @@ class WebRoot:
 
     @cherrypy.expose
     def delete(self, id):
-        e = Element.get(Element.id == id)
-        manager = e.manager
-        manager.deleteElement(e)
+        tasks.delete_element(id)
         self.redirect('/')
 
     @cherrypy.expose

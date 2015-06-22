@@ -1,6 +1,3 @@
-function oauth_done(){
-    location.reload();
-}
 
 function init_settings(){
 
@@ -23,28 +20,37 @@ function init_settings(){
                               autocompleteURL: webRoot + "/browser/complete"});
     });
 
-    $('.control-group.oauth_token input').each(function(key, item){
-        var item = $(item);
-        if(!item.val())
-            item.css("background", "red");
-        else
-            item.css("background", "green");
-        item.click(function(){
-            var plugin_tab_id = item.data("belongsto");
-
-            var plugin_frame = $("#"+plugin_tab_id);
-            var url = plugin_frame.data("oauthauthorizeurl");
-            url += "?response_type=code&client_id=" + plugin_frame.data("oauthclientid");
-            url += "&redirect_uri=" + location.href.replace(location.hash,"");
-            url += "&state="+plugin_frame.data("identifier")+"|"+plugin_frame.data("instance");
-            var windowref = window.open(
-                url, "oAuth", "width=400, height=500, left=500, top=100");
-            windowref.onload = function() {
-                windowref.onunload =  function () {
-                    //location.reload();
-            };
-      }
-        })
+    $(".tab-pane").each(function(key, pane){
+        var pane = $(pane);
+        if(pane.data("oauth") == "1"){
+            var p_identifier = pane.data("identifier");
+            var p_instance = pane.data("instance");
+            var oauth_button = $('<input type="button" class="btn oauth" value="Connect">');
+            var oauth_info = $('<i class="icon-info-sign" style="margin-left: 10px"></i>');
+            console.log(pane.data("oauthactive"));
+            if(pane.data("oauthactive") == "1"){
+                oauth_button.addClass("btn-success");
+                oauth_button.attr("value", "Connected, click to reset");
+            }
+            oauth_button.click(function(){
+                oauth_start(oauth_button, p_identifier, p_instance)
+            });
+            oauth_info.click(function(){
+                var data = {
+                    "p_identifier": p_identifier,
+                    "p_instance": p_instance,
+                    "action": "oauth.info"
+                };
+                ajaxQtip(oauth_info, webRoot+'/ajax/pluginCall', data, "data");
+            });
+            var extra_buttons = $(".plugin p", pane);
+            if(!extra_buttons.length){
+                $(".plugin", pane).append("<p>");
+                extra_buttons = $(".plugin p", pane);
+            }
+            extra_buttons.append(oauth_button);
+            extra_buttons.append(oauth_info);
+        }
     });
 
     // i cant get the tooltip data api to work so we do a jquery
@@ -55,7 +61,7 @@ function init_settings(){
 
     $('input[type="checkbox"][data-configname="enabled"]').change(function(event){
         console.log(event);
-        var icon = $('.nav.nav-list a[href="#'+$(this).data('belongsto')+'"] i')
+        var icon = $('.nav.nav-list a[href="#'+$(this).data('belongsto')+'"] i');
         if($(this).prop('checked')){
             icon.removeClass('rotateIn').addClass('animated rotateOut')
         }else{

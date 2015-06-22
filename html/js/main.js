@@ -260,24 +260,29 @@ function ajaxSetElementStatus(sender, status_id, element_id, silent){
     })
 }
 
-function ajaxDeleteElement(id, deleteNode){
-    data = {};
+function addElement(sender, id){
+    $(sender).addClass('btn-striped animate');
+    var data = {};
     data['id'] = id;
-    $.getJSON(webRoot+'/ajax/deleteElement', data, function(res){
+    $.getJSON(webRoot+'/ajax/addElement', data, function(res){
         if(res['result']){
-            deleteNode.hide('slow');
+            $(sender).closest('.status-temp').hide('slow');
+            $(sender).removeClass('btn-striped animate');
             noty({text: res['msg'], type: 'success', timeout:2000})
         }
     })
 }
 
-function addElement(sender, id){
+function ajaxDeleteElement(sender, id, deleteNode){
     $(sender).addClass('btn-striped animate');
-    data = {};
+    var data = {};
     data['id'] = id;
-    $.getJSON(webRoot+'/ajax/addElement', data, function(res){
+    $.getJSON(webRoot+'/ajax/deleteElement', data, function(res){
         if(res['result']){
-            $(sender).closest('.status-temp').hide('slow');
+            if($(deleteNode).length)
+                (deleteNode).hide('slow');
+            else
+                $(sender).closest('.status-any').hide('slow');
             $(sender).removeClass('btn-striped animate');
             noty({text: res['msg'], type: 'success', timeout:2000})
         }
@@ -363,10 +368,17 @@ function ajaxModal(sender, name, url, data){
     return myModal;
 }
 
-function ajaxQtip(sender, url, data){
+function ajaxQtip(sender, url, data, filter){
     sender = $(sender);
     sender.addClass('btn-striped animate');
     $.post(url, data, function(res){
+        console.log(res);
+        if(filter){
+            res = JSON.parse(res);
+            var $div = $("<div>");
+            visitObj($div, res[filter]);
+            res = $div;
+        }
         console.log(res);
         sender.qtip({
             content: {
@@ -385,6 +397,23 @@ function ajaxQtip(sender, url, data){
     });
 }
 
+// http://stackoverflow.com/questions/13341373/render-arbitrary-json-in-html
+function visitObj($container, obj) {
+    var $ul = $('<ul>');
+
+    for (var prop in obj) {
+
+        var $li = $('<li>');
+        $li.append('<span class="json-key">' + prop + ': </span>');
+        if (typeof obj[prop] === "object") {
+             visitObj($li, obj[prop]);
+        } else {
+            $li.append('<span class="json-value">'+obj[prop]+'</span>');
+        }
+        $ul.append($li);
+    }
+    $container.append($ul);
+}
 
 function showEvents(sender, id, is_element){
     if(typeof is_element == "undefined")
@@ -688,6 +717,36 @@ function messageScrobbler(functionUrl, interval, onErrorClass, onErrorMessage){
             
     });
 }
+
+function oauth_done(data){
+    console.log("oauth active");
+    $("input.oauth").removeClass('btn-striped animate').addClass("btn-success")
+}
+
+function oauth_token(data){
+    alert("oauth_token call" + data)
+}
+
+function oauth_start(button, plugin_identifier, plugin_instance){
+    button = $(button);
+    if(button.length)
+        button.removeClass("btn-success").addClass('btn-striped animate');
+    var data = {
+        identifier: plugin_identifier,
+        instance: plugin_instance
+    };
+    $.post(webRoot + "/ajax/oauth_init", data, function(res, test_status){
+        console.log(res);
+        var windowref = window.open(
+            res["access_url"],
+            "oAuth", "width=400, height=500, left=500, top=100");
+    }, "json").error(function(){
+        noty({text: 'OAuth error. Check browser console', type: 'error'}) ;
+        button.removeClass('animate btn-success').addClass('btn-warning');
+    });
+}
+
+
 
 function getAsciiArtLogo(){
     return [

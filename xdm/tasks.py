@@ -49,17 +49,35 @@ def checkQ():
         key, body = common.Q.get(False)
     except Queue.Empty:
         return
+
+    def get_element(id_):
+        try:
+            return Element.get(Element.id == id_)
+        except Element.DoesNotExist:
+            pass
+
+
     try:
         if key == 'image.download':
-            try:
-                e = Element.get(Element.id == body['id'])
+            e = get_element(body["id"])
+            if e is not None:
                 e.downloadImages()
-            except Element.DoesNotExist:
-                pass
+        if key == "element.update":
+            e = get_element(body["id"])
+            if e is not None:
+                updateElement(e, new_node_status=body["status"])
+        if key == "element.delete":
+            delete_element(body["id"])
     except:
         raise
     finally:
         common.Q.task_done()
+
+
+def delete_element(id_):
+    e = Element.get(Element.id == id_)
+    manager = e.manager
+    manager.deleteElement(e)
 
 
 def coreUpdateCheck():
@@ -341,6 +359,8 @@ def ppElement(element, download, initial_path):
 def updateElement(element, force=False, new_node_status=None):
     if new_node_status is None:
         new_node_status = common.getStatusByID(element.manager.c.new_node_status_select)
+    if isinstance(new_node_status, int):
+        new_node_status = common.getStatusByID(new_node_status)
     if not isinstance(new_node_status, Status):
         log.error(
             "I expected the new_node_status to be of instance Status but i got {}. Not updating {}".format(
@@ -382,6 +402,9 @@ def updateElement(element, force=False, new_node_status=None):
                     new_node.status = new_node_status
                     new_node.save()
                     common.Q.put(('image.download', {'id': new_node.id}))
+                    if new_parent == element:
+                        log("Clearing cache from %s because newly attached element is a direct child" % element)
+                        element.clearTreeCache()
             else:
                 log("No new nodes found in %s" % new_e)
 
