@@ -107,4 +107,11 @@ def deleteOrphanElements():
     lost_children = Element.select().where(Element.parent >> None, ~(Element.id << roots))
     for lost_child in lost_children:
         log.info("Element %s is lost. Begone." % lost_child.id)
+    for element in Element.select().where(~(Element.id << roots)):
+        try:
+            element.parent
+        except element.DoesNotExist:
+            log.info("Element %s parents are dead. Begone." % lost_child.id)
+            lost_children.append(element)
+
     Element.delete().where(Element.id << lost_children).execute()
