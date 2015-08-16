@@ -29,6 +29,7 @@ import threading
 import datetime
 from babel.dates import format_timedelta
 import Queue
+from xdm.garbage_collector import load_missing_images
 
 
 class TaskThread(threading.Thread):
@@ -48,13 +49,35 @@ def checkQ():
         key, body = common.Q.get(False)
     except Queue.Empty:
         return
-    if key == 'image.download':
+
+    def get_element(id_):
         try:
-            e = Element.get(Element.id == body['id'])
-            e.downloadImages()
+            return Element.get(Element.id == id_)
         except Element.DoesNotExist:
             pass
-    common.Q.task_done()
+
+
+    try:
+        if key == 'image.download':
+            e = get_element(body["id"])
+            if e is not None:
+                e.downloadImages()
+        if key == "element.update":
+            e = get_element(body["id"])
+            if e is not None:
+                updateElement(e, new_node_status=body["status"])
+        if key == "element.delete":
+            delete_element(body["id"])
+    except:
+        raise
+    finally:
+        common.Q.task_done()
+
+
+def delete_element(id_):
+    e = Element.get(Element.id == id_)
+    manager = e.manager
+    manager.deleteElement(e)
 
 
 def coreUpdateCheck():
@@ -295,6 +318,8 @@ def runChecker():
                     element.status = common.FAILED
                     element.save()
 
+def ppElementLocations():
+    pass
 
 def ppElement(element, download, initial_path):
     pp_try = False
@@ -331,7 +356,20 @@ def ppElement(element, download, initial_path):
     return True
 
 
-def updateElement(element, force=False, withDecendents=True):
+def updateElement(element, force=False, new_node_status=None):
+    if new_node_status is None:
+        new_node_status = common.getStatusByID(element.manager.c.new_node_status_select)
+    if isinstance(new_node_status, int):
+        new_node_status = common.getStatusByID(new_node_status)
+    if not isinstance(new_node_status, Status):
+        log.error(
+            "I expected the new_node_status to be of instance Status but i got {}. Not updating {}".format(
+                new_node_status.__class__, element)
+        )
+        return
+    else:
+        log.debug("Using new_node_status %s" % new_node_status)
+
     for p in common.PM.getProvider(runFor=element.manager):
         # TODO: make sure we use the updated element after one provider is done
         for current_tag in p.tags:
@@ -343,7 +381,7 @@ def updateElement(element, force=False, withDecendents=True):
                 log.warning('getting an element by name is not implemented can not refresh')
                 continue
             log(u'Getting %s with provider id %s on %s' % (element, pID, p))
-            new_e = p.getElement(pID, element)
+            new_e = p.getElement(pID, element, tag=current_tag)
             createGenericEvent(element, 'refreshing', u'Serching for update on %s' % p)
             if new_e:
                 log.info(u"%s returned an element" % p)
@@ -360,11 +398,13 @@ def updateElement(element, force=False, withDecendents=True):
                     new_parent = helper.findOldNode(new_node.parent, element, current_tag)
                     log.debug("attaching %s to %s" % (new_node, new_parent))
                     new_node.parent = new_parent
-                    new_status = common.getStatusByID(new_node.manager.c.new_node_status_select)
-                    log.debug("Setting status of new node %s to %s" % (new_node, new_status))
-                    new_node.status = new_status
+                    log.debug("Setting status of new node %s to %s" % (new_node, new_node_status))
+                    new_node.status = new_node_status
                     new_node.save()
                     common.Q.put(('image.download', {'id': new_node.id}))
+                    if new_parent == element:
+                        log("Clearing cache from %s because newly attached element is a direct child" % element)
+                        element.clearTreeCache()
             else:
                 log("No new nodes found in %s" % new_e)
 
@@ -376,7 +416,7 @@ def updateElement(element, force=False, withDecendents=True):
             for updated_node in [new_e] + new_e.decendants:
                 old_node = helper.findOldNode(updated_node, element, current_tag)
                 if old_node is None:
-                    log.error("NO old node found for %s in %s" % (updated_node, element))
+                    log.error("No old node found for %s in %s" % (updated_node, element))
                     continue
 
                 if not helper.sameElements(old_node, updated_node):
@@ -384,6 +424,7 @@ def updateElement(element, force=False, withDecendents=True):
                     for f in list(updated_node.fields):
                         old_node.setField(f.name, f.value, f.provider)
                     common.Q.put(('image.download', {'id': old_node.id}))
+    load_missing_images(element)
 
 
 def updateAllElements():
@@ -409,11 +450,24 @@ def runMediaAdder():
                 pass
             else:
                 log(u'We already have %s' % new_e)
+                media.root = new_e
                 successfulAdd.append(media)
                 continue
             for provider in common.PM.getProvider(runFor=mtm):
-                log.info(u'%s is looking for %s(%s) on %s' % (adder, media.name, media.externalID, provider))
-                ele = provider.getElement(media.externalID)
+                log.info(u'%s is looking for %s(%s:%s) on %s' % (adder, media.name, media.providerTag, media.externalID, provider))
+                ele = provider.getElement(media.externalID, tag=media.providerTag)
+
+                if not ele and common.SYSTEM.c.mediaadder_search_by_name:
+                    log.info(u'%s did not find %s(%s) trying now by NAME' % (provider, media.name, media.externalID))
+                    rootElement = mtm.search(media.name)
+                    if len(list(rootElement.children)) == 1:
+                        log.info("We found one by with the name %s adding it!" % media.name)
+                        ele = list(rootElement.children)[0]
+                    else:
+                        log.info("We found multiple results with by name %s" % media.name)
+                        for child in rootElement.children:
+                            log.info("found %s" % child)
+
                 if ele:
                     log.info(u'we found %s. now lets gets real' % ele)
                     if media.status is None:
@@ -423,13 +477,15 @@ def runMediaAdder():
                     if ele.manager.makeReal(ele, new_status):
                         createGenericEvent(ele, u'autoAdd', 'I was added by %s' % adder)
                         common.MM.createInfo(u'%s added %s' % (adder, ele.getName()))
+                        media.root = ele
                         if media not in successfulAdd:
                             successfulAdd.append(media)
                             if new_status == common.WANTED:
                                 t = TaskThread(runSearcherForMediaType, ele.manager, ele)
                                 t.start()
                 else:
-                    log.info(u'%s did not find %s(%s)' % (provider, media.name, media.externalID))
+                    log.info("Nothing found :(")
+
         adder.successfulAdd(successfulAdd)
 
 

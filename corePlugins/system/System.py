@@ -33,7 +33,8 @@ import inspect
 
 # this class is special because it will be set to SYSTEM in the whole app
 class SystemConfig(System):
-    version = "0.23"
+    version = "0.24"
+    identifier = "de.lad1337.systemconfig"
     _config = OrderedDict([
                ('defaut_mt_select', ''),
                ('login_user', ''),
@@ -53,6 +54,7 @@ class SystemConfig(System):
                ('enabled', True),
                ('again_on_fail', False),
                ('resnatch_same', False),
+               ('mediaadder_search_by_name', False),
                ('dont_open_browser', False),
                ('webRoot', ''),
                ('show_feed', True),
@@ -163,6 +165,7 @@ class SystemConfig(System):
                     'defaut_mt_select': {'human': 'Default MediaType'},
                     'dont_open_browser': {'human': 'Dont open the browser on start'},
                     'language_select': {'human': 'XDM language', 'on_change_actions': [_switchLanguage]},
-                    'use_derefer_me': {'human': 'Use http://derefer.me/ for external links', 'desc': 'Using this makes XDM safer but a little slower (not noticeable) to render pages.'}
+                    'mediaadder_search_by_name': {'human': 'Fallback to search by name', 'desc': "This will search by name if a MediaAdder wants to add something but is not found by the id."},
+                    'use_derefer_me': {'human': 'Use http://derefer.org/ for external links', 'desc': 'Using this makes XDM safer but a little slower (not noticeable) to render pages.'}
                     }
     single = True

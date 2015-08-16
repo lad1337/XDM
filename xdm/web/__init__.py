@@ -33,7 +33,7 @@ import xdm
 from fileBrowser import WebFileBrowser
 from wizard import Wizard
 
-from ajax import AjaxCalls
+from ajax import AjaxCalls, Oauth
 from jinja2 import Environment, FileSystemLoader
 from xdm.classes import *
 from xdm import common, tasks, helper
@@ -70,15 +70,17 @@ def stateCheck():
         if not r.path_info.startswith('/wizard'):
             for path in common.PUBLIC_PATHS + ['/ajax']:
                 if r.path_info.startswith(path) and len(r.path_info) > 1:
-                    # print 'path looks fine %s' % r.path_info
                     break
             else:
-                # print "redirecting %s to %s" % (r.path_info, '%s%s' % (common.SYSTEM.c.webRoot, '/wizard/%s' % common.SYSTEM.hc.setup_wizard_step))
-                raise cherrypy.HTTPRedirect('%s%s' % (common.SYSTEM.c.webRoot, '/wizard/%s' % common.SYSTEM.hc.setup_wizard_step))
+                raise cherrypy.HTTPRedirect(
+                    '{}/wizard/{}'.format(
+                        common.SYSTEM.c.webRoot,
+                        common.SYSTEM.hc.setup_wizard_step)
+                )
 
-    if not (xdm.xdm_states[0] in xdm.common.STATES or\
-            xdm.xdm_states[1] in xdm.common.STATES or\
-            xdm.xdm_states[6] in xdm.common.STATES or\
+    if not (xdm.xdm_states[0] in xdm.common.STATES or
+            xdm.xdm_states[1] in xdm.common.STATES or
+            xdm.xdm_states[6] in xdm.common.STATES or
             xdm.xdm_states[3] in xdm.common.STATES):
         # allow normal handler to run
         # now check if we need tu run the wizard an redirect to it
@@ -119,6 +121,7 @@ class WebRoot:
     _globals = helper.guiGlobals
     browser = WebFileBrowser()
     ajax = AjaxCalls(env)
+    oauth = Oauth(env)
     wizard = Wizard(env)
     api = WebApi()
 
@@ -138,7 +141,8 @@ class WebRoot:
         else:
             common.SCHEDULER.runTaskNow(runTask)
         template = env.get_template('about.html')
-        return template.render(platform=platform, originalArgs=sys.argv, xdm=xdm, **self._globals())
+        return template.render(
+            platform=platform, originalArgs=sys.argv, xdm=xdm, **self._globals())
 
     @cherrypy.expose
     def plugins(self, recache=''):
@@ -162,14 +166,25 @@ class WebRoot:
         template = env.get_template('completed.html')
         return template.render(**self._globals())
 
+
+    @cherrypy.expose
+    def oauth_final(self):
+        return "<script>try { window.opener.oauth_done(); } catch (err) {};window.close();</script>"
+
+
     @cherrypy.expose
     def settings(self, **kwargs):
         plugins = []
         if kwargs:
             indexes = sorted(kwargs.keys())
-            for index in indexes:
-                pluginClassGetter = kwargs[index]
-                plugins.extend(getattr(common.PM, pluginClassGetter)(returnAll=True))
+
+            if "code" in kwargs and "state" in kwargs:
+                self.handle_oauth(kwargs.pop("code"), kwargs.pop("state"))
+            else:
+                for index in indexes:
+                    pluginClassGetter = kwargs[index]
+                    plugins.extend(
+                        getattr(common.PM, pluginClassGetter)(returnAll=True))
         else:
             plugins = common.PM.getAll(True)
         template = env.get_template('settings.html')
@@ -212,7 +227,10 @@ class WebRoot:
                     search_query = search_query.replace('%s: ' % mtm.type, '')
                     searchers = [mtm]
                     break
-        return template.render(searchers=searchers, search_query=search_query, **templateGlobals)
+        return template.render(
+            platform=platform,
+            searchers=searchers,
+            search_query=search_query, **templateGlobals)
 
 
     @cherrypy.expose
@@ -266,9 +284,7 @@ class WebRoot:
 
     @cherrypy.expose
     def delete(self, id):
-        e = Element.get(Element.id == id)
-        manager = e.manager
-        manager.deleteElement(e)
+        tasks.delete_element(id)
         self.redirect('/')
 
     @cherrypy.expose

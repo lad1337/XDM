@@ -53,7 +53,7 @@ class RepoManager(object):
 
     def autoCache(self):
         self.cache()
-        if common.SYSTEM.c.auto_update_plugins:
+        if common.SYSTEM.c.auto_update_plugins and self.updateable_plugins:
             log.info("Automatically updating plugins! Cross fingers.")
             for plugin_identifer in self.updateable_plugins:
                 self.install(plugin_identifer, False)
@@ -102,12 +102,15 @@ class RepoManager(object):
         plugins = common.PM.getAll(True, 'Default')
         updateable_plugins = {}
         for plugin in plugins:
-            if plugin.identifier:
-                for repo in self.repos:
-                    for repo_plugin in repo.getPlugins():
-                        if repo_plugin.identifier == plugin.identifier and self._updateable(repo_plugin, plugin):
-                            updateable_plugins[plugin.identifier] = (repo_plugin, plugin)
-                            common.MM.createInfo('%s as an update. Update now?' % (plugin.screenName), confirmJavascript="installModalFromMessage(this, '%s')" % plugin.identifier)
+            if not plugin.identifier:
+                continue
+            for repo in self.repos:
+                for repo_plugin in repo.getPlugins():
+                    if repo_plugin.identifier == plugin.identifier and self._updateable(repo_plugin, plugin):
+                        updateable_plugins[plugin.identifier] = (repo_plugin, plugin)
+                        common.MM.createInfo(
+                            '%s as an update. Update now?' % (plugin.screenName),
+                            confirmJavascript="installModalFromMessage(this, '%s')" % plugin.identifier)
 
         log.info('%s Plugins have an update' % len(updateable_plugins))
         self.updateable_plugins = updateable_plugins
@@ -262,6 +265,11 @@ class RepoManager(object):
             self.setNewMessage('error', '%s' % ex)
 
         if install_result:
+            if not self.install_requirements_for_plugin(install_path):
+                self.setNewMessage('error', 'Error requirements.txt install')
+                install_result = False
+
+        if install_result:
             self.setNewMessage('info', 'Installation successful!')
             if doCleanUp:
                 self.doCleanUp()
@@ -305,6 +313,15 @@ class RepoManager(object):
             init_file.write('')
             init_file.close()
 
+    def install_requirements_for_plugin(self, plugin_install_dir):
+        requirements_path = os.path.join(plugin_install_dir, "requirements.txt")
+        log.debug("looking for requirements.txt at '%s'" % requirements_path)
+        if os.path.isfile(requirements_path):
+            import pip
+            log.info("installing python packages from %s" % requirements_path)
+            return not bool(pip.main(["install", "-U", "-r", requirements_path]))
+        log.debug("No requirements.txt found")
+        return True
 
 class ZipPluginInstaller(object):
 

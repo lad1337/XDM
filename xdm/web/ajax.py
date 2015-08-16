@@ -21,6 +21,7 @@
 
 import cherrypy
 import json
+from collections import OrderedDict
 import xdm
 from xdm import common, tasks, actionManager
 from xdm.logger import *
@@ -30,6 +31,33 @@ import traceback
 from xdm.plugins.repository import RepoManager
 import threading
 from xdm import helper
+
+
+@cherrypy.popargs('state_path')
+class Oauth(object):
+
+    def __init__(self, env):
+        self.env = env
+
+    @cherrypy.expose
+    def v1(self, state, oauth_token=None, oauth_verifier=None):
+        plugin_identifier, instance = state.split("|")
+        plugin = common.PM.getPluginByIdentifier(plugin_identifier, instance)
+        if plugin.oauth.get_access_token(oauth_token, oauth_verifier):
+            return "<script>try { window.opener.oauth_done(); } catch (err) {};window.close();</script>"
+
+    @cherrypy.expose
+    def v2(self, state=None, code=None):
+        plugin_identifier, instance = state.split("|")
+        plugin = common.PM.getPluginByIdentifier(plugin_identifier, instance)
+        if plugin.oauth.get_access_token(code):
+            return "<script>try { window.opener.oauth_done(); } catch (err) {};window.close();</script>"
+
+
+    @cherrypy.expose
+    def final(self):
+        return "<script>try { window.opener.oauth_done(); } catch (err) {};window.close();</script>"
+
 
 
 class AjaxCalls:
@@ -46,12 +74,31 @@ class AjaxCalls:
 
     @cherrypy.expose
     def pluginCall(self, **kwargs):
-        log("Plugin ajay call with: %s" % kwargs)
-        p_type = kwargs['p_type']
-        p_instance = kwargs['p_instance']
+        log("Plugin ajax call with: %s" % kwargs)
+        p_type = kwargs.get('p_type')
+        p_identifier = kwargs.get("p_identifier")
+        p_instance = kwargs.get('p_instance')
         action = kwargs['action']
-        p = common.PM.getInstanceByName(p_type, p_instance)
-        p_function = getattr(p, action)
+        p = None
+        if p_type:
+            p = common.PM.getInstanceByName(p_type, p_instance)
+        elif p_identifier:
+            p = common.PM.getPluginByIdentifier(p_identifier, p_instance)
+        if p is None:
+            return json.dumps({
+                'result': False, 'data': {},
+                'msg': 'Plugin not found {} {} {}'.format(p_type, p_identifier, p_instance)})
+
+        if "." in action:
+            last_attr = None
+            for attr in action.split("."):
+                if last_attr is None:
+                    last_attr = getattr(p, attr)
+                else:
+                    last_attr = getattr(last_attr, attr)
+            p_function = last_attr
+        else:
+            p_function = getattr(p, action)
         fn_args = []
         if hasattr(p_function, 'args'):
             for name in p_function.args:
@@ -90,6 +137,7 @@ class AjaxCalls:
         return mtm.paint(oldS)
 
     @cherrypy.expose
+    @cherrypy.tools.json_out()
     def preview(self, term='', mt=''):
         if len(term) < 3:
             return json.dumps({'result': False, 'data': [], 'msg': 'did not search'})
@@ -106,14 +154,17 @@ class AjaxCalls:
                                              'status': _(field.element.status.name)}
             if index >= 5:
                 break
-        return json.dumps({'result': bool(results), 'data': results, 'msg': ''})
+        return {'result': bool(results), 'data': results, 'msg': ''}
 
     @cherrypy.expose
     def deleteElement(self, id):
         element = Element.get(Element.id == id)
-        name = element.getName()
-        element.deleteWithChildren()
-        return json.dumps({'result': True, 'data': {}, 'msg': 'Deleted %s' % name})
+        common.Q.put(('element.delete', {'id': id}))
+        return json.dumps({
+            'result': True,
+            'data': {},
+            'msg': 'Deleted %s' % element.getName()}
+        )
 
     @cherrypy.expose
     def addElement(self, id):
@@ -229,11 +280,26 @@ class AjaxCalls:
         return json.dumps({'count': 0, 'percent': 0, 'total': 0})
 
     @cherrypy.expose
-    def repo(self):
+    def plugins_by_repo(self):
         if common.REPOMANAGER.caching or not common.REPOMANAGER.cached:
             return ''
-        template = self.env.get_template('repos.html')
-        return template.render(repos=common.REPOMANAGER.getRepos(), **self._globals())
+        template = self.env.get_template('plugins_by_repo.html')
+        installed_plugins = common.PM.getAll(returnAll=True, instance='Default')
+        return template.render(repos=common.REPOMANAGER.getRepos(), installed_plugins=installed_plugins, **self._globals())
+
+    @cherrypy.expose
+    def plugins_by_type(self):
+        if common.REPOMANAGER.caching or not common.REPOMANAGER.cached:
+            return ''
+        template = self.env.get_template('plugins_by_type.html')
+        typed_plugins = OrderedDict()
+        for repo in common.REPOMANAGER.getRepos():
+            for plugin in repo.plugins:
+                if plugin.type not in typed_plugins:
+                    typed_plugins[plugin.type] = []
+                typed_plugins[plugin.type].append(plugin)
+        installed_plugins = common.PM.getAll(returnAll=True, instance='Default')
+        return template.render(typed_plugins=typed_plugins, installed_plugins=installed_plugins, **self._globals())
 
     @cherrypy.expose
     def addRepo(self, url):
@@ -312,14 +378,18 @@ class AjaxCalls:
     @cherrypy.expose
     def getSystemMessage(self):
         return json.dumps({'result': True, 'data': common.SM.getLastMessages(), 'msg': ''})
-        return '<ul id="install-shell" class="shell"></ul>'
 
     @cherrypy.expose
     def getLogEntries(self, entries=10):
         logEntries = []
         entryTemplate = self.env.get_template('log_entry.html')
         for _log in log.getEntries(int(entries)):
-            logEntries.append({'id': _log['id'], 'html': entryTemplate.render(log=_log)})
+            logEntries.append(
+                {'id': _log['id'],
+                 'html': entryTemplate.render(log=_log),
+                 'lvl': _log['data']['lvl']
+                }
+            )
         return json.dumps(logEntries)
 
     @cherrypy.expose
@@ -442,6 +512,16 @@ class AjaxCalls:
             actionManager.executeAction(action, plugins_that_called_it)
 
         return json.dumps({'result': True, 'data': {}, 'msg': 'Configuration saved.'})
+
+    @cherrypy.expose
+    def oauth_init(self, **body):
+        plugin = common.PM.getPluginByIdentifier(
+            body["identifier"], body["instance"])
+        if plugin.oauth is None:
+            return json.dumps({"error": "plugins does not support oauth"})
+        return json.dumps(
+            {"access_url": plugin.oauth.request_access_url}
+        )
 
 
 

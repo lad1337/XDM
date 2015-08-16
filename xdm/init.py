@@ -20,6 +20,7 @@
 # along with this program.  If not, see http://www.gnu.org/licenses/.
 
 import sys
+import sqlite3
 import os
 import xdm
 from classes import *
@@ -52,7 +53,7 @@ def preDB(app_path, datadir):
 
     # config db
     if common.STARTOPTIONS.config_db is not None:
-        xdm.CONFIG_DATABASE_PATH = common.STARTOPTIONS.config
+        xdm.CONFIG_DATABASE_PATH = common.STARTOPTIONS.config_db
     else:
         xdm.CONFIG_DATABASE_PATH = os.path.join(xdm.DATADIR, xdm.CONFIG_DATABASE_NAME)
     log('Set CONFIG_DATABASE_PATH to %s' % xdm.CONFIG_DATABASE_PATH)
@@ -91,8 +92,11 @@ def db():
 
     migration_was_done = False
     for cur_c in classes:
-        if cur_c.updateTable():
-            migration_was_done = True
+        try:
+            if cur_c.updateTable():
+                migration_was_done = True
+        except sqlite3.DatabaseError:
+            log.critical("@!&%&*$% ... *sigh* i am sorry but the database %s is broken!" % cur_c.Meta.database)
         log("Selecting all of %s" % cur_c.__name__)
         try:
             cur_c.select().execute()
@@ -110,7 +114,7 @@ def postDB():
     common.PM = PluginManager()
     common.PM.cache(debug=common.STARTOPTIONS.pluginImportDebug, systemOnly=True,)
     # load system config !
-    common.SYSTEM = common.PM.getSystem('Default')[0] # yeah SYSTEM is a plugin
+    common.SYSTEM = common.PM.getPluginByIdentifier(common.STARTOPTIONS.systemIdentifer, 'Default') # yeah SYSTEM is a plugin, identifier permits to be sure to get the right plugin.
     # system config loaded
 
     # init i18n
@@ -135,7 +139,7 @@ def postDB():
         log('Adding eyternal plugin path %s to the python path' % common.SYSTEM.c.extra_plugin_path)
         sys.path.append(common.SYSTEM.c.extra_plugin_path)
     common.PM.cache(debug=common.STARTOPTIONS.pluginImportDebug)
-    common.SYSTEM = common.PM.getSystem('Default')[0] # yeah SYSTEM is a plugin
+    common.SYSTEM = common.PM.getPluginByIdentifier(common.STARTOPTIONS.systemIdentifer, 'Default') # yeah SYSTEM is a plugin, identifier permits to be sure to get the right plugin.
 
     # generate api key if api is aktive
     if common.SYSTEM.c.api_active and not common.SYSTEM.c.api_key:

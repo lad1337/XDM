@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # Author: Dennis Lutter <lad1337@gmail.com>
 # URL: https://github.com/lad1337/XDM
 #
@@ -18,6 +19,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see http://www.gnu.org/licenses/.
+import xdm
 
 from xdm.logger import *
 import collections
@@ -104,15 +106,24 @@ class ConfigWrapper(object):
         return out
 
     def __getattr__(self, name):
-        try:
+        if name in self._configValueCache:
             return self._configValueCache[name]
-        except KeyError:
-            pass
+        if xdm.common.CONFIGOVERWRITE:
+            overwrite = xdm.common.getConfigOverWriteForPlugin(self._plugin)
+            if name in overwrite:
+                if isinstance(overwrite[name], dict):
+                    if "store" in overwrite[name] and overwrite[name]["store"]:
+                        setattr(self, name, overwrite[name]["value"])
+                    self._configValueCache[name] = overwrite[name]["value"]
+                else:
+                    self._configValueCache[name] = overwrite[name]
+                return self._configValueCache[name]
+
         for cur_c in self.configs:
             if cur_c.name == name:
                 self._configValueCache[name] = cur_c.value
                 return cur_c.value
-        raise AttributeError
+        raise AttributeError("no config with the name '{}'".format(name))
 
     def __setattr__(self, name, value):
         for cur_c in self.configs:
@@ -164,7 +175,12 @@ def pluginMethodWrapper(caller_name, run, alternative):
             # print tb
             out = alternative(*args, **kwargs)
             try:
-                log.error("Error during %s of %s \nError: %s\n\n%s\nNew value:%s" % (run.__name__, caller_name, ex, tb, out), traceback=tb, new_out=out, exception=ex)
+                log.error(
+                    "Error during %s of %s \nError: %s\n\n%s\nNew value:%s" % (
+                        run.__name__, caller_name, ex, tb, out),
+                    traceback=tb,
+                    new_out=out,
+                    exception=ex)
             except:
                 log.error("Error during %s of %s \nError: %s\n\n%s" % (run.__name__, caller_name, ex, tb))
             return out

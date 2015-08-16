@@ -139,6 +139,8 @@ class Common(object):
 
     FAKEDATE = datetime.datetime(1987, 5, 24, 13, 37, 6)
 
+    CONFIGOVERWRITE = {}
+
     def getLocale(self):
         """get the current local string
         e.g. en_US
@@ -155,7 +157,10 @@ class Common(object):
     def removeState(self, num):
         if xdm_states[num] in self.STATES:
             del self.STATES[self.STATES.index(xdm_states[num])]
-        xdm.logger.log('Removing state "%s". STATES are now %s' % (xdm_states[num], self.STATES))
+        xdm.logger.log(
+            'Removing state "%s". STATES are now: %s' % (
+                xdm_states[num],
+                ", ".join(self.STATES)))
 
     def getAllStatus(self):
         """get all available status instances"""
@@ -225,6 +230,17 @@ class Common(object):
             return self._provider_tags_cache
         self._provider_tags_cache = [p.tag for p in self.PM.P]
         return self._provider_tags_cache
+
+    def updateConfigOverwrite(self, config):
+        xdm.logger.log.info(u"Overwriting config with: %s" % config)
+        self.CONFIGOVERWRITE.update(config)
+
+    def getConfigOverWriteForPlugin(self, plugin):
+        if plugin.identifier in self.CONFIGOVERWRITE and plugin.instance in self.CONFIGOVERWRITE[plugin.identifier]:
+            return self.CONFIGOVERWRITE[plugin.identifier][plugin.instance]
+        else:
+            return {}
+
 
 common = Common()
 

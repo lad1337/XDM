@@ -34,7 +34,12 @@
         </div>
         <fieldset class="span9 tab-content well form-horizontal" action="/saveSettings" method="POST">
             {% for plugin in plugins -%}
-            <div class="tab-pane fade" id="{{plugin.name|idSafe}}">
+            <div class="tab-pane fade"
+                 id="{{plugin.name|idSafe}}"
+                 data-identifier="{{plugin.identifier}}"
+                 data-instance="{{ plugin.instance }}"
+                 data-oauth="{%if plugin.oauth%}1{%else%}0{%endif%}"
+                 data-oauthactive="{%if plugin.oauth.authorized%}1{%else%}0{%endif%}">
                 <h4>{{ plugin.screenName }}{% if plugin._type != 'MediaTypeManager'%} ({{ plugin.instance }}){% endif %}
                     {%if plugin._type != 'MediaTypeManager'%}
                     <input class="removeInstance btn btn-inverse pull-right" type="button" value="{% if plugin.instance == 'Default' %}Reset{% else %}Delete{% endif %}{% if not plugin.single%} this{%endif%} {{ plugin.screenName }}{% if not plugin.single%} Instance{%endif%}" data-plugin="{{ plugin.type }}" data-instance="{{ plugin.instance }}"/>
@@ -54,7 +59,7 @@
                 <input class="plugin_order" name="{{ plugin.type }}-{{ plugin.instance }}-{{ config.name}}" type="hidden" {% if config.value %}value="{{ config.value }}"{% endif %}/>
                 
                 {% else %}
-                <div class="control-group{% if plugin['config_meta'][config.name]['human'] %} human{% endif %}{% if 'filepath' in config.name %} filepath{%elif 'path' in config.name%} path{% endif %}">
+                <div class="control-group{% if plugin['config_meta'][config.name]['human'] %} human{% endif %}{% if 'filepath' in config.name %} filepath{%elif 'path' in config.name%} path{%elif 'oauth_token' in config.name%} oauth_token{% endif %}">
                     <label class="control-label" title="{{plugin['config_meta'][config.name]['desc']}}">
                     {% if plugin['config_meta'][config.name]['human'] %}{{ plugin['config_meta'][config.name]['human']|striptags|urlize|dereferMeText }}
                     {% else %}

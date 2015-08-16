@@ -30,6 +30,7 @@ from cStringIO import StringIO
 from pylint import lint
 import sys
 import site
+from mock import MagicMock
 
 
 class PluginManager(object):
@@ -120,7 +121,8 @@ class PluginManager(object):
                 if not systemOnly and extra_plugin_path is not None and os.path.isdir(extra_plugin_path):
                     if debug:
                         print '###### extra path %s #######' % extra_plugin_path
-                    cur_classes.extend(self.find_subclasses(cur_plugin_type, reloadModules, debug=debug, path=extra_plugin_path))
+                    cur_classes.extend(
+                        self.find_subclasses(cur_plugin_type, reloadModules, debug=debug, path=extra_plugin_path))
 
                 if cur_classes:
                     log("I found %s %s: %s" % (len(cur_classes), cur_plugin_type_name, [x[0].__name__ for x in cur_classes]))
@@ -200,6 +202,7 @@ class PluginManager(object):
         """
         plugin_instances = []
         if not cls in self._cache:
+            #log.warning("class: {} not found in cache {}".format(cls, self._cache.keys()))
             return plugin_instances
 
         wanted_i = wanted_i.replace('_', '.')
@@ -210,28 +213,30 @@ class PluginManager(object):
                 if cls == plugins.MediaTypeManager:
                     if cur_c not in self._mt_cache:
                         log('Creating and caching instance from %s' % cur_c)
-                        new = cur_c(cur_instance.replace('_', '.'))
-                        self._mt_cache[cur_c] = new
+                        plugin_instance = cur_c(cur_instance.replace('_', '.'))
+                        self._mt_cache[cur_c] = plugin_instance
                     else:
                         # log('Using cached instance from %s' % cur_c)
-                        new = self._mt_cache[cur_c]
+                        plugin_instance = self._mt_cache[cur_c]
                 else:
-                    new = cur_c(cur_instance)
+                    plugin_instance = cur_c(cur_instance)
                 if wanted_i:
                     if wanted_i == cur_instance or (cls == plugins.MediaTypeManager and wanted_i == 'Default'):
-                        plugin_instances.append(new)
+                        plugin_instances.append(plugin_instance)
                         continue
                     elif cls == plugins.MediaTypeManager and wanted_i == cur_instance:
-                        return [new]
-                elif new.enabled or returnAll:
-                    plugin_instances.append(new)
+                        return [plugin_instance]
+                elif plugin_instance.enabled or returnAll:
+                    plugin_instances.append(plugin_instance)
                 else:
                     pass
                     # log("%s is disabled" % cur_c.__name__)
         # print cls, wanted_i, returnAll, plugin_instances, sorted(plugin_instances, key=lambda x: x.c.plugin_order, reverse=False)
         return sorted(plugin_instances, key=lambda x: x.c.plugin_order, reverse=False)
 
-    def _getTyped(self, plugins, types=[]):
+    def _getTyped(self, plugins, types=None):
+        if types is None:
+            types = []
         if not types:
             return plugins
         filtered = []
@@ -321,6 +326,11 @@ class PluginManager(object):
                     'DownloadType',
                     'MediaTypeManager']
 
+    def get_classes(self):
+        return [
+            getattr(plugins, cls_name)
+            for cls_name in reversed(self.getAll.order)]
+
     # this is ugly ... :(
     def getInstanceByName(self, class_name, instance):
         for pType in self._cache:
@@ -331,13 +341,20 @@ class PluginManager(object):
                             return pClass(instance)
         return None
 
-    def getPluginByIdentifier(self, identifier, instance):
+    def getPluginByIdentifier(self, identifier, instance=None, mock=False):
+        if instance is None:
+            instance = plugins.DEFAULT_INSTANCE_NAME
         for pType in self._cache:
             for pClass in self._cache[pType]:
                 if identifier == pClass.identifier:
                     for cur_instance in self._cache[pType][pClass]:
                         if instance == cur_instance:
                             return pClass(instance)
+        if mock:
+            log.warning(
+                "no plugin found with identifier '{}' sending Mock".format(
+                    identifier))
+            return MagicMock()
         return None
 
     def clearAllUnsedConfgs(self):
@@ -371,10 +388,17 @@ class PluginManager(object):
 
         def look_for_subclass(modulename, cur_path):
             if debug:
-                print("searching %s in path %s" % (modulename, cur_path))
+                print("searching %s in file %s" % (modulename, cur_path))
 
             try:
-                module = __import__(modulename)
+                try:
+                    module = __import__(modulename)
+                except ImportError:
+                    dir = os.path.dirname(cur_path)
+                    if not common.REPOMANAGER.install_requirements_for_plugin(dir):
+                        exit(1)
+                        raise
+                    module = __import__(modulename)
             except Exception as ex: # catch everything we dont know what kind of error a plugin might have
                 tb = traceback.format_exc()
                 log.error("Error during importing of %s" % modulename, traceback=tb, exception=ex)
@@ -391,7 +415,6 @@ class PluginManager(object):
             for key, entry in d.items():
                 if key == cls.__name__:
                     continue
-
                 try:
                     if issubclass(entry, cls):
                         if debug:

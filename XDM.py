@@ -24,7 +24,9 @@ import sys
 import site
 import os
 import time
-import signal 
+import signal
+import json
+import hashlib
 
 # Fix for correct path
 if hasattr(sys, 'frozen'):
@@ -83,6 +85,11 @@ class App():
         p.add_argument('-P', '--port', dest='port', type=int, default=None, help="Force webinterface to listen on this port.")
         p.add_argument('-n', '--nolaunch', action="store_true", dest='nolaunch', help="Don't start the browser.")
         p.add_argument('-b', '--datadir', dest='datadir', default=None, help="Set the directory for created data.")
+        p.add_argument('--configJSON', dest='configJSON', default=None, help="Set the path to the config JSON file (or folder with then) to read from")
+        p.add_argument('--systemIdentifer', dest='systemIdentifer', default="de.lad1337.systemconfig", help="Set the identifier for the system plugin")
+        p.add_argument('--resetWizard', dest='reset_wizard', action="store_true", help="reset the wizard state")
+
+
         p.add_argument('--config_db', dest='config_db', default=None, help="Path to config database")
         p.add_argument('--data_db', dest='data_db', default=None, help="Path to data database")
         p.add_argument('--history_db', dest='history_db', default=None, help="Path to history database")
@@ -93,12 +100,27 @@ class App():
         p.add_argument('--pluginImportDebug', action="store_true", dest='pluginImportDebug', help="Extra verbosy debug during plugin import is printed.")
         p.add_argument('--profile', dest='profile', nargs='*', default=None, help="Wrap a decorated(!) function in a profiler. By default all decorated functions are profiled. Decorate your function with @profileMeMaybe")
         p.add_argument('--installType', dest='installType', default=None, type=int, help="Force the install type")
+        p.add_argument('--config', dest='config', default=None, type=json.loads, help="Update the config with this json object")
 
         options = p.parse_args(args)
         self.options = options
         common.STARTOPTIONS = options
 
         log.info('Starting XDM %s' % common.getVersionHuman())
+
+        if options.configJSON:
+            config_files = []
+            if os.path.isdir(options.configJSON):
+                import glob
+                config_files = [os.path.abspath(p) for p in glob.glob(os.path.join(options.configJSON, '*.json'))]
+            else:
+                config_files.append(os.path.abspath(options.configJSON))
+            for config_file in config_files:
+                log.info('Loading config from file {}'.format(config_file))
+                options = helper.spreadConfigsFromFile(options, config_file)
+
+        if options.config:
+            common.updateConfigOverwrite(options.config)
 
         # Set the Paths
         if options.datadir:
@@ -143,7 +165,6 @@ class App():
         if options.pidfile:
             log.info("Set PIDfile to %s" % options.pidfile)
             PIDFile(cherrypy.engine, options.pidfile).subscribe()
-        if options.pidfile:
             pid = str(os.getpid())
             log(u"Writing PID %s to %s" % (pid, options.pidfile))
             file(os.path.abspath(options.pidfile), 'w').write("%s\n" % pid)
@@ -153,6 +174,9 @@ class App():
         init.db()
         init.postDB()
         init.schedule()
+
+        if options.reset_wizard:
+            common.SYSTEM.hc.setup_wizard_step = 0
 
         # Set port
         if options.port:
@@ -185,17 +209,28 @@ class App():
         bootstrap_path = os.path.join(app_path, 'html', 'bootstrap')
         images = xdm.IMAGEPATH
 
-        username = common.SYSTEM.c.login_user
-        password = common.SYSTEM.c.login_password
+        # Default config : there is no auth.
+        def sha512(passwd):
+            return hashlib.sha512(hashlib.sha512(passwd).hexdigest()).hexdigest()
 
         useAuth = False
-        if username and password:
-            useAuth = True
-        userPassDict = {username: password}
-        checkpassword = cherrypy.lib.auth_basic.checkpassword_dict(userPassDict)
-        conf = {'/': {'tools.auth_basic.on': useAuth,
-                      'tools.auth_basic.realm': 'XDM',
-                      'tools.auth_basic.checkpassword': checkpassword,
+        userPassDict = {}
+
+
+        # get auth dictionnary from system plugins that contains credentials
+        systemPlugins = common.PM.getSystem()
+        for sysPlugin in systemPlugins:
+            username = sysPlugin.c.getConfig('login_user')
+            password = sysPlugin.hc.getConfig('login_password')
+            if username and password: # if there is credentials in the plugin
+                useAuth = True
+                userPassDict[username.value] = password.value
+
+        #checkpassword = cherrypy.lib.auth_basic.checkpassword_dict(userPassDict)
+        conf = {'/': {'tools.basic_auth.on': useAuth,
+                      'tools.basic_auth.realm': 'XDM',
+                      'tools.basic_auth.users': userPassDict,
+                      'tools.basic_auth.encrypt': sha512,
                       'tools.encode.encoding': 'utf-8'},
                 '/api': {'tools.auth_basic.on': False},
                 '/css': {'tools.staticdir.on': True, 'tools.staticdir.dir': css_path},

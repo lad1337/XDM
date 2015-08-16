@@ -34,17 +34,18 @@ class MessageManager(object):
     def __init__(self):
         self.messages = {}
 
-    def createInfo(self, message, role="system", confirm=None, deny=None, confirmJavascript=None, denyJavascript=None):
+    def createInfo(self, message, role="system", confirm=None, deny=None, confirmJavascript=None, denyJavascript=None, uuid=None):
         """creates a info message"""
-        return self._createMessage(INFO, message, role=role, confirm=confirm, deny=deny, confirmJavascript=confirmJavascript, denyJavascript=denyJavascript)
+        return self._createMessage(INFO, message, role=role, confirm=confirm, deny=deny, confirmJavascript=confirmJavascript, denyJavascript=denyJavascript, uuid=uuid)
 
-    def createWarning(self, message, role="system", confirm=None, deny=None, confirmJavascript=None, denyJavascript=None):
+    def createWarning(self, message, role="system", confirm=None, deny=None, confirmJavascript=None, denyJavascript=None, uuid=None):
         """creates a warning message"""
-        return self._createMessage(WARNING, message, role=role, confirm=confirm, deny=deny, confirmJavascript=confirmJavascript, denyJavascript=denyJavascript)
+        return self._createMessage(WARNING, message, role=role, confirm=confirm, deny=deny, confirmJavascript=confirmJavascript, denyJavascript=denyJavascript, uuid=uuid)
 
-    def _createMessage(self, messageType, message, role="system", confirm=None, deny=None, confirmJavascript=None, denyJavascript=None):
+    def _createMessage(self, messageType, message, role="system", confirm=None, deny=None, confirmJavascript=None, denyJavascript=None, uuid=None):
 
-        uuid = str(uuidModule.uuid4())
+        if not uuid:
+            uuid = str(uuidModule.uuid4())
         m = Message(messageType, message, uuid, role)
 
         if confirm is not None:

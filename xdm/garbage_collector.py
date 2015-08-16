@@ -56,22 +56,6 @@ def deleteOrphanFields():
     deleted_rows = fields_dq.execute()
     log.info("Deleted %s orphanaged fields" % deleted_rows)
 
-def deleteOrphanElements():
-    log.info("Getting elements")
-    elements = Element.select()
-    delete_count = 0
-    for element in list(elements):
-        try:
-            if element.parent:
-                _ = element.parent
-        except Element.DoesNotExist:
-            log("deleting element %s" % element.get_id())
-            #element.delete_instance(silent=True)
-            super(Element, element).delete_instance()
-            delete_count += 1
-
-    log.info("deleted %s orphanaged elements" % delete_count)
-
 def deleteOrphanImages():
     log.info("Getting orphanaged images")
     elements = Element.select()
@@ -79,16 +63,27 @@ def deleteOrphanImages():
     deleted_rows = image_dq.execute()
     log.info("Deleted %s orphanaged images" % deleted_rows)
 
-def fixImages():
+def load_missing_images(element=None):
     needed_files = set()
-    for image in Image.select():
-        path = image.getPath()
+    if element:
+        selected_images = Image.select().where(Image.element == element)
+    else:
+        selected_images = Image.select()
+    for image in selected_images:
+        try:
+            path = image.getPath()
+        except LookupError:
+            continue
         if not os.path.isfile(path):
             log.debug("%s has no file adding it to the Q" % image)
             common.Q.put(('image.download', {'id': image.element.id}))
         needed_files.add(path)
     log.info("Needed image files %d" % len(needed_files))
+    return needed_files
 
+
+def fixImages():
+    needed_files = load_missing_images()
     all_files = set()
     for root, dirnames, filenames in os.walk(xdm.IMAGEPATH):
         for filename in filenames:
@@ -102,3 +97,21 @@ def fixImages():
             unneeded_file_path = unneeded_file_path.decode("utf-8")
             log.debug(u"Deleting unneeded image file %s" % unneeded_file_path)
             os.remove(unneeded_file_path)
+
+
+def deleteOrphanElements():
+    """this will delete elements with no parent and are not root elements"""
+    roots = [mtm.root for mtm in common.PM.getMediaTypeManager(returnAll=True)]
+    if not roots:
+        return
+    lost_children = Element.select().where(Element.parent >> None, ~(Element.id << roots))
+    for lost_child in lost_children:
+        log.info("Element %s is lost. Begone." % lost_child.id)
+    for element in Element.select().where(~(Element.id << roots)):
+        try:
+            element.parent
+        except element.DoesNotExist:
+            log.info("Element %s parents are dead. Begone." % element.id)
+            Element.delete().where(Element.id == element.id).execute()
+
+    Element.delete().where(Element.id << lost_children).execute()

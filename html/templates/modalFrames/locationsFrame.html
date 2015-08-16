@@ -12,7 +12,14 @@
     {% for location in locations %}
     <tbody>
     <tr data-id="{{location.id}}" class="location">
-        <td title="{{location.id}}">{{ location.path }}</td>
+        <td title="{{location.id}}">
+            {{ location.path }}</br>
+            <span class="muted">
+                {% for e_key, e_value in location.extra_data.items() %}
+                {{ e_key }}: {{ e_value }}
+                {% endfor %}
+            </span>
+        </td>
         <td>
             {% if location.available %}
             <i class="icon-ok text-success" title="Path found"></i>
@@ -22,10 +29,10 @@
             <a href="javascript:void(0);" onclick="ajaxDeleteLocation(this, {{location.id}})" class="pull-right btn btn-danger btn-mini"><i class="icon-trash"></i></a>
         </td>
         <td>
-            {% if location.isdir %}
-            <i class="icon-folder-open" title="Folder"></i>
-            {% elif location.isfile %}
+            {% if location.isfile %}
             <i class="icon-folder-open" title="File"></i>
+            {% elif location.isdir %}
+            <i class="icon-folder-open" title="Folder"></i>
             {% else %}
             <i class="icon-question" title="Unknown"></i>
             {% endif %}

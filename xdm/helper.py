@@ -23,6 +23,7 @@
 import os
 import re
 import sys
+import json
 import webbrowser
 from logger import *
 from datetime import datetime, timedelta
@@ -34,6 +35,7 @@ import base64
 import random
 import hashlib
 from babel.dates import format_timedelta
+import urllib
 
 
 def getSystemDataDir(progdir):
@@ -254,9 +256,12 @@ def generateApiKey():
     return base64.b64encode(hashlib.sha256(str(random.getrandbits(256))).digest(), random.choice(['rA', 'aZ', 'gQ', 'hH', 'hG', 'aR', 'DD'])).rstrip('==')
 
 
+def items(collection):
+    return collection.items()
+
 def dereferMe(url):
     if common.SYSTEM.c.use_derefer_me:
-        return "http://base64.derefer.me/?%s" % base64.b64encode(url)
+        return "http://www.dereferer.org/?%s" % urllib.quote(url, "")
     return url
 
 
@@ -331,6 +336,30 @@ releaseThresholdDelta = {1: timedelta(days=1),
                         3: timedelta(days=7), # a week
                         4: timedelta(days=30), # a month
                         5: timedelta(days=60)} # two months
+
+
+def spreadConfigsFromFile(options, config_file_path):
+    if not os.path.isfile(config_file_path):
+        log.warning("Can't find config file at {}".format(config_file_path))
+        return options
+    with open(config_file_path, "r") as config_file:
+        try:
+            config = json.loads(config_file.read())
+        except:
+            log.critical("Looks like i could not parse the config file!")
+            raise
+    common.updateConfigOverwrite(config)
+    # TODO: create a XDM name space in config and use these as args
+    # if they have not been set by args
+    pre_run_system_settings_fields = ("port", "api_port", "socket_host",
+        "dont_open_browser", "login_user", "login_password", "datadir")
+    if options.systemIdentifer in config and "Default" in config[options.systemIdentifer]:
+        pre_run_system_settings = config[options.systemIdentifer]["Default"]
+        for field in pre_run_system_settings_fields:
+            if field in pre_run_system_settings:
+                setattr(options, field, pre_run_system_settings[field])
+    return options
+
 
 # http://code.activestate.com/recipes/440514-dictproperty-properties-for-dictionary-attributes/
 class dictproperty(object):

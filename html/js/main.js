@@ -20,11 +20,11 @@ $(document).ready(function() {
 
     $('.navbar .navbar-search .add-on').click(function(){
         $(this).siblings('input').val('')
-    })
+    });
 
     $('.navbar .navbar-search input').typeahead({
         source: function (term, query) {
-            autoCompl = []
+            autoCompl = [];
             // see web.py for the mediatypenames and 'All' handling
             // see base.html for the js var mediaTypenames
             $.each(mediaTypenames, function(index, item){
@@ -60,7 +60,7 @@ $(document).ready(function() {
             $(".navbar .navbar-search .typeahead *").qtip('destroy', true);
         }
     });
-    $('.navbar .dropdown-toggle').dropdown()
+    $('.navbar .dropdown-toggle').dropdown();
 
     
     $('.notifications .dropdown-menu').click(function (e) {
@@ -126,9 +126,9 @@ function animate_logo(){
 
 function previously_on_xdm(query){
     var active_item = $('.navbar .navbar-search .typeahead li.active');
-    mt = active_item.text().split(":")[0]
+    mt = active_item.text().split(":")[0];
     if(typeof(query) == "undefined")
-        query = active_item.text().split(":")[1]
+        query = active_item.text().split(":")[1];
     data = {term: query, mt: mt};
     $("*", active_item.parent()).qtip('destroy', true);
 
@@ -146,7 +146,7 @@ function previously_on_xdm(query){
                             var status = $("<small>").text(item["status"]).addClass("muted");
                             div.append(span).append("<br/>").append(status);
                             td.append(div);
-                            var img_td = $("<td>")
+                            var img_td = $("<td>");
                             console.log(item["img"]);
                             if(item["img"])
                                 img_td.append($("<img>").attr("src", item["img"]).addClass("round-corners"));
@@ -162,7 +162,7 @@ function previously_on_xdm(query){
                 },
                 show: {
                     solo: true,
-                    ready: true,
+                    ready: true
                 },
                 hide: {
                     event: "all"
@@ -185,12 +185,11 @@ function init_progress_bar_resize(parent){
     $('.progress .bar', parent).resize(function(event){
         var p = $(this).parent();
         var ph = p.height();
-        var w = $('.bar', p).width();
         var w = 0;
         $('.bar', p).each(function() {
             w += $(this).width();
         });
-        $('span.progressbar-front-text', p).css("clip", "rect(0px, "+w+"px, "+ph+"px, 0px)")
+        $('span.progressbar-front-text', p).css("clip", "rect(0px, "+w+"px, "+ph+"px, 0px)");
         $('span', p).css('line-height', ph+'px')
     });
     $('.progress .bar', parent).resize()
@@ -199,45 +198,45 @@ function init_progress_bar_resize(parent){
 
 
 function closeAllMessages(){
-    $('.notifications .open').removeClass('open')
+    $('.notifications .open').removeClass('open');
     $('tr.message .close').each(function(index, item){
         $(item).click()
     });
 }
 
 function messageClose(uuid){
-    var messageTr = $('tr.message[data-uuid="'+uuid+'"]')
-    data = {}
+    var messageTr = $('tr.message[data-uuid="'+uuid+'"]');
+    data = {};
     data['uuid'] = uuid;
     $.getJSON(webRoot+'/ajax/messageClose', data, function(res){
         if(res['result']){
-            messageTr.hide('fast')
+            messageTr.hide('fast');
             newCount = parseInt($('.notifications .count').text()) - 1;
             $('.notifications .count').text(newCount)
             if(!newCount){
-                $('.notifications .count').removeClass('badge-info')
-                $('.notifications .table').remove()
-                $('.notifications .open').removeClass('open')
+                $('.notifications .count').removeClass('badge-info');
+                $('.notifications .table').remove();
+                $('.notifications .open').removeClass('open');
             }
         }
     })
 }
 
 function messageConfirm(uuid){
-    var messageTr = $('tr.message[data-uuid="'+uuid+'"]')
+    var messageTr = $('tr.message[data-uuid="'+uuid+'"]');
     $('.confirm', messageTr).addClass('btn-striped animate');
     
-    data = {}
+    data = {};
     data['uuid'] = uuid;
     $.getJSON(webRoot+'/ajax/messageConfirm', data, function(res){
         if(res['result']){
-            messageTr.hide('fast')
+            messageTr.hide('fast');
             newCount = parseInt($('.notifications .count').text()) - 1;
             $('.notifications .count').text(newCount)
             if(!newCount){
-                $('.notifications .count').removeClass('badge-info')
-                $('.notifications .table').remove()
-                $('.notifications .open').removeClass('open')
+                $('.notifications .count').removeClass('badge-info');
+                $('.notifications .table').remove();
+                $('.notifications .open').removeClass('open');
             }
         }else{
             $('.confirm', messageTr).removeClass('animate').addClass('btn-danger');
@@ -259,31 +258,36 @@ function ajaxSetElementStatus(sender, status_id, element_id, silent){
             setStatusText(element_id, res['data']['status_id']);
         }
     })
-};
-
-function ajaxDeleteElement(id, deleteNode){
-    data = {};
-    data['id'] = id;
-    $.getJSON(webRoot+'/ajax/deleteElement', data, function(res){
-        if(res['result']){
-            deleteNode.hide('slow')
-            noty({text: res['msg'], type: 'success', timeout:2000})
-        }
-    })
-};
+}
 
 function addElement(sender, id){
     $(sender).addClass('btn-striped animate');
-    data = {};
+    var data = {};
     data['id'] = id;
     $.getJSON(webRoot+'/ajax/addElement', data, function(res){
         if(res['result']){
-            $(sender).closest('.status-temp').hide('slow')
+            $(sender).closest('.status-temp').hide('slow');
             $(sender).removeClass('btn-striped animate');
             noty({text: res['msg'], type: 'success', timeout:2000})
         }
     })
-};
+}
+
+function ajaxDeleteElement(sender, id, deleteNode){
+    $(sender).addClass('btn-striped animate');
+    var data = {};
+    data['id'] = id;
+    $.getJSON(webRoot+'/ajax/deleteElement', data, function(res){
+        if(res['result']){
+            if($(deleteNode).length)
+                (deleteNode).hide('slow');
+            else
+                $(sender).closest('.status-any').hide('slow');
+            $(sender).removeClass('btn-striped animate');
+            noty({text: res['msg'], type: 'success', timeout:2000})
+        }
+    })
+}
 
 function ajaxGetDownload(sender, id){
     $(sender).addClass('btn-striped animate');
@@ -298,7 +302,7 @@ function ajaxGetDownload(sender, id){
             noty({text: res['msg'], type: 'error', timeout:2000});
         }
     })
-};
+}
 
 function setStatusText(element_id, status_id){
     $("[data-id="+element_id+"] .status-select .dropdown-toggle .text")
@@ -318,7 +322,7 @@ function ajaxForceSearch(sender, element_id){
         }
         setStatusText(element_id, res['data']['status_id']);
     })
-};
+}
 
 function ajaxDeleteLocation(sender, location_id){
     $(sender).addClass('btn-striped animate');
@@ -357,17 +361,24 @@ function ajaxModal(sender, name, url, data){
     $(sender).addClass('btn-striped animate');
     var myModal = createModal(name);
     $.post(url, data, function(res){
-        $('.modal-body', myModal).html(res)
+        $('.modal-body', myModal).html(res);
         myModal.modal();
         $(sender).removeClass('btn-striped animate');
     });
     return myModal;
 }
 
-function ajaxQtip(sender, url, data){
+function ajaxQtip(sender, url, data, filter){
     sender = $(sender);
     sender.addClass('btn-striped animate');
     $.post(url, data, function(res){
+        console.log(res);
+        if(filter){
+            res = JSON.parse(res);
+            var $div = $("<div>");
+            visitObj($div, res[filter]);
+            res = $div;
+        }
         console.log(res);
         sender.qtip({
             content: {
@@ -386,6 +397,23 @@ function ajaxQtip(sender, url, data){
     });
 }
 
+// http://stackoverflow.com/questions/13341373/render-arbitrary-json-in-html
+function visitObj($container, obj) {
+    var $ul = $('<ul>');
+
+    for (var prop in obj) {
+
+        var $li = $('<li>');
+        $li.append('<span class="json-key">' + prop + ': </span>');
+        if (typeof obj[prop] === "object") {
+             visitObj($li, obj[prop]);
+        } else {
+            $li.append('<span class="json-value">'+obj[prop]+'</span>');
+        }
+        $ul.append($li);
+    }
+    $container.append($ul);
+}
 
 function showEvents(sender, id, is_element){
     if(typeof is_element == "undefined")
@@ -393,25 +421,25 @@ function showEvents(sender, id, is_element){
 
     data = {'id': id, 'is_element': is_element};
     name = 'Events';
-    var myModal = ajaxModal(sender, name, webRoot+'/ajax/getEventsFrame', data)
+    var myModal = ajaxModal(sender, name, webRoot+'/ajax/getEventsFrame', data);
     // check for events
     if(!$('.modal-body tr:not(.notice)', myModal).length)
-        $('.modal-footer', myModal).append('<input class="btn btn-warning" value="Clear Events" type="submit"></div>')
+        $('.modal-footer', myModal).append('<input class="btn btn-warning" value="Clear Events" type="submit"></div>');
     //hook up the clear event button
     $('input[type="submit"]', myModal).click(function(e){
         var t = $(this);
-        t.addClass('btn-striped animate')
+        t.addClass('btn-striped animate');
         $.getJSON(webRoot+'/ajax/clearEvents', data, function(res){
             if(res['result']){
-                noty({text: res['msg'], type: 'success', timeout: 1000})
+                noty({text: res['msg'], type: 'success', timeout: 1000});
                 $('.modal-body', myModal).html('<h4>No events yet.</h4>')
             }else{
-                noty({text: res['msg'], type: 'error'})  
+                noty({text: res['msg'], type: 'error'});
                 saveButtons.addClass('btn-warning')
             }
             t.removeClass('btn-striped animate')
         }).error(function(){
-            noty({text: 'Server error. Is it running? Check logs', type: 'error'}) 
+            noty({text: 'Server error. Is it running? Check logs', type: 'error'});
             t.removeClass('animate')
         })
     })
@@ -474,7 +502,7 @@ function labelInputConnector(labels){
 
 function formAjaxSaveConnect(saveButtons, theForm){
     saveButtons.click(function(event){
-        console.log(this)
+        console.log(this);
         if($(this).hasClass('animate')){
             event.preventDefault();
             return false;
@@ -483,8 +511,8 @@ function formAjaxSaveConnect(saveButtons, theForm){
         }
         event.preventDefault();
         
-        saveButtons.addClass('btn-striped animate')
-        data = theForm.serialize()
+        saveButtons.addClass('btn-striped animate');
+        data = theForm.serialize();
         
 
         $.getJSON(webRoot+'/ajax/save', data, function(res){
@@ -492,13 +520,13 @@ function formAjaxSaveConnect(saveButtons, theForm){
                 $(this).button('loading');
                 noty({text: res['msg'], type: 'success', timeout: 1000})
             }else{
-                noty({text: res['msg'], type: 'error'})  
+                noty({text: res['msg'], type: 'error'})  ;
                 saveButtons.addClass('btn-warning')
             }
             saveButtons.removeClass('btn-striped animate')
         }).error(function(){
-            noty({text: 'Server error. Is it running? Check logs', type: 'error'}) 
-            saveButtons.removeClass('animate btn-success').addClass('btn-warning')
+            noty({text: 'Server error. Is it running? Check logs', type: 'error'});
+            saveButtons.removeClass('animate btn-success').addClass('btn-warning');
         })
     });
 }
@@ -522,13 +550,13 @@ function makeSafeForCSS(name) {
 
 function pluginAjaxCall(self, p_type, p_instance, id, action){
     if($(self).hasClass('animate'))
-        return
+        return;
 
-    $(self).addClass('btn-striped animate')
+    $(self).addClass('btn-striped animate');
     var data = {'p_type': p_type, 'p_instance': p_instance, 'action': action};
     $('input, select', '#'+id).each(function(k,i){
         if(typeof $(i).data('configname') !== "undefined"){
-            var val = $(i).val()
+            var val = $(i).val();
             if($(i).attr('type') == 'checkbox'){
                 if($(i).prop('checked')){
                     val = ['on', 'off'];
@@ -542,15 +570,15 @@ function pluginAjaxCall(self, p_type, p_instance, id, action){
     });
     $.getJSON(webRoot+'/ajax/pluginCall', data, function(res){
         if(res['result']){
-            noty({text: p_type+'('+p_instance+') - '+$(self).val()+': '+res['msg'], type: 'success', timeout: 2000})
+            noty({text: p_type+'('+p_instance+') - '+$(self).val()+': '+res['msg'], type: 'success', timeout: 2000});
             
-            var data = res['data']
+            var data = res['data'];
             if(hasOwnProperty(data, 'callFunction')){
                 var fn = window[data['callFunction']];
                 fn(data['functionData']);
             }
         }else
-            noty({text: p_type+'('+p_instance+') - '+$(self).val()+': '+res['msg'], type: 'error'})    
+            noty({text: p_type+'('+p_instance+') - '+$(self).val()+': '+res['msg'], type: 'error'})    ;
         $(self).removeClass('btn-striped animate')
     });
 }
@@ -564,19 +592,19 @@ function rebootModal(button){
 }
 
 function rebootModalExecute(button){
-    data = {}
-    name = 'Rebooting'
-    var frame = ajaxModal(button, name, webRoot+'/ajax/reboot', data)
+    data = {};
+    name = 'Rebooting';
+    var frame = ajaxModal(button, name, webRoot+'/ajax/reboot', data);
     
     firstMessage = true;        
     window.setInterval(function(){messageScrobbler('getSystemMessage', true)}, 500);
-    $('.modal-body', frame).css('padding', 0)
-    $('.modal-header .close').remove()
-    $('.modal-footer button').hide()
+    $('.modal-body', frame).css('padding', 0);
+    $('.modal-header .close').remove();
+    $('.modal-footer button').hide();
     $('.modal-backdrop').click(function(e){
-        e.preventDefautl()
+        e.preventDefautl();
         return false;
-    })
+    });
     return false;
 }
 
@@ -588,64 +616,64 @@ function shutdownModal(button){
       }); 
 }
 function shutdownModalExecute(button){
-    data = {}
-    name = 'Shutdown'
-    var frame = ajaxModal(button, name, webRoot+'/ajax/shutdown', data)
+    data = {};
+    name = 'Shutdown';
+    var frame = ajaxModal(button, name, webRoot+'/ajax/shutdown', data);
     
     firstMessage = true;
-    var finalMessageString = "Connection lost. Looks like it's Done!<br/>Thank you for using <pre>"+getAsciiArtLogo()+"</pre>"
+    var finalMessageString = "Connection lost. Looks like it's Done!<br/>Thank you for using <pre>"+getAsciiArtLogo()+"</pre>";
     
     globalMessageInterval = window.setInterval(function(){messageScrobbler('getSystemMessage', true, 'info', finalMessageString)}, 500);
-    $('.modal-body', frame).css('padding', 0)
-    $('.modal-header .close').remove()
-    $('.modal-footer button').hide()
+    $('.modal-body', frame).css('padding', 0);
+    $('.modal-header .close').remove();
+    $('.modal-footer button').hide();
     $('.modal-backdrop').click(function(e){
-        e.preventDefautl()
+        e.preventDefautl();
         return false;
-    })
+    });
     return false;
 }
 
 function installModalFromMessage(button, identifier){
-    $(button).attr('data-identifier', identifier)
-    installModal(button)
+    $(button).attr('data-identifier', identifier);
+    installModal(button);
     $('.close', $(button).parent()).click()
 }
 
 function installModal(button){
     var id = $(button).data('identifier');
-    data = {'identifier': id}
-    name = 'Installing '+id
-    var frame = ajaxModal(button, name, webRoot+'/ajax/installPlugin', data)
+    data = {'identifier': id};
+    name = 'Installing ' + id;
+    var frame = ajaxModal(button, name, webRoot+'/ajax/installPlugin', data);
     
     firstMessage = true;        
     window.setTimeout(function(){messageScrobbler('getRepoMessage')}, 500);
-    $('.modal-body', frame).css('padding', 0)
-    $('.modal-header .close').remove()
+    $('.modal-body', frame).css('padding', 0);
+    $('.modal-header .close').remove();
     return false;
 }
 
 function modalCoreUpdate(button){
-    name = "Updating XDM"
-    var frame = ajaxModal(button, name, webRoot+'/ajax/coreUpdate', {})
+    name = "Updating XDM";
+    var frame = ajaxModal(button, name, webRoot+'/ajax/coreUpdate', {});
     
     firstMessage = true;        
     window.setInterval(function(){messageScrobbler('getSystemMessage', true)}, 500);
-    $('.modal-body', frame).css('padding', 0)
-    $('.modal-header .close').remove()
+    $('.modal-body', frame).css('padding', 0);
+    $('.modal-header .close').remove();
     return false;
 }
 function messageScrobbler(functionUrl, interval, onErrorClass, onErrorMessage){
     if (typeof interval == 'undefined')
         interval = false;
     if (typeof onErrorClass == 'undefined')
-        onErrorClass = 'error'
+        onErrorClass = 'error';
     if (typeof onErrorMessage == 'undefined')
         onErrorMessage = 'Connection to Server Lost ';
     
     $.getJSON(webRoot+'/ajax/'+functionUrl, {}, function(res){
         //console.log(res)
-        var lastMessage = ''
+        var lastMessage = '';
         $.each(res['data'],function(index, messageTuple){
             if(firstMessage){
                 $('#install-shell').append('<li>XDM: ~$ <span class="'+messageTuple[0]+'">'+messageTuple[1]+'</span></li>')
@@ -656,17 +684,17 @@ function messageScrobbler(functionUrl, interval, onErrorClass, onErrorMessage){
             p.scrollTop(p[0].scrollHeight);
             firstMessage = false;
             lastMessage = messageTuple[1]
-        })
+        });
         
         if(lastMessage != 'Done!' && !interval){
             window.setTimeout(function(){messageScrobbler(functionUrl, interval, onErrorClass, onErrorMessage)}, 500);
         }else if(lastMessage == 'Done!'){
-            $('#install-shell').append('<li><span class="info">XDM: ~$</span></li>')
-            $('#install-shell').parent().scrollTop(900000)
+            $('#install-shell').append('<li><span class="info">XDM: ~$</span></li>');
+            $('#install-shell').parent().scrollTop(900000);
             var modal = $('#install-shell').parent().parent();
             $('.modal-footer button' ,modal).addClass('btn-success').text('Refresh page').focus().click(function(e){
                 window.location.reload() 
-            }).show()
+            }).show();
             $(".modal-footer", modal).append('<span class="label label-info pull-left">Refreshing page in <span id="countdown"></span></span>');
             $("#countdown").simpleCountDown({interval:1000,startFrom:30,
                               callBack:function(){
@@ -676,19 +704,49 @@ function messageScrobbler(functionUrl, interval, onErrorClass, onErrorMessage){
            
         }
     }).error(function() {
-        console.log($('#install-shell li:last-child').text(), onErrorMessage)
+        console.log($('#install-shell li:last-child').text(), onErrorMessage);
         var oldText = $('#install-shell li:last-child').text();
         if(oldText.substring(0, onErrorMessage.length) === onErrorMessage){
             $('#install-shell li:last-child').html( '<span class="'+onErrorClass+'">'+ oldText + "&shy;.</span>")
         }else{
             $('#install-shell').append('<li><span class="'+onErrorClass+'">'+onErrorMessage+'</span></li>')
         }
-        $('#install-shell').parent().scrollTop(900000)
+        $('#install-shell').parent().scrollTop(900000);
         if(interval)
             clearInterval(globalMessageInterval)
             
     });
 }
+
+function oauth_done(data){
+    console.log("oauth active");
+    $("input.oauth").removeClass('btn-striped animate').addClass("btn-success")
+}
+
+function oauth_token(data){
+    alert("oauth_token call" + data)
+}
+
+function oauth_start(button, plugin_identifier, plugin_instance){
+    button = $(button);
+    if(button.length)
+        button.removeClass("btn-success").addClass('btn-striped animate');
+    var data = {
+        identifier: plugin_identifier,
+        instance: plugin_instance
+    };
+    $.post(webRoot + "/ajax/oauth_init", data, function(res, test_status){
+        console.log(res);
+        var windowref = window.open(
+            res["access_url"],
+            "oAuth", "width=400, height=500, left=500, top=100");
+    }, "json").error(function(){
+        noty({text: 'OAuth error. Check browser console', type: 'error'}) ;
+        button.removeClass('animate btn-success').addClass('btn-warning');
+    });
+}
+
+
 
 function getAsciiArtLogo(){
     return [

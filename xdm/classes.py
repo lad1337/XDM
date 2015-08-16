@@ -27,7 +27,7 @@ import xdm
 from logger import *
 from xdm import common, helper, profileMeMaybe
 import requests, dateutil
-import datetime
+from datetime import date, datetime
 import json
 from jsonHelper import MyEncoder
 from xdm.helper import dict_diff, dictproperty
@@ -57,7 +57,8 @@ import urllib
 # , bytecode_cache=bcc
 
 WIDGET_PATH = os.path.join('html', 'templates', 'widget')
-elementWidgetEnvironment = Environment(loader=FileSystemLoader(WIDGET_PATH), extensions=['jinja2.ext.i18n'])
+elementWidgetEnvironment = Environment(
+    loader=FileSystemLoader(WIDGET_PATH), extensions=['jinja2.ext.i18n'])
 elementWidgetEnvironment.install_gettext_callables(_, ngettext, newstyle=True)
 elementWidgetEnvironment.filters['relativeTime'] = helper.reltime
 elementWidgetEnvironment.filters['idSafe'] = helper.idSafe
@@ -78,13 +79,15 @@ class MyLoader(BaseLoader):
     def get_source(self, environment, template):
         return (template, None, lambda: True)
 
-elementEnviroment = Environment(loader=FunctionLoader(fake_load), extensions=['jinja2.ext.i18n'])
+elementEnviroment = Environment(
+    loader=FunctionLoader(fake_load), extensions=['jinja2.ext.i18n'])
 elementEnviroment.install_gettext_callables(_, ngettext, newstyle=True)
 elementEnviroment.filters['relativeTime'] = helper.reltime
 elementEnviroment.filters['idSafe'] = helper.idSafe
 elementEnviroment.filters['derefMe'] = helper.dereferMe
 elementEnviroment.filters['derefMeText'] = helper.dereferMeText
 elementEnviroment.filters['json_loads'] = json.loads
+elementEnviroment.filters['items'] = helper.items
 
 
 class BaseModel(Model):
@@ -310,9 +313,9 @@ class Element(BaseModel):
                 img = self.getImage(name)
                 if img is not None:
                     return img.getSrc()
-            fd = self.getField(name)
+            fd = self.getField(name, returnObject=True)
             if fd is not None:
-                return fd
+                return fd.value
             else:
                 raise AttributeError("No attribute '%s' nor field with that name" % name)
 
@@ -365,7 +368,7 @@ class Element(BaseModel):
                 f.provider = provider
                 f.save()
         else: # field does not exist
-            if  self.id: # do we exist ? yes
+            if self.id: # do we exist ? yes
                 f = Field()
                 f.element = self
                 f.name = name
@@ -576,6 +579,7 @@ class Element(BaseModel):
             d = []
             for c in Element.select().where(Element.parent == self.id):
                 d.append(c)
+            for c in list(d):
                 d.extend(c.decendants)
             self.__decendents_cache = d
         return self.__decendents_cache
@@ -598,11 +602,11 @@ class Element(BaseModel):
         return self._getReleaseDate
 
     def _getReleaseDate(self):
-        return datetime.datetime.now()
+        return datetime.now()
 
     def isReleaseDateInPast(self):
         if type(self.getReleaseDate()).__name__ in ('date', 'datetime'):
-            return self.getReleaseDate() < datetime.datetime.now()
+            return self.getReleaseDate() < datetime.now()
         return True
 
     def isDescendantOf(self, granny):
@@ -638,7 +642,11 @@ class Element(BaseModel):
 
     @classmethod
     def getWhereField(cls, mt, type, attributes, provider='', parent=0):
-        fs = list(Field.select().where(Field.name << attributes.keys(), Field.provider == provider).order_by(Field.element))
+        fs = list(Field.select().where(
+            Field.name << attributes.keys(),
+            Field.provider == provider
+        ).order_by(Field.element))
+
         last_e = None
         lastAttributeOK = False
         for f in fs:
@@ -744,6 +752,7 @@ class Element(BaseModel):
         location.download = download
         location.path = path
         location.save()
+        return location
 
 
 class Field_V0(BaseModel):
@@ -777,9 +786,9 @@ class Field(Field_V0):
                 return int(self._value_int)
             return self._value_int
         elif self._value_datetime != None:
-            if type(self._value_datetime).__name__ in ('str', 'unicode'):
-                datetime = dateutil.parser.parse(self._value_datetime)
-                return datetime.replace(tzinfo=None)
+            if isinstance(self._value_datetime, (str, unicode)):
+                cur_datetime = dateutil.parser.parse(self._value_datetime)
+                return cur_datetime.replace(tzinfo=None)
             else:
                 return self._value_datetime
         else:
@@ -791,26 +800,25 @@ class Field(Field_V0):
             value = int(value)
         except (ValueError, TypeError):
             pass
-
-        if type(value).__name__ in ('int', 'float'):
+        if isinstance(value, (int, float)):
             self._value_char = None
             self._value_bool = None
             self._value_datetime = None
             self._value_int = value
             return
-        if type(value).__name__ in ('str', 'unicode'):
+        if isinstance(value, (str, unicode)):
             self._value_bool = None
             self._value_int = None
             self._value_datetime = None
             self._value_char = value
             return
-        if type(value).__name__ in ('bool', 'NoneType'):
+        if isinstance(value, bool) or value is None:
             self._value_char = None
             self._value_int = None
             self._value_datetime = None
             self._value_bool = value
             return
-        if type(value).__name__ in ('date', 'datetime'):
+        if isinstance(value, (date, datetime)):
             self._value_char = None
             self._value_int = None
             self._value_bool = None
@@ -1014,10 +1022,13 @@ class Download(Download_v1):
         raise Download.DoesNotExist
 
 
-class Location(BaseModel):
+class Location_V0(BaseModel):
     element = ForeignKeyField(Element, related_name='locations')
     download = ForeignKeyField(Download, null=True, related_name='locations')
     path = TextField()
+
+    class Meta():
+        db_table = 'Location'
 
     def _isfile(self):
         return os.path.isfile(self.path)
@@ -1037,8 +1048,49 @@ class Location(BaseModel):
     def __str__(self):
         return u"Path: {0:s}".format(self.path)
 
+
+class Location(Location_V0):
+    _extra_data = TextField(True)
+
+    @classmethod
+    def _migrate(cls):
+        return cls._migrateNewField(cls._extra_data)
+
+    def _getExtraData(self, key):
+        if self._extra_data:
+            return json.loads(self._extra_data)[key]
+        raise KeyError
+
+    def _setExtraData(self, key, value):
+        if self._extra_data:
+            d = json.loads(self._extra_data)
+            d[key] = value
+        else:
+            d = {}
+            d[key] = value
+        self._extra_data = json.dumps(d)
+
+    def _delExtraData(self, key):
+        if self._extra_data:
+            d = json.loads(self._extra_data)
+            del d[key]
+            self._extra_data = json.dumps(d)
+        raise KeyError
+
+    def _iterExtraData(self):
+        if self._extra_data:
+            for key in json.loads(self._extra_data):
+                yield key
+
+    extra_data = dictproperty(
+        _getExtraData,
+        _setExtraData,
+        _delExtraData,
+        _iterExtraData
+    )
+
 class History_V0(BaseModel):
-    time = DateTimeField(default=datetime.datetime.now())
+    time = DateTimeField(default=datetime.now())
     event = CharField()
     obj_id = IntegerField()
     obj_class = CharField()
@@ -1052,7 +1104,7 @@ class History_V0(BaseModel):
         db_table = 'History'
 
     def save(self, force_insert=False, only=None):
-        self.time = datetime.datetime.now()
+        self.time = datetime.now()
         Model.save(self, force_insert=force_insert, only=only)
 
     @classmethod
@@ -1223,7 +1275,7 @@ class Image_V0(BaseModel):
         log("Downloading image: %s %s" % (self.name, self.url))
         try:
             r = requests.get(self.url)
-        except requests.exceptions.MissingSchema:
+        except:
             log.error("Downloading image %s failed" % self.url)
             self.type = self._extByHeader('')
             return
@@ -1264,13 +1316,12 @@ class Image_V0(BaseModel):
             return self.url
 
     def imgName(self):
-        return helper.turn_into_ascii(helper.fileNameClean(u"%s (%s) %s-%s.%s" % (
-            helper.replace_all(self.element.getName()),
+        return helper.fileNameClean(u"e%s-%s-%s.%s" % (
             self.element.id,
             self.name,
             self.provider,
             self.type
-        )))
+        ))
 
 class Image(Image_V0):
     provider = TextField(True)

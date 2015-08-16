@@ -79,7 +79,7 @@ function refilter(){
         filterLogTable(lowestLvl);
     }else
         scrollDownLogs();
-    $('#scroller .table .github textarea[data-systemInfo="no"]').append($('#systemInfo').text()).attr('data-systemInfo', 'yes')
+    $('#scroller .table .github textarea[data-systemInfo="no"]').append($('#systemInfo').text()).attr('data-systemInfo', 'yes');
 }
 
 function scrollDownLogs(){
@@ -88,8 +88,8 @@ function scrollDownLogs(){
 
 function filterLogTable(lowestLvl){
     var lvls = 'debug,info,warning,error'.split(lowestLvl)
-    var toHide = lvls[0].split(',')
-    toHide.pop()
+    var toHide = lvls[0].split(',');
+    toHide.pop();
     var toShow = (lowestLvl + lvls[1]).split(',')
     //console.log('toShow', toShow, toShow.length)
     //console.log('toHide', toHide, toHide.length)

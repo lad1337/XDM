@@ -1,8 +1,11 @@
 
-
 function init_settings(){
-    if(!$('.nav.nav-list a[href="'+decodeURIComponent(window.location.hash)+'"]').tab('show').length)
-        $('.nav.nav-list a[data-toggle="tab"]:first').tab('show')
+
+    var hash_part = decodeURIComponent(window.location.hash);
+    var is_oauth = false;
+
+    if(!$('.nav.nav-list a[href="' + hash_part + '"]').tab('show').length)
+        $('.nav.nav-list a[data-toggle="tab"]:first').tab('show');
 
     $('.control-group.path input').each(function(key, item){
         $(item).fileBrowser({ title: 'Select Folder',
@@ -17,14 +20,48 @@ function init_settings(){
                               autocompleteURL: webRoot + "/browser/complete"});
     });
 
+    $(".tab-pane").each(function(key, pane){
+        var pane = $(pane);
+        if(pane.data("oauth") == "1"){
+            var p_identifier = pane.data("identifier");
+            var p_instance = pane.data("instance");
+            var oauth_button = $('<input type="button" class="btn oauth" value="Connect">');
+            var oauth_info = $('<i class="icon-info-sign" style="margin-left: 10px"></i>');
+            console.log(pane.data("oauthactive"));
+            if(pane.data("oauthactive") == "1"){
+                oauth_button.addClass("btn-success");
+                oauth_button.attr("value", "Connected, click to reset");
+            }
+            oauth_button.click(function(){
+                oauth_start(oauth_button, p_identifier, p_instance)
+            });
+            oauth_info.click(function(){
+                var data = {
+                    "p_identifier": p_identifier,
+                    "p_instance": p_instance,
+                    "action": "oauth.info"
+                };
+                ajaxQtip(oauth_info, webRoot+'/ajax/pluginCall', data, "data");
+            });
+            var extra_buttons = $(".plugin p", pane);
+            if(!extra_buttons.length){
+                $(".plugin", pane).append("<p>");
+                extra_buttons = $(".plugin p", pane);
+            }
+            extra_buttons.append(oauth_button);
+            extra_buttons.append(oauth_info);
+        }
+    });
+
     // i cant get the tooltip data api to work so we do a jquery
     $("input").tooltip({
         'selector': '',
         'placement': 'right'
-     })
-    
+     });
+
     $('input[type="checkbox"][data-configname="enabled"]').change(function(event){
-        var icon = $('.nav.nav-list a[href="#'+$(this).data('belongsto')+'"] i')
+        console.log(event);
+        var icon = $('.nav.nav-list a[href="#'+$(this).data('belongsto')+'"] i');
         if($(this).prop('checked')){
             icon.removeClass('rotateIn').addClass('animated rotateOut')
         }else{
@@ -46,10 +83,10 @@ function init_settings(){
         }
     });
     $('.nav.nav-list a').hover(function(){
-        var t = $($(this).attr('href'))
+        var t = $($(this).attr('href'));
         $('.nav.nav-list.MediaTypeManager a').each(function(k,i){
             var id = $(i).attr('href').replace('#', '');
-            var input = $('input[name$="'+id+'_runfor"][type="checkbox"]',t)
+            var input = $('input[name$="'+id+'_runfor"][type="checkbox"]',t);
                 if(input.prop('checked')){
                     $(i).addClass('btn-striped animate btn-success')
                 }
@@ -77,12 +114,12 @@ function init_settings(){
     labelInputConnector($('label'));
 
     $('.nav.nav-list a[data-toggle="tab"]').on('show', function (e) {
-        var t = $(e.target)
+        var t = $(e.target);
         var tab = $(t.attr('href'));
         $('.nav.nav-list li').removeClass('active');
         $(this).parent().addClass('active');
         window.location.hash = t.attr('href');
-    })
+    });
     
     $( ".nav-list" ).sortable({
         stop: function(event, ui) {
@@ -99,7 +136,7 @@ function init_settings(){
 
     
     $('input[type="submit"]').click(function(event){
-        console.log(this)
+        console.log(this);
         if($(this).hasClass('animate')){
             event.preventDefault();
             return false;
@@ -108,8 +145,8 @@ function init_settings(){
         }
         event.preventDefault();
         
-        saveButtons = $('input[type="submit"]')
-        saveButtons.addClass('btn-striped animate')
+        saveButtons = $('input[type="submit"]');
+        saveButtons.addClass('btn-striped animate');
         data = $('.tab-pane.active input, .tab-pane.active select, input.plugin_order, .wizard-main.well #theSettingsForm').serialize()
         
         console.log($('.tab-pane.active input, input.plugin_order'), data);
@@ -129,5 +166,5 @@ function init_settings(){
         });
 
     });
-};
+}
 

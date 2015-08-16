@@ -23,6 +23,7 @@ import os
 import xdm
 import re
 import types
+from inspect import getargspec
 from xdm import common, helper
 from xdm.classes import *
 from xdm.logger import *
@@ -33,6 +34,8 @@ import collections
 from babel.dates import format_timedelta
 import datetime
 
+
+DEFAULT_INSTANCE_NAME = "Default"
 
 """plugins should not set the status of an element !!! it will be done in the loops that call / use the plugins"""
 
@@ -95,7 +98,11 @@ class Plugin(object):
     _hidden_config = {}
     _hidden_config_meta = {}
 
-    def __init__(self, instance='Default'):
+    oauth = None
+
+    def __init__(self, instance=None):
+        if instance is None:
+            instance = DEFAULT_INSTANCE_NAME
         """returns a new instance of the Plugin with the config loaded get the configuration as self.c.<name_of_config>"""
         # setup names
         if not self.screenName:
@@ -122,6 +129,10 @@ class Plugin(object):
         self.elementConfig_meta = ConfigMeta(self.elementConfig_meta)
         # self._collect_element_configs()
 
+        if self.oauth is not None:
+            for key in self.oauth.keys:
+                self._hidden_config[key] = ""
+
         # hidden configs
         self.hc = ConfigWrapper(self, self._hidden_config)
         self._hidden_config_meta = ConfigMeta(self._hidden_config_meta)
@@ -134,6 +145,8 @@ class Plugin(object):
             alternative = getattr(super(self.__class__, self), method_name)
             method = getattr(self, method_name)
             setattr(self, method_name, pluginMethodWrapper(self.name, method, alternative))
+        if self.oauth is not None:
+            self.oauth.set_plugin(self)
 
     def _get_enabled(self):
         return self.c.enabled
@@ -442,7 +455,7 @@ class Plugin(object):
 
 
 class DownloadType(Plugin):
-    """Simple skeleton for a "DownloadType"."""
+    """These plugins define the type of download like NZB."""
     _type = 'DownloadType'
     single = True
     addMediaTypeOptions = False
@@ -459,7 +472,8 @@ class DownloadTyped(Plugin):
         if not self.types:
             for downloadType in common.PM.DT:
                 self.types.append(downloadType.identifier)
-        self._config["comment_on_download"] = False
+        if hasattr(self.__class__, "commentOnDownload"):
+            self._config["comment_on_download"] = False
         Plugin.__init__(self, instance=instance)
 
     def _getDownloadTypeExtension(self, downloadTypeIdentifier):
@@ -477,7 +491,7 @@ class DownloadTyped(Plugin):
 
 
 class Downloader(DownloadTyped):
-    """Plugins of this class send Downloads to another Program or directly download stuff"""
+    """These plugins of this class send Downloads to another Programs or directly download stuff."""
     _type = 'Downloader'
     types = [] # types the downloader can handle ... e.g. blackhole can handle both
 
@@ -527,7 +541,9 @@ class Downloader(DownloadTyped):
 
 
 class Indexer(DownloadTyped):
-    """Plugins of this class create elemnts based on mediaType structures"""
+    """These plugins perform searches on sites that hold information of available files.
+
+    Plugins of this class create elemnts based on mediaType structures"""
     _type = 'Indexer'
     types = [] # types this indexer will give back
     name = "Does Noting"
@@ -590,7 +606,7 @@ class Indexer(DownloadTyped):
 
 
 class Notifier(Plugin):
-    """Plugins of this class send out notification"""
+    """These plugins send out notifications."""
     _type = 'Notifier'
     addMediaTypeOptions = True
     name = "prints"
@@ -613,7 +629,9 @@ class Notifier(Plugin):
 
 
 class Provider(Plugin):
-    """Plugins of this class create elemnets based on mediaType structures.
+    """These plugins get meta information for the MediaTypes and perform searches.
+
+    Plugins of this class create elemnets based on mediaType structures.
 
     creating more providers is definety more complicated then other things since
     creating element structures based on the structure defined by the mediaType can be complicated
@@ -652,12 +670,19 @@ class Provider(Plugin):
             self.tag = instance
         self.progress = self.Progress()
 
+        arg_spec = getargspec(self.getElement)
+        if "tag" not in arg_spec.args:
+            self._orig_getElement = self.getElement
+            def wrapper(id, element=None, tag=None):
+                return self._orig_getElement(id, element)
+            self.getElement = wrapper
+
     def searchForElement(self, term=''):
         """Create a MediaType structure of the type of element.mediaType
         """
         return Element()
 
-    def getElement(self, id, element=None):
+    def getElement(self, id, element=None, tag=None):
         return False
 
     def _getSupportedManagers(self):
@@ -669,6 +694,7 @@ class Provider(Plugin):
 
 
 class PostProcessor(Plugin):
+    """These plugins act on downloaded items like move and rename files."""
     _type = 'PostProcessor'
     types = [] # media types the downloader can handle
 
@@ -704,12 +730,13 @@ class PostProcessor(Plugin):
 
 
 class System(Plugin):
-    """Is just a way to handle the config part and stuff"""
+    """These plugins control global issues such as XDMs config."""
     _type = 'System'
     name = "Does Noting"
 
 
 class DownloadFilter(Plugin):
+    """These plugins filter available downloads like vidoe quality."""
     _pre_search = 1
     _post_search = 2
 
@@ -737,6 +764,7 @@ class DownloadFilter(Plugin):
 
 
 class SearchTermFilter(Plugin):
+    """These plugins manipulate the search terms, create new ones or remove others."""
     _type = 'SearchTermFilter'
     addMediaTypeOptions = 'runFor'
     name = 'Does Nothing'
@@ -746,14 +774,12 @@ class SearchTermFilter(Plugin):
 
 
 class MediaAdder(Plugin):
-    """Plugins of this type are called periodically on runShedule() and should retrun a list of Media
-    that should be added
-    """
+    """These plugins are called periodically and can add/manipulate media entries from other sources."""
     _type = 'MediaAdder'
     name = 'Does Nothing'
 
     class Media(object):
-        """Class that holds the iformation needed by XDM to add the Media"""
+        """Class that holds the information needed by XDM to add the Media"""
         def __init__(self, mediaTypeIdentifier, externalID, providerTag, elementType, name, additionalData={}):
             self.mediaTypeIdentifier = mediaTypeIdentifier
             self.externalID = externalID
@@ -762,6 +788,9 @@ class MediaAdder(Plugin):
             self.name = name
             self.additionalData = additionalData
             self.status = None
+            self.root = None
+            """this is set by XDM of the Media was succesfully added,
+            it is the element(root) that represents the Media in XDM"""
 
     def runShedule(self):
         """This method is called periodically and has to return a list of Media objects"""
@@ -772,7 +801,9 @@ class MediaAdder(Plugin):
 
 
 class MediaTypeManager(Plugin):
-    """Plugins of this type define a "MediaType" e.g. Movies
+    """These plugins define what XDM manages e.g. Movies, Books etc. They also define how each type looks.
+
+    Plugins of this type define a "MediaType" e.g. Movies
     They define a Structure of Classes simple classes that resemble Objects needed for the media that is being reflected.
     """
     _type = 'MediaTypeManager'
@@ -831,7 +862,11 @@ class MediaTypeManager(Plugin):
         self.s = {'root': self.__class__.__name__}
         l = list(self.order)
         for i, e in enumerate(l):
-            attributes = [attr for attr in dir(e) if isinstance(getattr(e, attr), (int, str)) and not attr.startswith('_')]
+            attributes = [attr
+                  for attr in dir(e)
+                  if isinstance(getattr(e, attr), (int, str))
+                  and not attr.startswith('_')
+            ]
             attributes = sorted(attributes, key=lambda a: getattr(e, a))
             if not i:
                 if len(l) > 1:
@@ -879,16 +914,18 @@ class MediaTypeManager(Plugin):
                         e.save()
 
     def checkElementFields(self):
-        # FIXME
-        return
         for cur_class in self.order:
             for element in self.getElementsWithStatusIn(common.getEveryStatusBut([common.TEMP])):
                 for attrName in self.s[element.type]['attr']:
                     try:
                         getattr(element, attrName)
                     except AttributeError:
-                        log(u"%s is missing attr: '%s'. Fixing that for you." % (element, attrName))
-                        element.setField(attrName, getattr(cur_class, attrName), 'XDM')
+                        log(u"%s is missing attr: '%s'. Fixing that for you." % (element.id, attrName))
+                        try:
+                            value = getattr(cur_class, attrName)
+                        except AttributeError:
+                            value = ""
+                        element.setField(attrName, value, 'XDM')
 
     def getDownloadableElements(self, asList=True):
         return self.getElementsWithStatusIn(self.homeStatuses(), asList, [self.download.__name__])
@@ -1051,4 +1088,7 @@ class MediaTypeManager(Plugin):
         else:
             return helper.getContainerTpl()
 
-__all__ = ['System', 'PostProcessor', 'Provider', 'Indexer', 'Notifier', 'Downloader', 'MediaTypeManager', 'Element', 'DownloadType', 'DownloadFilter', 'SearchTermFilter', 'MediaAdder']
+__all__ = [
+    'System', 'PostProcessor', 'Provider', 'Indexer', 'Notifier', 'Downloader',
+    'MediaTypeManager', 'Element', 'DownloadType', 'DownloadFilter',
+    'SearchTermFilter', 'MediaAdder', "DEFAULT_INSTANCE_NAME"]
