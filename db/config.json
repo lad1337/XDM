@@ -1,0 +1,1 @@
+{"version": "0.2.12", "index_class": "transactional", "index_store_class": "basic", "store_class": "transactional", "serializer_class": "json", "autocommit": false, "indexes": {}}
