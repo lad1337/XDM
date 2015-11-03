@@ -27,7 +27,7 @@ ARGUMENT_MAP = {
     'debug': 'server'
 }
 
-logger = logging.getLogger('XDM')
+logger = logging.getLogger('xdm')
 
 
 class Config(ConfigParser):
@@ -39,6 +39,7 @@ class Config(ConfigParser):
 
         super(Config, self).__init__()
         self.init(self.comand_line_arguments)
+        self.apply_comand_line_arguments(self.comand_line_arguments)
 
     def init(self, arguments):
 
@@ -66,9 +67,10 @@ class Config(ConfigParser):
         logger.debug('Reading config file at: %s', config_path)
         self.read(str(config_path))
 
-
+    def apply_comand_line_arguments(self, arguments):
         for argument, value in arguments.items():
-            if argument not in ARGUMENT_MAP:
+            # TODO: overwrite only values that have been passed, not with defaults
+            if argument not in ARGUMENT_MAP or value is None:
                 continue
 
             logger.debug(

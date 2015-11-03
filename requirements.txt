@@ -5,8 +5,6 @@ pytz
 requests
 sh
 blitzdb
-flask
+tornado
 appdirs
-celery
-sqlalchemy
 attrdict
