@@ -1,4 +1,5 @@
 from argparse import ArgumentParser
+import logging
 from xdm.application import XDM
 
 import tornado
@@ -13,7 +14,9 @@ def run():
 
     xdm = XDM(**vars(args))
     http_server = tornado.httpserver.HTTPServer(xdm)
-    http_server.listen(xdm.configuration.getint('server', 'port'))
+    port = xdm.configuration.getint('server', 'port')
+    http_server.listen(port)
+    xdm.logger.info("Listening on port: %s", port)
     tornado.ioloop.IOLoop.instance().start()
 
 if __name__ == "__main__":

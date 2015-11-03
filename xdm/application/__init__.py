@@ -3,10 +3,14 @@ from logging import StreamHandler
 
 import tornado.web
 import tornado.httpserver
+from tornado.ioloop import IOLoop
+
 from blitzdb import FileBackend
 
 from xdm.config import Config
 from xdm.application import api
+from xdm.task import consumer
+from xdm.task import Q
 from xdm.task import internal
 
 class XDM(tornado.web.Application):
@@ -22,7 +26,15 @@ class XDM(tornado.web.Application):
         super(XDM, self).__init__()
         self.debug = self.configuration.get('server', 'debug')
         self.db = FileBackend(self.configuration.get('paths', 'db'))
-        self._add_handlers()
+        # adding default routes
+        self.add_handlers(".*$", [(h.route, h) for h in (api.APIPing, api.Task)])
+        # spawn Q consumers
+        self.queue = Q
+        IOLoop.current().spawn_callback(consumer)
+
+        self.task_map = {
+            "update_check": internal.update_check
+        }
 
     def init_logging(self, stream_handler):
         self.loggers = {
@@ -37,5 +49,5 @@ class XDM(tornado.web.Application):
 
 
     def _add_handlers(self):
-        handlers = (api.APIPing, internal.Task)
+        handlers = (api.APIPing, api.Task)
         self.add_handlers(".*$", [(h.route, h) for h in handlers])
