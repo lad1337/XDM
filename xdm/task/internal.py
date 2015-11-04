@@ -10,7 +10,7 @@ from xdm.model import Element
 def update_check(task_id, app, data):
     logger.info("Checking for update.")
 
-    for i in range(10):
+    for i in range(2):
         old = app.db.filter(Element, {'type': 'update_check'})
         logger.info('update check step: %s ... found %s old steps', i, len(old))
         e = Element({

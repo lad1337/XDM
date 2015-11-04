@@ -54,3 +54,6 @@ class XDM(tornado.web.Application):
             if self.configuration.getboolean('server', 'debug'):
                 logger.setLevel(logging.DEBUG)
             logger.addHandler(stream_handler)
+
+    def add_task(self, name, callable):
+        self.task_map[name] = callable

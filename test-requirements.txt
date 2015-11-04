@@ -4,4 +4,4 @@ hacking>=0.9.3
 pytest-localserver>=0.3.0
 datadiff
 Mock
-
+pytest-tornado
