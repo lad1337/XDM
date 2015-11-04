@@ -1,8 +1,9 @@
 from argparse import ArgumentParser
-import logging
+
 from xdm.application import XDM
 
 import tornado
+
 
 def run():
     parser = ArgumentParser(description='XDM: eXtendable Download Manager.'

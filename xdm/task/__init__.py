@@ -17,15 +17,21 @@ class IdentifierQueue(Queue):
         self._task_status = {}
 
     def put(self, identifier, item, timeout=None):
+        identifier = str(identifier)
         self._task_status[identifier] = {'status': QUEUED}
+        logger.debug('Adding task %s', identifier)
         return super(IdentifierQueue, self).put((identifier, item), timeout=timeout)
 
     def task_done(self, identifier):
         super(IdentifierQueue, self).task_done()
+        logger.debug('Task done %s', identifier)
         self._task_status[identifier]['status'] = FINISHED
 
-    def status(self, identifier):
+    def get_status(self, identifier):
         return self._task_status.get(identifier)
+
+    def set_status(self, identifier, status):
+        self._task_status[identifier]['status'] = status
 
 
 Q = IdentifierQueue(maxsize=200)
@@ -39,12 +45,10 @@ def consumer():
         app, task_name, task_data = task_data
         logger.debug('%s, %s', app, task_name)
 
-        logger.info('Doing work on %s:%s', task_name, task_id)
+        logger.info('Doing work on %s:%s %s', task_name, task_id, type(task_id))
         try:
-            task_result = yield app.task_map.get(task_name)(app, task_data)
+            task_result = yield app.task_map.get(task_name)(task_id, app, task_data)
         finally:
             Q.task_done(task_id)
             logger.info('Work on %s:%s done', task_name, task_id)
         logger.debug('Task result: %s', task_result)
-
-

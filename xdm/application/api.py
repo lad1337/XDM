@@ -1,9 +1,9 @@
 import logging
 import uuid
 
-from tornado.web import RequestHandler
 from tornado.escape import json_decode
 from tornado.gen import coroutine
+from tornado.web import RequestHandler
 
 from xdm.task import Q
 
@@ -21,7 +21,7 @@ class APIPing(RequestHandler):
 
 class Task(RequestHandler):
 
-    route = r'/api/task/start/([\w\-]+)$'
+    route = r'/api/task/([\w\-]+)$'
 
     @coroutine
     def post(self, task_name):
@@ -40,5 +40,5 @@ class Task(RequestHandler):
     @coroutine
     def get(self, task_id):
         self.write({
-            'status': self.application.queue.status(task_id)
+            'status': self.application.queue.get_status(task_id)
         })

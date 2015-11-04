@@ -8,3 +8,4 @@ blitzdb
 tornado
 appdirs
 attrdict
+colorlog

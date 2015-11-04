@@ -1,7 +1,16 @@
-from flask import Blueprint
+import logging
 
-index = Blueprint('XDM', __name__, template_folder='../html')
+from tornado.gen import coroutine
+from tornado.web import RequestHandler
 
-@index.route('/')
-def show():
-    return "hello world"
+
+logger = logging.getLogger('xdm')
+
+
+class Index(RequestHandler):
+
+    route = r'/'
+
+    @coroutine
+    def get(self):
+        self.write('Hello World')

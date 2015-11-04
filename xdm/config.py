@@ -7,7 +7,7 @@ from appdirs import AppDirs
 app_dirs = AppDirs('XDM')
 
 DEFAUL_CONFIG = {
-    'paths': {
+    'path': {
         'config': Path(app_dirs.user_config_dir) / 'xdm.ini',
         'db': Path(app_dirs.user_data_dir) / 'db',
         'plugins': Path(app_dirs.user_data_dir) / 'plugins/'
@@ -22,6 +22,7 @@ DEFAUL_CONFIG = {
         'backend': 'db+sqlite:///%s' % (Path(app_dirs.user_data_dir) / 'task_queue.sqlite')
     }
 }
+
 ARGUMENT_MAP = {
     'port': 'server',
     'debug': 'server'
@@ -31,7 +32,7 @@ logger = logging.getLogger('xdm')
 
 
 class Config(ConfigParser):
-    
+
     def __init__(self, *args, **kwargs):
         self.comand_line_arguments = kwargs
         if self.comand_line_arguments.get('debug'):
@@ -44,7 +45,7 @@ class Config(ConfigParser):
     def init(self, arguments):
 
         if not arguments.get('config_path'):
-            config_path = DEFAUL_CONFIG['paths']['config']
+            config_path = DEFAUL_CONFIG['path']['config']
         else:
             config_path = Path(arguments['config_path'])
 
@@ -69,7 +70,7 @@ class Config(ConfigParser):
 
     def apply_comand_line_arguments(self, arguments):
         for argument, value in arguments.items():
-            # TODO: overwrite only values that have been passed, not with defaults
+            # TODO(lad1337): overwrite only values that have been passed, not with defaults
             if argument not in ARGUMENT_MAP or value is None:
                 continue
 
@@ -80,4 +81,3 @@ class Config(ConfigParser):
                 str(value)
             )
             self.set(ARGUMENT_MAP[argument], argument, str(value))
-
