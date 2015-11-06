@@ -11,17 +11,17 @@ DEFAUL_CONFIG = {
         'plugins': Path(app_dirs.user_data_dir) / 'plugins/'
     },
     'server': {
-        'port': 5000,
-        'debug': False,
-        'workers': 1
+        'port': (5000, int),
+        'debug': (False, bool)
     },
-    'tasks': {
+    'task': {
         'broker_url': 'sqla+sqlite:///%s' % (Path(app_dirs.user_data_dir) / 'task_queue.sqlite'),
         'backend': 'db+sqlite:///%s' % (Path(app_dirs.user_data_dir) / 'task_queue.sqlite')
     }
 }
 
 ARGUMENT_MAP = {
-    'port': 'server',
-    'debug': 'server'
+    'port': ('server', 'port'),
+    'debug': ('server', 'debug'),
+    'config_path': ('path', 'config')
 }

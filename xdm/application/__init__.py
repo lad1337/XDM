@@ -27,12 +27,12 @@ class XDM(tornado.web.Application):
             '%(asctime)-15s %(log_color)s%(levelname)-8s%(reset)s %(message)s'
         ))
         self.logger.addHandler(stream_handler)
-        self.configuration = Config(**kwargs)
+        self.config = Config(**kwargs)
         self.init_logging(stream_handler)
 
         super(XDM, self).__init__()
-        self.debug = self.configuration.get('server', 'debug')
-        self.db = FileBackend(self.configuration.get('path', 'db'))
+        self.debug = self.config.server.debug
+        self.db = FileBackend(self.config.get('path', 'db'))
         # adding default routes
         self.add_handlers(".*$", [(h.route, h) for h in (api.APIPing, api.Task)])
         # spawn Q consumers
@@ -51,7 +51,7 @@ class XDM(tornado.web.Application):
             'server.general': logging.getLogger("tornado.general")
         }
         for logger_name, logger in self.loggers.items():
-            if self.configuration.getboolean('server', 'debug'):
+            if self.config.server.debug:
                 logger.setLevel(logging.DEBUG)
             logger.addHandler(stream_handler)
 

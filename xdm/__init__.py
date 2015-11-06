@@ -5,7 +5,7 @@ from xdm.application import XDM
 import tornado
 
 
-def run():
+def run():  # noqa
     parser = ArgumentParser(description='XDM: eXtendable Download Manager.'
                                         'Plugin based media collection manager.')
     parser.add_argument('--port', type=int, help='port to listen on')
@@ -15,10 +15,9 @@ def run():
 
     xdm = XDM(**vars(args))
     http_server = tornado.httpserver.HTTPServer(xdm)
-    port = xdm.configuration.getint('server', 'port')
-    http_server.listen(port)
+    http_server.listen(xdm.config.server.port)
     xdm.logger.info("Listening on port: %s", port)
     tornado.ioloop.IOLoop.instance().start()
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     run()
