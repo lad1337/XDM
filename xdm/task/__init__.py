@@ -3,18 +3,12 @@ import logging
 from tornado import gen
 from tornado.queues import Queue
 
+from xdm.constant.task import FINISHED
+from xdm.constant.task import QUEUED
+from xdm.constant.task import RUNNING
+from xdm.constant.task import STATUS_MAP
+
 logger = logging.getLogger('xdm')
-
-
-QUEUED = 1
-RUNNING = 2
-FINISHED = 3
-
-STATUS_MAP = {
-    QUEUED: 'queued',
-    RUNNING: 'running',
-    FINISHED: 'finished'
-}
 
 
 class TaskStatus(object):

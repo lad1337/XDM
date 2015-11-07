@@ -1,12 +1,25 @@
+import logging
+from logging import StreamHandler
 from pathlib import Path
 import tempfile
 from unittest.mock import Mock
+
+from colorlog import ColoredFormatter
 
 import pytest
 
 from xdm.application import XDM
 from xdm.config import Config
 from xdm.config.default import DEFAUL_CONFIG
+
+logger = logging.getLogger('xdm')
+stream_handler = StreamHandler()
+stream_handler.setFormatter(ColoredFormatter(
+    '%(asctime)-15s %(log_color)s%(levelname)-8s%(reset)s %(message)s'
+))
+logger.addHandler(stream_handler)
+logger.setLevel(logging.DEBUG)
+
 
 tmp_dir = str(tempfile.TemporaryDirectory())
 

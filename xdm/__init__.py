@@ -15,7 +15,8 @@ def run():  # noqa
 
     xdm = XDM(**vars(args))
     http_server = tornado.httpserver.HTTPServer(xdm)
-    http_server.listen(xdm.config.server.port)
+    port = xdm.config.server.port
+    http_server.listen(port)
     xdm.logger.info("Listening on port: %s", port)
     tornado.ioloop.IOLoop.instance().start()
 

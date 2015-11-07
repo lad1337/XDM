@@ -11,6 +11,7 @@ import tornado.web
 
 from xdm.application import api
 from xdm.config import Config
+from xdm.plugin import PluginManager
 from xdm.task import consumer
 from xdm.task import internal
 from xdm.task import Q
@@ -42,6 +43,7 @@ class XDM(tornado.web.Application):
         self.task_map = {
             "update_check": internal.update_check
         }
+        self.plugins = PluginManager([self.config.path.plugins])
 
     def init_logging(self, stream_handler):
         self.loggers = {
