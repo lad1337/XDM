@@ -1,16 +1,7 @@
 import logging
 from logging import StreamHandler
-from pathlib import Path
-import tempfile
-from unittest.mock import Mock
 
 from colorlog import ColoredFormatter
-
-import pytest
-
-from xdm.application import XDM
-from xdm.config import Config
-from xdm.config.default import DEFAUL_CONFIG
 
 logger = logging.getLogger('xdm')
 stream_handler = StreamHandler()
@@ -21,7 +12,21 @@ logger.addHandler(stream_handler)
 logger.setLevel(logging.DEBUG)
 
 
+from pathlib import Path
+
+import tempfile
+from unittest.mock import Mock
+
+import pytest
+
+from xdm.application import XDM
+from xdm.config import Config
+from xdm.config.default import DEFAUL_CONFIG
+from xdm.plugin import PluginManager
+
 tmp_dir = str(tempfile.TemporaryDirectory())
+test_plugin_folder = Path(__file__).parent / 'plugin' / 'plugins'
+
 
 DEFAUL_CONFIG['path'] = {
     'config': Path(tmp_dir) / 'xdm.ini',
@@ -38,3 +43,8 @@ def xdm():
     yield XDM(
         debug=True
     )
+
+
+@pytest.yield_fixture
+def plugin_manager():
+    yield PluginManager(None, [test_plugin_folder])

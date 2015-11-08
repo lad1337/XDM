@@ -1,14 +1,31 @@
-from pathlib import Path
-from unittest.mock import Mock
+from conftest import test_plugin_folder
 
-from xdm.plugin import PluginManager
-
-test_plugin_folder = Path(__file__).parent / 'plugins'
+from xdm.plugin.base import Plugin
 
 
-def test_plugin_manager():
-    pm = PluginManager(Mock(), [test_plugin_folder])
-    assert {str(test_plugin_folder)} == pm.paths
-    assert pm.load()
-    plugin = pm._classes.pop()
-    assert pm._hooks['download'][0] == plugin
+def test_plugin_manager(plugin_manager):
+    assert {str(test_plugin_folder)} == plugin_manager.paths
+    assert plugin_manager.load()
+    assert len(plugin_manager._hooks['download']) == 2
+
+
+def test_import_error(plugin_manager):  # noqa
+    class BrokenPlugin(Plugin):
+
+        def __init__(self, app):
+            super(BrokenPlugin, self).__init__(app)
+            import foo  # noqa
+
+    assert not plugin_manager.register(BrokenPlugin)
+
+
+def test_plugin_hooks(plugin_manager):
+    plugin_manager.load()
+    assert not plugin_manager.get_hooks('foo')
+    assert plugin_manager.get_hooks('foo', [1]) == [1]
+    assert len(plugin_manager.get_hooks('download')) == 2
+    assert len(plugin_manager.get_hooks('pre_download')) == 1
+
+
+def test_plugin_tasks(plugin_manager):
+    plugin_manager.load()

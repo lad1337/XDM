@@ -14,6 +14,7 @@ class PluginManager():
 
     _classes = set()
     _hooks = {}
+    _tasks = {}
 
     def __init__(self, app, paths=None, follow_symlinks=False):
         self.app = app
@@ -27,6 +28,7 @@ class PluginManager():
     def clear_cache(self):
         self._classes = set()
         self._hooks = defaultdict(list)
+        self._tasks = defaultdict(list)
 
     def load(self, system_only=False, path=None):
         paths = [str(path)] if path else self.paths
@@ -53,10 +55,29 @@ class PluginManager():
             return
         for member_name, member in inspect.getmembers(instance):
             if hasattr(member, 'hook') and member.hook:
-                logger.debug('%s has method "%s"', cls, member_name)
-                self._hooks[member_name].append(cls)
+                logger.info(
+                    'Register hook "%s" of %s as "%s"', member_name, cls, member.identifier)
+                self._hooks[member.identifier].append((cls, member_name))
+            if hasattr(member, 'task') and member.task:
+                logger.info(
+                    'Register task "%s" of %s as "%s"', member_name, cls, member.identifier)
+                self._tasks[member.identifier].append((cls, member_name))
         self._classes.add(cls)
-        logger.debug('Registered "%s"', cls)
+        logger.info('Registered "%s"', cls)
+
+    def get_instances(self, cls):
+        # TODO(lad1337): get all instances for plugin
+        return [cls(self.app, 'default')]
+
+    def get_hooks(self, name, default=None):
+        hooks = self._hooks.get(name)
+        if hooks is None:
+            return default or []
+        hook_callbacks = []
+        for cls, member_name in hooks:
+            for instance in self.get_instances(cls):
+                hook_callbacks.append(getattr(instance, member_name))
+        return hook_callbacks
 
     def find_subclasses(self, cls, path, reloadModule=False):
         """Find all subclass of cls in py files located below path
