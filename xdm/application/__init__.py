@@ -29,11 +29,13 @@ class XDM(tornado.web.Application):
         ))
         self.logger.addHandler(stream_handler)
         self.config = Config(**kwargs)
+        self.loggers = []
         self.init_logging(stream_handler)
 
         super(XDM, self).__init__()
         self.debug = self.config.server.debug
-        self.db = FileBackend(self.config.get('path', 'db'))
+        self.db = FileBackend(self.config.path.element_db)
+        self.config_db = FileBackend(self.config.path.config_db)
         # adding default routes
         self.add_handlers(".*$", [(h.route, h) for h in (api.APIPing, api.Task)])
         # spawn Q consumers

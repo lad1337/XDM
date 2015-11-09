@@ -7,7 +7,8 @@ app_dirs = AppDirs('XDM')
 DEFAUL_CONFIG = {
     'path': {
         'config': Path(app_dirs.user_config_dir) / 'xdm.ini',
-        'db': Path(app_dirs.user_data_dir) / 'db',
+        'element_db': Path(app_dirs.user_data_dir) / 'element_db',
+        'config_db': Path(app_dirs.user_data_dir) / 'config_db',
         'plugins': Path(app_dirs.user_data_dir) / 'plugins/'
     },
     'server': {
