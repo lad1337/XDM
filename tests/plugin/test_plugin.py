@@ -1,3 +1,5 @@
+import pytest
+
 from xdm.plugin.base import Plugin
 
 
@@ -22,6 +24,15 @@ def test_plugin_decorators():
     assert mp.before_download(1) == 1
 
 
-def test_plugin_hooks(plugin_manager):
+def test_hooks(plugin_manager):
+    plugin_manager.load()
     for downloader in plugin_manager.get_hooks('download'):
         assert downloader(3) == 3
+
+
+@pytest.mark.gen_test
+def test_tasks(plugin_manager):
+    plugin_manager.load()
+    for searcher in plugin_manager.get_tasks('search_downloads'):
+        results = yield searcher()
+        assert len([download for download in results]) == 10

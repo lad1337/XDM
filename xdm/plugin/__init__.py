@@ -6,7 +6,7 @@ import site
 
 from xdm.plugin import base
 
-logger = logging.getLogger('xdm')
+logger = logging.getLogger('xdm.plugin_manager')
 
 
 class PluginManager():
@@ -27,8 +27,8 @@ class PluginManager():
 
     def clear_cache(self):
         self._classes = set()
-        self._hooks = defaultdict(list)
-        self._tasks = defaultdict(list)
+        self._hooks = defaultdict(set)
+        self._tasks = defaultdict(set)
 
     def load(self, system_only=False, path=None):
         paths = [str(path)] if path else self.paths
@@ -54,14 +54,12 @@ class PluginManager():
             logger.exception('Can not instantiate "%s", skipping')
             return
         for member_name, member in inspect.getmembers(instance):
-            if hasattr(member, 'hook') and member.hook:
-                logger.info(
-                    'Register hook "%s" of %s as "%s"', member_name, cls, member.identifier)
-                self._hooks[member.identifier].append((cls, member_name))
-            if hasattr(member, 'task') and member.task:
-                logger.info(
-                    'Register task "%s" of %s as "%s"', member_name, cls, member.identifier)
-                self._tasks[member.identifier].append((cls, member_name))
+            for type_ in ('hook', 'task'):
+                if hasattr(member, type_) and getattr(member, type_):
+                    logger.info(
+                        'Register %s "%s" of %s as "%s"',
+                        type_, member_name, cls, member.identifier)
+                    getattr(self, '_%ss' % type_,)[member.identifier].add((cls, member_name))
         self._classes.add(cls)
         logger.info('Registered "%s"', cls)
 
@@ -69,15 +67,21 @@ class PluginManager():
         # TODO(lad1337): get all instances for plugin
         return [cls(self.app, 'default')]
 
-    def get_hooks(self, name, default=None):
-        hooks = self._hooks.get(name)
-        if hooks is None:
-            return default or []
-        hook_callbacks = []
-        for cls, member_name in hooks:
+    def get_tasks(self, name):
+        return self._get_items('_tasks', name)
+
+    def get_hooks(self, name):
+        return self._get_items('_hooks', name)
+
+    def _get_items(self, attribute, name):
+        items = getattr(self, attribute).get(name)
+        if items is None:
+            return None
+        callbacks = []
+        for cls, member_name in items:
             for instance in self.get_instances(cls):
-                hook_callbacks.append(getattr(instance, member_name))
-        return hook_callbacks
+                callbacks.append(getattr(instance, member_name))
+        return callbacks
 
     def find_subclasses(self, cls, path, reloadModule=False):
         """Find all subclass of cls in py files located below path

@@ -22,19 +22,20 @@ class MyPlugin2(Plugin):
     def download(self, download):
         return download
 
-    @Plugin.register_task
-    def search_downloads(self):
-        for i in range(10):
-            yield Download({
-                'link': 'foo',
-                'name': 'download number %s' % i
-            })
-
     @coroutine
     @Plugin.register_task
-    def search_element(self):
+    def search_downloads(self):
+        results = []
         for i in range(10):
-            yield Element({
+            results.append(Download({
                 'link': 'foo',
                 'name': 'download number %s' % i
-            })
+            }))
+        return results
+
+    @Plugin.register_task(identifier='update_elements')
+    def search_element(self):
+        return Element({
+            'link': 'foo',
+            'name': 'Element name'
+        })
