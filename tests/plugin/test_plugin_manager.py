@@ -1,3 +1,6 @@
+import pytest
+
+from conftest import no_gen
 from conftest import test_plugin_folder
 
 from xdm.plugin.base import Plugin
@@ -21,17 +24,25 @@ def test_import_error(plugin_manager):  # noqa
 
 def test_plugin_hooks(plugin_manager):
     plugin_manager.load()
-    assert not plugin_manager.get_hooks('foo')
+    assert not no_gen(plugin_manager.get_hooks('foo'))
     assert plugin_manager.get_hooks('download')
-    assert len(plugin_manager.get_hooks('download')) == 2
+    assert len(no_gen(plugin_manager.get_hooks('download'))) == 2
     assert plugin_manager.get_hooks('pre_download')
-    assert len(plugin_manager.get_hooks('pre_download')) == 1
+    assert len(no_gen(plugin_manager.get_hooks('pre_download'))) == 1
 
 
 def test_plugin_tasks(plugin_manager):
     plugin_manager.load()
-    assert not plugin_manager.get_tasks('foo')
+    assert not no_gen(plugin_manager.get_tasks('foo'))
     assert plugin_manager.get_tasks('search_downloads')
-    assert len(plugin_manager.get_tasks('search_downloads')) == 1
+    assert len(no_gen(plugin_manager.get_tasks('search_downloads'))) == 1
     assert plugin_manager.get_tasks('update_elements')
-    assert len(plugin_manager.get_tasks('update_elements')) == 1
+    assert len(no_gen(plugin_manager.get_tasks('update_elements'))) == 1
+
+
+@pytest.mark.gen_test
+def test_plugin_scheduled_tasks(plugin_manager):
+    plugin_manager.load()
+    assert not no_gen(plugin_manager.get_scheduled_tasks('foo'))
+    assert plugin_manager.get_scheduled_tasks('clean_db')
+    assert len(no_gen(plugin_manager.get_scheduled_tasks('clean_db'))) == 1

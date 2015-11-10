@@ -50,6 +50,10 @@ Config.create_directories = Mock()
 Config.write_config_file = Mock()
 
 
+def no_gen(gen):
+    return [i for i in gen]
+
+
 @pytest.fixture
 def fix_logging_handlers():
     reset_logging()

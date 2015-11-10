@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 from tornado.gen import coroutine
 
 from xdm.model import Download
@@ -35,6 +37,14 @@ class MyPlugin2(Plugin):
 
     @Plugin.register_task(identifier='update_elements')
     def search_element(self):
+        return Element({
+            'link': 'foo',
+            'name': 'Element name'
+        })
+
+    @coroutine
+    @Plugin.register_task(interval=timedelta(seconds=5))
+    def clean_db(self):
         return Element({
             'link': 'foo',
             'name': 'Element name'

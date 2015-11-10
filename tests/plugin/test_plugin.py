@@ -1,6 +1,8 @@
+from datetime import timedelta
 from unittest.mock import MagicMock
 
 import pytest
+from tornado.gen import coroutine
 
 from xdm.plugin.base import Plugin
 from xdm.plugin.config import Config
@@ -25,6 +27,11 @@ class MyPlugin(Plugin):
     def before_download(self, download):
         return download
 
+    @coroutine
+    @Plugin.register_task(interval=timedelta(seconds=5))
+    def search_download(self, download):
+        return download
+
 
 def test_plugin_config(xdm):
     mp = MyPlugin(xdm)
@@ -44,9 +51,19 @@ def test_plugin_decorators():
     assert mp.download.hook
     assert mp.download.identifier == 'download'
     assert mp.download(1) == 1
+
     assert mp.before_download.hook
     assert mp.before_download.identifier == 'pre_download'
     assert mp.before_download(1) == 1
+
+
+@pytest.mark.gen_test
+def test_plugin_decorators_coroutine():
+    mp = MyPlugin(MagicMock())
+    assert mp.search_download.task
+    assert mp.search_download.identifier == 'search_download'
+    assert mp.search_download.interval == timedelta(seconds=5)
+    assert 1 == (yield mp.search_download(1))
 
 
 def test_hooks(plugin_manager):

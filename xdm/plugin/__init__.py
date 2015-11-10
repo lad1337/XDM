@@ -54,7 +54,7 @@ class PluginManager():
             logger.exception('Can not instantiate "%s", skipping')
             return
         for member_name, member in inspect.getmembers(instance):
-            for type_ in ('hook', 'task'):
+            for type_ in base.METHOD_TYPES:
                 if hasattr(member, type_) and getattr(member, type_):
                     logger.info(
                         'Register %s "%s" of %s as "%s"',
@@ -67,21 +67,25 @@ class PluginManager():
         # TODO(lad1337): get all instances for plugin
         return [cls(self.app, 'default')]
 
+    def get_hooks(self, name):
+        return self._get_items('_hooks', name)
+
     def get_tasks(self, name):
         return self._get_items('_tasks', name)
 
-    def get_hooks(self, name):
-        return self._get_items('_hooks', name)
+    def get_scheduled_tasks(self, name):
+        for callback in self._get_items('_tasks', name):
+            if callback.interval is None:
+                continue
+            yield callback
 
     def _get_items(self, attribute, name):
         items = getattr(self, attribute).get(name)
         if items is None:
-            return None
-        callbacks = []
+            return
         for cls, member_name in items:
             for instance in self.get_instances(cls):
-                callbacks.append(getattr(instance, member_name))
-        return callbacks
+                yield getattr(instance, member_name)
 
     def find_subclasses(self, cls, path, reloadModule=False):
         """Find all subclass of cls in py files located below path
