@@ -9,7 +9,7 @@ DEFAUL_CONFIG = {
         'config': Path(app_dirs.user_config_dir) / 'xdm.ini',
         'element_db': Path(app_dirs.user_data_dir) / 'element_db',
         'config_db': Path(app_dirs.user_data_dir) / 'config_db',
-        'plugins': Path(app_dirs.user_data_dir) / 'plugins/'
+        'plugin': Path(app_dirs.user_data_dir) / 'plugins/'
     },
     'server': {
         'port': (5000, int),
@@ -24,5 +24,6 @@ DEFAUL_CONFIG = {
 ARGUMENT_MAP = {
     'port': ('server', 'port'),
     'debug': ('server', 'debug'),
-    'config_path': ('path', 'config')
+    'config_path': ('path', 'config'),
+    'plugin_folder': ('path', 'plugin')
 }

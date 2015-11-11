@@ -48,7 +48,7 @@ class Config(ConfigParser):
         for name, value in arguments.items():
             if value is None:
                 continue
-            section, target_name = ARGUMENT_MAP.get(name, {})
+            section, target_name = ARGUMENT_MAP.get(name, (None, None))
             # TODO(lad1337): overwrite only values that have been passed, not with defaults
             if section is None or target_name is None:
                 logger.warning('Unknown command line argument: "%s"', name)

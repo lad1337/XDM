@@ -20,6 +20,8 @@ class MyPlugin(Plugin):
 
 class MyPlugin2(Plugin):
 
+    identifier = 'de.lad1337.test_plugin2'
+
     @Plugin.register_hook
     def download(self, download):
         return download
@@ -43,9 +45,8 @@ class MyPlugin2(Plugin):
         })
 
     @coroutine
-    @Plugin.register_task(interval=timedelta(seconds=5))
+    @Plugin.register_task(interval=timedelta(seconds=1))
     def clean_db(self):
-        return Element({
-            'link': 'foo',
-            'name': 'Element name'
-        })
+        self.logger.info('Cleaning the DB')
+        self.app.side_effect = True
+        return

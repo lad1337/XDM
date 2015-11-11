@@ -21,16 +21,17 @@ def attach_attributes(func, type_, kwargs=None):
 
     func.identifier = None
     func.interval = None
+    func.kwargs = kwargs
 
     kwargs = kwargs or {}
     identifier = kwargs.get('identifier') or func.__name__
-    logger.warning('Attaching identifier "%s" to method %s', identifier, func)
+    logger.info('Attaching identifier "%s" to method %s', identifier, func)
     func.identifier = identifier
 
     if kwargs.get('interval'):
         interval = kwargs['interval']
         if not isinstance(interval, timedelta):
-            logger.warning(
+            logger.error(
                 'Interval for %s is not of type timedelta, got %s instead',
                 func,
                 type(interval)
@@ -51,10 +52,10 @@ def wrap_with_logger(type_, func):
 
 def prepare_method(type_, *args, **kwargs):
     if len(args) and (inspect.isfunction(args[0]) or inspect.ismethod(args[0])):
-        logger.debug(
-            'register_hook used as simple decorator with %s & %s', args, kwargs
-        )
         func = args[0]
+        logger.debug(
+            'register_hook used as simple decorator for %s', func
+        )
         attach_attributes(func, type_)
         return wrap_with_logger(type_, func)
     # else this is called with arguments, we don't have the method yet
@@ -80,6 +81,7 @@ class Plugin():
         self.config.set_db(app.config_db)
         self.config.set_owner(self)
         self.config.load()
+        self.logger = logging.getLogger('xdm.plugin.%s' % self)
 
     def __repr__(self):
         return '<%s>' % self

@@ -24,6 +24,7 @@ class PluginManager():
         self.clear_cache()
 
         self.follow_symlinks = follow_symlinks
+        logger.debug('PM initiated with paths: %s', self.paths)
 
     def clear_cache(self):
         self._classes = set()
@@ -37,13 +38,16 @@ class PluginManager():
             site.addsitedir(path)
             classes.extend(self._load_plugins(path))
         logger.debug('Loaded classes: %s', classes)
+
+        for schedule in self.get_scheduled_tasks():
+            self.app.add_schedule(schedule.identifier, schedule, schedule.interval)
         return classes
 
     def _load_plugins(self, path):
         logger.debug('Current search domain: %s', self.paths | {path})
         classes = self.find_subclasses(base.Plugin, path)
         for cls in classes:
-            logger.debug('Found %s', cls)
+            logger.info('Found %s', cls)
             self.register(cls)
         return classes
 
@@ -55,11 +59,13 @@ class PluginManager():
             return
         for member_name, member in inspect.getmembers(instance):
             for type_ in base.METHOD_TYPES:
-                if hasattr(member, type_) and getattr(member, type_):
-                    logger.info(
-                        'Register %s "%s" of %s as "%s"',
-                        type_, member_name, cls, member.identifier)
-                    getattr(self, '_%ss' % type_,)[member.identifier].add((cls, member_name))
+                if not (hasattr(member, type_) and getattr(member, type_)):
+                    continue
+                logger.debug(
+                    'Register %s "%s" of %s as "%s" with %s',
+                    type_, member_name, cls, member.identifier, member.kwargs)
+                getattr(self, '_%ss' % type_,)[member.identifier].add((cls, member_name))
+
         self._classes.add(cls)
         logger.info('Registered "%s"', cls)
 
@@ -67,21 +73,26 @@ class PluginManager():
         # TODO(lad1337): get all instances for plugin
         return [cls(self.app, 'default')]
 
-    def get_hooks(self, name):
+    def get_hooks(self, name=None):
         return self._get_items('_hooks', name)
 
-    def get_tasks(self, name):
+    def get_tasks(self, name=None):
         return self._get_items('_tasks', name)
 
-    def get_scheduled_tasks(self, name):
+    def get_scheduled_tasks(self, name=None):
         for callback in self._get_items('_tasks', name):
             if callback.interval is None:
                 continue
             yield callback
 
-    def _get_items(self, attribute, name):
-        items = getattr(self, attribute).get(name)
-        if items is None:
+    def _get_items(self, attribute, name=None):
+        if name is not None:
+            items = getattr(self, attribute).get(name)
+        else:
+            items = [
+                item for item_list in getattr(self, attribute).values()
+                for item in item_list]
+        if not items:
             return
         for cls, member_name in items:
             for instance in self.get_instances(cls):
@@ -93,8 +104,6 @@ class PluginManager():
         """
         subclasses = []
         for root, dirs, files in os.walk(str(path), followlinks=self.follow_symlinks):
-            if '__old__' in root:
-                continue
             for name in files:
                 if not name.endswith(".py"):
                     continue
@@ -112,7 +121,6 @@ class PluginManager():
                     module = __import__(modulename)
                     '''
                     logger.exception('During import of "%s"', modulename)
-
         return subclasses
 
     def look_for_subclass(self, cls, modulename):

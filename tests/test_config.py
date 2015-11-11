@@ -19,8 +19,9 @@ def test_config_not_overwrite():
 
 
 def test_config_get_attr():
-    c = Config(debug=True, config_path='foo', port=1337)
+    c = Config(debug=True, config_path='foo', plugin_folder='p', port=1337)
     assert c.path.config == 'foo'
+    assert c.path.plugin == 'p'
 
     with pytest.raises(AttributeError):
         assert c.foo_bar  # i dont wan't to assert it but the IDE complains otherwise

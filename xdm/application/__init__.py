@@ -1,3 +1,4 @@
+from collections import defaultdict
 import logging
 from logging import StreamHandler
 
@@ -7,6 +8,7 @@ from blitzdb import FileBackend
 
 import tornado.httpserver
 from tornado.ioloop import IOLoop
+from tornado.ioloop import PeriodicCallback
 import tornado.web
 
 from xdm.application import api
@@ -25,7 +27,7 @@ class XDM(tornado.web.Application):
         self.logger = logging.getLogger('xdm')
         stream_handler = StreamHandler()
         stream_handler.setFormatter(ColoredFormatter(
-            '%(asctime)-15s %(log_color)s%(levelname)-8s%(reset)s %(message)s'
+            '%(asctime)-15s %(log_color)s%(levelname)-8s%(blue)s%(name)-20s%(reset)s %(message)s'
         ))
         self.logger.addHandler(stream_handler)
         self.config = Config(**kwargs)
@@ -41,11 +43,17 @@ class XDM(tornado.web.Application):
         # spawn Q consumers
         self.queue = Q
         IOLoop.current().spawn_callback(consumer)
-
+        print(id(IOLoop.current()))
         self.task_map = {
             "update_check": internal.update_check
         }
-        self.plugins = PluginManager([self.config.path.plugins])
+        self.plugins = PluginManager(
+            self,
+            paths=[self.config.path.plugin],
+            follow_symlinks=self.config.server.debug
+        )
+        self.schedules = defaultdict(list)
+        self.plugins.load()
 
     def init_logging(self, stream_handler):
         self.loggers = {
@@ -61,3 +69,14 @@ class XDM(tornado.web.Application):
 
     def add_task(self, name, callable):
         self.task_map[name] = callable
+
+    def add_schedule(self, name, callback, timedelta):
+        milliseconds = timedelta.seconds * 1000
+        self.logger.debug('Adding schedule %s:%s to run every %sms', name, callback, milliseconds)
+
+        print(id(IOLoop.current()))
+        periodic_callback = PeriodicCallback(callback, milliseconds)
+        periodic_callback.start()
+        self.schedules[name].append(
+            periodic_callback
+        )

@@ -9,7 +9,10 @@ def run():  # noqa
     parser = ArgumentParser(description='XDM: eXtendable Download Manager.'
                                         'Plugin based media collection manager.')
     parser.add_argument('--port', type=int, help='port to listen on')
-    parser.add_argument('--config_path', help='Path to the config file')
+    parser.add_argument(
+        '--config-path', help='Path to the config file', dest='config_path')
+    parser.add_argument(
+        '--plugin-folder', help='Path to the plugin folder', dest='plugin_folder')
     parser.add_argument('--debug', action='store_true', help='Debug logging on')
     args = parser.parse_args()
 

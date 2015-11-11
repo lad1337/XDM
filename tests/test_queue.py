@@ -1,4 +1,4 @@
-import logging
+from conftest import test_logger
 
 import pytest
 
@@ -9,8 +9,6 @@ from xdm.task import IdentifierQueue
 from xdm.task import QUEUED
 from xdm.task import RUNNING
 from xdm.task import TaskStatus
-
-logger = logging.getLogger('xdm')
 
 
 def test_queue_initial_status():
@@ -50,17 +48,17 @@ def test_queue_status_progress():
     assert status.progress['total'] == 7
 
 
-@pytest.mark.gen_test(timeout=20)
-def test_queue_consumer(io_loop, xdm):
+@pytest.mark.gen_test(timeout=5)
+def test_queue_consumer(xdm):
     id_ = 'a'
     data = {'foo': 'bar'}
     xdm.queue.put(id_, (xdm, 'update_check', data))
-    logger.debug('asserting status')
+    test_logger.debug('asserting status')
     yield xdm.queue.join()
 
 
-@pytest.mark.gen_test(timeout=20)
-def test_queue_progress(io_loop, xdm):
+@pytest.mark.gen_test(timeout=5)
+def test_queue_progress(xdm):
 
     @gen.coroutine
     def foo(task_status, app, data):
