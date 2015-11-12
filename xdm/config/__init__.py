@@ -14,10 +14,8 @@ class Config(ConfigParser):
 
     def __init__(self, *args, **kwargs):
         self.arguments = kwargs
-        if self.arguments.get('debug'):
-            logger.setLevel(logging.DEBUG)
-
         super(Config, self).__init__()
+
         self.load_defaults()
         self.load_arguments(self.arguments)
 

@@ -25,16 +25,10 @@ class XDM(tornado.web.Application):
 
         # TODO(lad1337): do this somewhere else, currently here to properly log config init
         self.logger = logging.getLogger('xdm')
-        stream_handler = StreamHandler()
-        stream_handler.setFormatter(ColoredFormatter(
-            '%(asctime)-15s %(log_color)s%(levelname)-8s%(blue)s%(name)-20s%(reset)s %(message)s'
-        ))
-        self.logger.addHandler(stream_handler)
+        self.init_logging(kwargs.get('debug'))
         self.config = Config(**kwargs)
-        self.loggers = []
-        self.init_logging(stream_handler)
-
         super(XDM, self).__init__()
+
         self.debug = self.config.server.debug
         self.db = FileBackend(self.config.path.element_db)
         self.config_db = FileBackend(self.config.path.config_db)
@@ -44,7 +38,6 @@ class XDM(tornado.web.Application):
         self.queue = IdentifierQueue()
         self.consumer = Consumer(self.queue)
         IOLoop.current().spawn_callback(self.consumer)
-        print('xdm __init__', id(IOLoop.current()))
         self.task_map = {
             "update_check": internal.update_check
         }
@@ -56,7 +49,19 @@ class XDM(tornado.web.Application):
         self.schedules = defaultdict(list)
         self.plugins.load()
 
-    def init_logging(self, stream_handler):
+    def init_logging(self, debug):
+        def set_sevel(logger):
+            if debug:
+                logger.setLevel(logging.DEBUG)
+            else:
+                logger.setLevel(logging.INFO)
+        set_sevel(self.logger)
+        stream_handler = StreamHandler()
+        stream_handler.setFormatter(ColoredFormatter(
+            '%(asctime)-15s %(log_color)s%(levelname)-8s%(blue)s%(name)-20s%(reset)s %(message)s'
+        ))
+        self.logger.addHandler(stream_handler)
+        self.loggers = []
         self.loggers = {
             'xdm': self.logger,
             'server.access': logging.getLogger("tornado.access"),
@@ -64,9 +69,8 @@ class XDM(tornado.web.Application):
             'server.general': logging.getLogger("tornado.general")
         }
         for logger_name, logger in self.loggers.items():
-            if self.config.server.debug:
-                logger.setLevel(logging.DEBUG)
             logger.addHandler(stream_handler)
+            set_sevel(self.logger)
 
     def add_task(self, name, callable):
         self.task_map[name] = callable
@@ -75,7 +79,6 @@ class XDM(tornado.web.Application):
         milliseconds = timedelta.seconds * 1000
         self.logger.debug('Adding schedule %s:%s to run every %sms', name, callback, milliseconds)
 
-        print(id(IOLoop.current()))
         periodic_callback = PeriodicCallback(callback, milliseconds)
         periodic_callback.start()
         self.schedules[name].append(

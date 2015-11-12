@@ -87,7 +87,7 @@ class Plugin():
         return '<%s>' % self
 
     def __str__(self):
-        return '{class_}:{identifier}:{instance}'.format(
+        return '{identifier}:{instance}'.format(
             class_=self.__class__,
             identifier=self.identifier,
             instance=self.instance

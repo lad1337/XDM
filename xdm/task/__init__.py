@@ -3,10 +3,10 @@ import logging
 from tornado import gen
 from tornado.queues import Queue
 
-from xdm.constant.task import FINISHED
-from xdm.constant.task import QUEUED
-from xdm.constant.task import RUNNING
-from xdm.constant.task import STATUS_MAP
+from xdm.task.constant import FINISHED
+from xdm.task.constant import QUEUED
+from xdm.task.constant import RUNNING
+from xdm.task.constant import STATUS_MAP
 
 logger = logging.getLogger('xdm')
 
