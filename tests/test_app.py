@@ -7,14 +7,12 @@ from tornado import gen
 from tornado.ioloop import IOLoop
 
 from xdm.application import XDM
-from xdm.task import Q
 
 
 def test_app_init(xdm):
     assert xdm.config
     assert xdm.db
     assert xdm.queue
-    assert xdm.queue is Q
     assert xdm.queue.qsize() == 0
 
 

@@ -59,7 +59,6 @@ def test_queue_consumer(xdm):
 
 @pytest.mark.gen_test(timeout=5)
 def test_queue_progress(xdm):
-
     @gen.coroutine
     def foo(task_status, app, data):
         task_status.total = data['total']

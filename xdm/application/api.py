@@ -5,8 +5,6 @@ from tornado.escape import json_decode
 from tornado.gen import coroutine
 from tornado.web import RequestHandler
 
-from xdm.task import Q
-
 logger = logging.getLogger('xdm')
 
 
@@ -30,7 +28,7 @@ class Task(RequestHandler):
             data = json_decode(self.request.body)
         logger.info('Starting task: %s', task_name)
         task_id = uuid.uuid4()
-        yield Q.put(task_id, (
+        yield self.application.queue.put(task_id, (
             self.application,
             task_name,
             data

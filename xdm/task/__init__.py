@@ -80,21 +80,23 @@ class IdentifierQueue(Queue):
         self._task_status[identifier].status = status
 
 
-Q = IdentifierQueue(maxsize=200)
+class Consumer():
 
+    def __init__(self, queue):
+        self.queue = queue
 
-# http://tornadokevinlee.readthedocs.org/en/latest/queues.html
-@gen.coroutine
-def consumer():
-    while True:
-        task_status, task_data = yield Q.get()
-        app, task_name, task_data = task_data
-        logger.debug('%s, %s', app, task_name)
+    # http://tornadokevinlee.readthedocs.org/en/latest/queues.html
+    @gen.coroutine
+    def __call__(self):
+        while True:
+            task_status, task_data = yield self.queue.get()
+            app, task_name, task_data = task_data
+            logger.debug('%s, %s', app, task_name)
 
-        logger.info('Doing work on %s:%s', task_name, task_status)
-        try:
-            task_result = yield app.task_map.get(task_name)(task_status, app, task_data)
-        finally:
-            Q.task_done(task_status.identifier)
-            logger.info('Work on %s:%s done', task_name, task_status)
-        logger.debug('Task result: %s', task_result)
+            logger.info('Doing work on %s:%s', task_name, task_status)
+            try:
+                task_result = yield app.task_map.get(task_name)(task_status, app, task_data)
+            finally:
+                self.queue.task_done(task_status.identifier)
+                logger.info('Work on %s:%s done', task_name, task_status)
+            logger.debug('Task result: %s', task_result)

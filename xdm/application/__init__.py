@@ -14,9 +14,9 @@ import tornado.web
 from xdm.application import api
 from xdm.config import Config
 from xdm.plugin import PluginManager
-from xdm.task import consumer
+from xdm.task import Consumer
+from xdm.task import IdentifierQueue
 from xdm.task import internal
-from xdm.task import Q
 
 
 class XDM(tornado.web.Application):
@@ -41,9 +41,10 @@ class XDM(tornado.web.Application):
         # adding default routes
         self.add_handlers(".*$", [(h.route, h) for h in (api.APIPing, api.Task)])
         # spawn Q consumers
-        self.queue = Q
-        IOLoop.current().spawn_callback(consumer)
-        print(id(IOLoop.current()))
+        self.queue = IdentifierQueue()
+        self.consumer = Consumer(self.queue)
+        IOLoop.current().spawn_callback(self.consumer)
+        print('xdm __init__', id(IOLoop.current()))
         self.task_map = {
             "update_check": internal.update_check
         }
