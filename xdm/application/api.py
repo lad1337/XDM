@@ -5,6 +5,8 @@ from tornado.escape import json_decode
 from tornado.gen import coroutine
 from tornado.web import RequestHandler
 
+import xdm
+
 logger = logging.getLogger('xdm')
 
 
@@ -15,6 +17,15 @@ class APIPing(RequestHandler):
     @coroutine
     def get(self):
         self.write({'data': 'pong'})
+
+
+class APIVersion(RequestHandler):
+
+    route = r'/api/version'
+
+    @coroutine
+    def get(self):
+        self.write({'data': xdm.__version__})
 
 
 class Task(RequestHandler):

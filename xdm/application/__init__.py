@@ -33,7 +33,7 @@ class XDM(tornado.web.Application):
         self.db = FileBackend(self.config.path.element_db)
         self.config_db = FileBackend(self.config.path.config_db)
         # adding default routes
-        self.add_handlers(".*$", [(h.route, h) for h in (api.APIPing, api.Task)])
+        self.add_handlers(".*$", [(h.route, h) for h in (api.APIVersion, api.APIPing, api.Task)])
         # spawn Q consumers
         self.queue = IdentifierQueue()
         self.consumer = Consumer(self.queue)
@@ -84,3 +84,7 @@ class XDM(tornado.web.Application):
         self.schedules[name].append(
             periodic_callback
         )
+
+    def shutdown(self):
+        self.logger.info('Shutting down')
+        IOLoop.instance().stop()

@@ -1,7 +1,5 @@
 from conftest import test_logger
 
-import tempfile
-
 import pytest
 from tornado import gen
 
@@ -16,12 +14,11 @@ def test_app_init(xdm):
 
 
 def test_app_with_args():
-    config_file = str(tempfile.TemporaryFile())
     xdm = XDM(
         debug=True,
-        config_path=config_file
+        port=5000
     )
-    assert xdm.config.get('path', 'config') == config_file
+    assert xdm.config.getint('server', 'port') == 5000
     assert xdm.config.getboolean('server', 'debug')
 
 
