@@ -1,0 +1,7 @@
+pytest>=2.5.2
+pytest-cov>=1.8.1
+hacking>=0.9.3
+pytest-localserver>=0.3.0
+datadiff
+Mock
+pytest-tornado
