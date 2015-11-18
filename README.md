@@ -2,152 +2,78 @@
 
 XDM: eXtendable Download Manager. Plugin based media collection manager.
 
-XDM is in BETA
-Current official site [http://xdm.lad1337.de](http://xdm.lad1337.de)<br/>
-Official main plugin repository at [https://github.com/lad1337/XDM-main-plugin-repo/](https://github.com/lad1337/XDM-main-plugin-repo/)
+Homepage: [http://xdm.lad1337.de](http://xdm.lad1337.de)<br/>
 
-[![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/lad1337/xdm/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
+[![Build Status](https://travis-ci.org/lad1337/XDM.svg)](https://travis-ci.org/lad1337/XDM)
 [![Gitter chat](https://badges.gitter.im/lad1337/XDM.png)](https://gitter.im/lad1337/XDM)
 
+## Rewrite status / basic idea
+XDM is only a framework that supplies the following:
 
-[![tip for next commit](http://tip4commit.com/projects/534.svg)](http://tip4commit.com/projects/534)
-[![Gittip](http://img.shields.io/gittip/lad1337.png)](https://www.gittip.com/lad1337/)
+- [x] based on [tornado](http://www.tornadoweb.org)
+- [x] [blitzdb](http://blitzdb.readthedocs.org/en/latest/)
+- [x] Unittesting
+- [ ] a basic frontend to install plugins during first launch
+- [ ] documentation
+- [x] plugin system
+- [ ] plugin repo system (very similar to old one)
+- [ ] automatic plugin updater (very similar to old one)
+- [x] plugin config management
+- [ ] plugin persistent data management
+- [ ] automatic core updater (similar to old one)
+    - [ ] git
+    - [ ] source
+    - [ ] mac app
+    - [ ] windows app
+- [x] interface to register tasks / messages
+- [x] interface to register inteval tasks
+- [ ] interface to register http routes
+- [ ] complete web based configuration interface
+- [ ] new set of plugins
+- [ ] find a new word for the "D" in XDM. XDM is still e__X__tendable and a __M__anager but the core app is not download specific.
 
+The idea behind the structure is that plugins control the whole workflow.
+Plugins do not have specific roles, they just define tasks.
+These tasks can either be schedules or "hooks" called from other plugins.
+e.g. the plugins *ElementUpdates* defines a scheduled task that queries all *Elements* that can be requests for update (not yet defined how to identify, maybe simply by: has no parent -> Root type).
+The schedules task then gets all tasks with the name *get_element* (name and interface defined by convention between plugins) and calls each task with each *Element*. *get_element* is defined in multiple plugins like a plugin that can get meta data from *trakt.tv* and another that gets scores from IMDB. The initial *ElementUpdates* task then compares the results from the *get_element* and updates the *elements*
+
+The user interface (in this case web based) will be supplied by a plugin, that attaches tornado based *RequestHandler*s to the root application. this will also need the ability to expose files (js, css, etc.) of plugins in some form.
+
+At the time of writing it is not clear how other plugins interface / inject into the the web interface / HTML.
+neither is it clear if the html is rendered on the server or client.
+this might also lead to a very close cupeling between plugins -> the "first" Gui plugin defines the content inject interface, it is preferable to define this interface in the base application.
 
 ## Requirements
 
-- python 2.7.x
+- python 3.4
 
-optional but recomended when running on source
+## How to develop
 
-- git 1.8.x 
+### install
+```bash    
+git clone git@github.com:lad1337/XDM.git
+git checkout -b develop origin/develop
+cd XDM
+```
+### running the tests
+if tox is not installed: `pip install tox`
+```bash
+tox
+```
 
-## Known support for Mediatypes
+### running the app
+note: using mkvirtualenv for convenience
 
-- Movies: Movies and find and Postprocess
-- Music: Albums and find and Postprocess (only for Mac OSX adding to iTunes)
-- Games: PC, Xbox360, PS3 and Wii Games and find and Postprocess
-- Books: Books
-- TV: TV shows
-- Anime: Animes
-
-For more info on available first party plugins see the main repository at [https://github.com/lad1337/XDM-main-plugin-repo/](https://github.com/lad1337/XDM-main-plugin-repo/).
-
-Note: At some point in the future all MediaTypeManagers and corresponding plugins will be moved into the repository and out of the core.
-
-### Documentation
-is available online at [https://xdm.readthedocs.org](https://xdm.readthedocs.org)<br>
-or in the source and can be build using [sphinx](http://sphinx-doc.org/)
-
-Libraries in use
-----------------
-
-### Backend
-
-- [CherryPy](http://www.cherrypy.org/): A Minimalist Python Web Framework
-- [Requests](http://docs.python-requests.org/en/latest/): HTTP for Humans
-- [pyDes](http://twhiteman.netfirms.com/des.html): This is a pure python implementation of the DES encryption algorithm.
-- [profilehooks](http://mg.pov.lt/blog/profilehooks-1.0.html): Profiling/tracing wrapper
-- [peewee](http://peewee.readthedocs.org/en/latest/): a small, expressive orm
-- [Jinja2](http://jinja.pocoo.org/docs/): Jinja2 is a full featured template engine for Python.
-- [pylint](http://www.logilab.org/project/pylint): analyzes Python source code looking for bugs and signs of poor quality
-- [astng](https://pypi.python.org/pypi/logilab-astng): common base representation of python source code for projects such as pychecker, pyreverse, pylint
-- [guessit](https://pypi.python.org/pypi/guessit): a library for guessing information from video files.
-- [JSONRPClib](https://github.com/joshmarshall/jsonrpclib): A Python JSON-RPC over HTTP that mirrors xmlrpclib syntax.
-- [pbs](https://pypi.python.org/pypi/pbs): Python subprocess wrapper (fallback for windows, see sh).
-- [sh](http://amoffat.github.io/sh/): sh (previously pbs) is a full-fledged subprocess interface for Python that allows you to call any program as if it were a function.
-
-### Frontend
-
-- [Bootstrap](http://twitter.github.io/bootstrap/index.html): Sleek, intuitive, and powerful front-end framework for faster and easier web development.
-- [Font Awesome](http://fortawesome.github.io/Font-Awesome/): The iconic font designed for Bootstrap.
-- [jQuery](http://jquery.com/): is a fast, small, and feature-rich JavaScript library.
-- [jQuery UI](http://jqueryui.com/): is a curated set of user interface interactions, effects, widgets, and themes built on top of the jQuery JavaScript Library.
-- [modernizr](http://modernizr.com/): is a JavaScript library that detects HTML5 and CSS3 features in the user’s browser.
-- [fancyBox](fancyapps.com): fancyBox is a tool that offers a nice and elegant way to add zooming functionality for images, html content and multi-media on your webpages.
-- [Raphaël](http://raphaeljs.com/): JavaScript Vector Library
-- [noty](http://needim.github.io/noty/): jquery notification plugin
-- [jQuery resize event](http://benalman.com/projects/jquery-resize-plugin/): With jQuery resize event, you can now bind resize event handlers to elements other than window.
-- [JQuery Countdown Timer](http://jaspreetchahal.org/a-simple-jquery-countdown-timer-with-callback/): A simple jQuery Countdown Timer with callback
-- [jQuery YouTube Popup Player](http://lab.abhinayrathore.com/jquery_youtube/): A simple and light weight plugin to display YouTube videos in a jQuery dialog box.
-- [pjax](ttps://github.com/defunkt/jquery-pjax): pushState + ajax = pjax http://pjax.heroku.com
-- [TouchSwipe](https://github.com/mattbryson/TouchSwipe-Jquery-Plugin): A jquery plugin to be used on touch devices such as iPad, iPhone, android etc
-
-(Plugins may use more libraries)
-
-Screenshots
------------
-
-[More screenshots](http://xdm.lad1337.de)
+```bash
+mkvirtualenv xdm --python=python3
+pip install -e .
+# might need a "rehash" or shell equivalent
+xdm-server --debug
+```
 
 
-Movie plugin with some movies
-![Movie plugin](http://xdm.lad1337.de/img/webshot-1.jpg "Movie plugin")
-
-Music plugin with some albums
-![Music plugin](http://xdm.lad1337.de/img/webshot-2.jpg "Music plugin")
-
-Games
-![Games plugin](http://xdm.lad1337.de/img/webshot-3.jpg "Games plugin")
-
-Books
-![Books plugin](http://xdm.lad1337.de/img/webshot-4.jpg "Books plugin")
-
-Plugin and reposetory managment
-![Plugins](http://xdm.lad1337.de/img/webshot-6.jpg "Plugin and reposetory managment")
-
-
-Usage
------
-<pre>
-usage: XDM [-h] [-d] [-v] [-D] [-p PIDFILE] [-P PORT] [-n] [-b DATADIR]
-           [--config_db CONFIG_DB] [--data_db DATA_DB]
-           [--history_db HISTORY_DB] [--dev] [--noApi] [--apiPort APIPORT]
-           [--noWebServer] [--pluginImportDebug]
-           [--profile [PROFILE [PROFILE ...]]]
-
-optional arguments:
-  -h, --help            show this help message and exit
-  -d, --daemonize       Run the server as a daemon.
-  -v, --version         Print Version and exit.
-  -D, --debug           Print debug log to screen.
-  -p PIDFILE, --pidfile PIDFILE
-                        Store the process id in the given file.
-  -P PORT, --port PORT  Force webinterface to listen on this port.
-  -n, --nolaunch        Don't start the browser.
-  -b DATADIR, --datadir DATADIR
-                        Set the directory for created data.
-  --config_db CONFIG_DB
-                        Path to config database
-  --data_db DATA_DB     Path to data database
-  --history_db HISTORY_DB
-                        Path to history database
-  --dev                 Developer mode. Disables the censoring during log and
-                        the plugin manager follows symlinks
-  --noApi               Disable the api
-  --apiPort APIPORT     Port the api runs on
-  --noWebServer         Don't start the webserver
-  --pluginImportDebug   Extra verbosy debug during plugin import is printed.
-  --profile [PROFILE [PROFILE ...]]
-                        Wrap a decorated(!) function in a profiler. By default
-                        all decorated functions are profiled. Decorate your
-                        function with @profileMeMaybe
-</pre>
-
-
-i18n
-----
-
-You will need an instlled version of babel
-
-    Build message catalog       $ pybabel extract -F babel.cfg -o ./i18n/messages.pot .
-    Create language po          $ pybabel init -i ./i18n/messages.pot -d i18n -l ``language name``
-    Update language po          $ pybabel update -i ./i18n/messages.pot -d i18n
-    Compile mo files            $ pybabel compile -d i18n -f
-
-
-License
-=======
+## License
 XDM: Xtentable Download Manager. Plugin based media collection manager.<br>
 Copyright (C) 2013  Dennis Lutter
 
