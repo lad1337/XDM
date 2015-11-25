@@ -5,7 +5,7 @@ from pathlib import Path
 from attrdict import AttrDict
 
 from xdm.config.default import ARGUMENT_MAP
-from xdm.config.default import DEFAUL_CONFIG
+from xdm.config.default import DEFAULT_CONFIG
 
 logger = logging.getLogger('xdm')
 
@@ -17,7 +17,6 @@ class Config(ConfigParser):
         super(Config, self).__init__()
 
         self.load_defaults()
-        self.load_arguments(self.arguments)
 
         self.init(self.arguments)
         self.load_arguments(self.arguments)
@@ -38,7 +37,7 @@ class Config(ConfigParser):
             if isinstance(value, tuple):
                 return value[0]
             return str(value)
-        for section, values in DEFAUL_CONFIG.items():
+        for section, values in DEFAULT_CONFIG.items():
             self[section] = {
                 k: value_for_maybe_type(v) for k, v in values.items()}
 
@@ -69,7 +68,7 @@ class Config(ConfigParser):
             self.write(config_file)
 
     def typed(self, section, key):
-        default_value_data = DEFAUL_CONFIG.get(section, {}).get(key)
+        default_value_data = DEFAULT_CONFIG.get(section, {}).get(key)
         if not isinstance(default_value_data, tuple):
             return self.get(section, key)
         type_ = default_value_data[1]

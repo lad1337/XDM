@@ -4,7 +4,7 @@ from appdirs import AppDirs
 
 app_dirs = AppDirs('XDM')
 
-DEFAUL_CONFIG = {
+DEFAULT_CONFIG = {
     'path': {
         'config': Path(app_dirs.user_config_dir) / 'xdm.ini',
         'element_db': Path(app_dirs.user_data_dir) / 'element_db',

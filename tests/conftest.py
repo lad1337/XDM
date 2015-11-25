@@ -34,7 +34,7 @@ import pytest
 
 from xdm.application import XDM
 from xdm.config import Config
-from xdm.config.default import DEFAUL_CONFIG
+from xdm.config.default import DEFAULT_CONFIG
 from xdm.plugin import PluginManager
 
 test_plugin_folder = Path(__file__).parent / 'plugin' / 'plugins'
@@ -44,8 +44,8 @@ Config.write_config_file = Mock()
 
 
 def set_tmp_dir(tmp_dir):
-    global DEFAUL_CONFIG
-    DEFAUL_CONFIG['path'] = {
+    global DEFAULT_CONFIG
+    DEFAULT_CONFIG['path'] = {
         'config': Path(tmp_dir) / 'xdm.ini',
         'element_db': Path(tmp_dir) / 'element_db',
         'config_db': Path(tmp_dir) / 'config_db',
