@@ -1,5 +1,5 @@
 cherrypy==3.2.2
-babel==1.3
+babel==2.9.1
 python-dateutil
 guessit==0.6
 jinja2
